@@ -35,10 +35,4 @@ public class PlotProvider {
         Vector2i max = new Vector2i(gridX, gridZ).add(maxOffset);
         return new PlotBounds(min, max);
     }
-
-    public Plot.Builder plotBuilder(Vector3i position) {
-        PlotId id = plotId(position);
-        PlotBounds bounds = plotBounds(id);
-        return Plot.builder().id(id).bounds(bounds);
-    }
 }

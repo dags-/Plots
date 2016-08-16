@@ -16,6 +16,14 @@ public class PlotBounds {
         this.max = max;
     }
 
+    public Vector2i getMin() {
+        return min;
+    }
+
+    public Vector2i getMax() {
+        return max;
+    }
+
     public boolean contains(Vector3i pos) {
         return contains(pos.getX(), pos.getZ());
     }
@@ -25,6 +33,6 @@ public class PlotBounds {
     }
 
     public boolean contains(int x, int z) {
-        return x >= min.getX() && x <= max.getX() && z >= min.getY() && z <= max.getY();
+        return x >= min.getX() && x < max.getX() && z >= min.getY() && z < max.getY();
     }
 }

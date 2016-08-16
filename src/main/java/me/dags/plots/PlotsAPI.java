@@ -2,6 +2,7 @@ package me.dags.plots;
 
 import me.dags.plots.generator.GeneratorProperties;
 import me.dags.plots.generator.PlotGenerator;
+import me.dags.plots.plot.PlotWorld;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.world.gen.WorldGeneratorModifier;
 

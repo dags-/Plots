@@ -37,4 +37,19 @@ public class PlotId {
     public int hashCode() {
         return hash;
     }
+
+    public static PlotId valueOf(String input) {
+        if (input != null && input.length() >= 3) {
+            String[] split = input.split(":");
+            try {
+                int x = Integer.valueOf(split[0]);
+                int z = Integer.valueOf(split[1]);
+                return new PlotId(x, z);
+            } catch (NumberFormatException e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+        return null;
+    }
 }

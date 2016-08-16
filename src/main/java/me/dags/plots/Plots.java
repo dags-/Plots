@@ -4,8 +4,10 @@ import com.google.inject.Inject;
 import me.dags.commandbus.CommandBus;
 import me.dags.plots.commands.PlotCommands;
 import me.dags.plots.commands.PlotworldCommands;
+import me.dags.plots.database.Database;
 import me.dags.plots.generator.GeneratorProperties;
 import me.dags.plots.generator.PlotGenerator;
+import me.dags.plots.plot.PlotWorld;
 import me.dags.plots.util.IO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,12 +34,14 @@ public class Plots {
     private static Plots instance;
 
     private final PlotsAPI plotsAPI = new PlotsAPI(this);
+    private final Database database;
     final Path configDir;
 
     @Inject
     public Plots(@ConfigDir(sharedRoot = false) Path configDir) {
         instance = this;
         this.configDir = configDir;
+        this.database = new Database(this, "jdbc:h2:" + configDir.resolve("plots_data").toAbsolutePath());
     }
 
     @Listener
@@ -57,6 +61,10 @@ public class Plots {
             PlotGenerator plotGenerator = (PlotGenerator) world.getWorldGenerator().getBaseGenerationPopulator();
             Plots.getApi().registerPlotWorld(new PlotWorld(world, plotGenerator.plotProvider()));
         }
+    }
+
+    public static Database getDatabase() {
+        return instance.database;
     }
 
     public static PlotsAPI getApi() {
