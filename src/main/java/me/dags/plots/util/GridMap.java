@@ -5,6 +5,8 @@ import java.util.function.Function;
 /**
  * @author dags <dags@dags.me>
  */
+
+// A two dimensional table
 public class GridMap<T> {
 
     private static final GridMap<?> EMPTY = new GridMap<>();

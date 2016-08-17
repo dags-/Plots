@@ -5,14 +5,26 @@ package me.dags.plots.plot;
  */
 public class PlotId {
 
+    public static final PlotId EMPTY = new PlotId();
+
     private final int x;
     private final int z;
     private final int hash;
+
+    private PlotId() {
+        this.x = Integer.MIN_VALUE;
+        this.z = Integer.MIN_VALUE;
+        this.hash = Integer.MIN_VALUE;
+    }
 
     public PlotId(int x, int z) {
         this.x = x;
         this.z = z;
         this.hash = 31 * x + z;
+    }
+
+    public boolean isPresent() {
+        return this != EMPTY;
     }
 
     public int plotX() {

@@ -14,6 +14,7 @@ import org.spongepowered.api.event.item.inventory.UseItemStackEvent;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.chat.ChatTypes;
+import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
 import java.util.HashMap;
@@ -29,6 +30,7 @@ public class PlotWorld {
     private final UUID worldId;
     private final PlotProvider plotProvider;
     private final Map<UUID, PlotUser> plotUsers = new HashMap<>();
+    private final Map<PlotId, PlotBounds> boundsCache = new HashMap<>();
 
     public PlotWorld(World world, PlotProvider plotProvider) {
         this.world = world.getName();
@@ -39,7 +41,6 @@ public class PlotWorld {
     @Listener
     public void onJoin(ClientConnectionEvent.Join event) {
         if (thisWorld(event.getTargetEntity().getWorld())) {
-            Plots.log("Getting plotUser: {}", event.getTargetEntity().getName());
             Plots.getDatabase().loadUser(world, event.getTargetEntity().getUniqueId(), this::addUser);
         }
     }
@@ -105,12 +106,18 @@ public class PlotWorld {
                 PlotId fromId = plotProvider.plotId(from);
                 PlotId toId = plotProvider.plotId(to);
                 if (fromId.equals(toId)) {
-                    if (!plotProvider.plotBounds(fromId).contains(from) && plotProvider.plotBounds(toId).contains(to)) {
+                    if (!getPlotBounds(fromId).contains(from) && getPlotBounds(toId).contains(to)) {
                         event.getTargetEntity().sendMessage(ChatTypes.ACTION_BAR, Text.of("Plot: ", toId));
                     }
                 }
             }
         }
+    }
+
+    public void teleportToPlot(Player player, PlotId plotId) {
+        Vector3i position = plotProvider.plotWarp(getPlotBounds(plotId));
+        Location<World> location = new Location<>(player.getWorld(), position);
+        player.setLocationAndRotation(location, player.getRotation());
     }
 
     public String getWorld() {
@@ -122,7 +129,11 @@ public class PlotWorld {
     }
 
     public PlotBounds getPlotBounds(PlotId plotId) {
-        return plotProvider.plotBounds(plotId);
+        PlotBounds bounds = boundsCache.get(plotId);
+        if (bounds == null) {
+            boundsCache.put(plotId, bounds = plotProvider.plotBounds(plotId));
+        }
+        return bounds;
     }
 
     public PlotUser getUser(UUID uuid) {
@@ -130,34 +141,32 @@ public class PlotWorld {
         return user != null ? user : PlotUser.EMPTY;
     }
 
-    public void updateUser(PlotUser user) {
+    public boolean canBuild(UUID uuid, Vector3i vector3i) {
+        PlotId plotId = plotProvider.plotId(vector3i);
+        return getPlotBounds(plotId).contains(vector3i) && getUser(uuid).isWhitelisted(plotId);
+    }
+
+    public void updateUser(PlotUser user, PlotId plotId) {
         if (user.isPresent()) {
             addUser(user);
-            Plots.getDatabase().saveUser(user);
+            Plots.getDatabase().updateUser(user, plotId);
         }
     }
 
     public void addUser(PlotUser user) {
         if (user.isPresent()) {
-            plotUsers.put(user.getUuid(), user);
+            plotUsers.put(user.getUUID(), user);
         }
     }
 
     public void removeUser(PlotUser user) {
         if (user.isPresent()) {
-            plotUsers.remove(user.getUuid());
+            plotUsers.remove(user.getUUID());
+            for (Map.Entry<PlotId, PlotMeta> entry : user.getPlots()) {
+                boundsCache.remove(entry.getKey());
+            }
             Plots.getDatabase().saveUser(user);
         }
-    }
-
-    private boolean canBuild(UUID uuid, Vector3i vector3i) {
-        PlotId plotId = plotProvider.plotId(vector3i);
-        PlotBounds bounds = plotProvider.plotBounds(plotId);
-        if (bounds.contains(vector3i)) {
-            PlotUser user = getUser(uuid);
-            return user.isPresent() && user.isWhitelisted(plotId);
-        }
-        return false;
     }
 
     private boolean thisWorld(World world) {

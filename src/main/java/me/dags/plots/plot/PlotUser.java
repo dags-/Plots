@@ -33,7 +33,7 @@ public class PlotUser {
         return world;
     }
 
-    public UUID getUuid() {
+    public UUID getUUID() {
         return uuid;
     }
 
@@ -41,8 +41,13 @@ public class PlotUser {
         return plotData.entrySet();
     }
 
+    public PlotMeta getMeta(PlotId plotId) {
+        PlotMeta meta = plotData.get(plotId);
+        return meta != null ? meta : PlotMeta.EMPTY;
+    }
+
     public boolean isWhitelisted(PlotId plotId) {
-        return plotData.containsKey(plotId);
+        return isPresent() && plotData.containsKey(plotId);
     }
 
     public boolean isOwner(PlotId plotId) {
@@ -84,8 +89,13 @@ public class PlotUser {
             return this;
         }
 
+        public Builder removePlot(PlotId plotId) {
+            plotData.remove(plotId);
+            return this;
+        }
+
         public PlotUser build() {
-            return new PlotUser(this);
+            return plotData.isEmpty() ? PlotUser.EMPTY : new PlotUser(this);
         }
     }
 }

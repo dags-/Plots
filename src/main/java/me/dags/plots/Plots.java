@@ -60,6 +60,7 @@ public class Plots {
         if (world.getWorldGenerator().getBaseGenerationPopulator() instanceof PlotGenerator) {
             PlotGenerator plotGenerator = (PlotGenerator) world.getWorldGenerator().getBaseGenerationPopulator();
             Plots.getApi().registerPlotWorld(new PlotWorld(world, plotGenerator.plotProvider()));
+            Plots.getDatabase().loadWorld(world.getName());
         }
     }
 

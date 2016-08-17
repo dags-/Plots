@@ -8,12 +8,23 @@ import com.flowpowered.math.vector.Vector3i;
  */
 public class PlotBounds {
 
+    static final PlotBounds EMPTY = new PlotBounds();
+
     private final Vector2i min;
     private final Vector2i max;
+
+    private PlotBounds() {
+        this.min = new Vector2i(1, 1);
+        this.max = new Vector2i(-1, -1);
+    }
 
     public PlotBounds(Vector2i min, Vector2i max) {
         this.min = min;
         this.max = max;
+    }
+
+    public boolean present() {
+        return this != EMPTY;
     }
 
     public Vector2i getMin() {

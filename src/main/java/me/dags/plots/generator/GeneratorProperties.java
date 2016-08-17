@@ -67,6 +67,14 @@ public class GeneratorProperties {
         return layers;
     }
 
+    public int getMaxY() {
+        int y = 0;
+        for (LayerProperties properties : layers) {
+            y += properties.thickness();
+        }
+        return y;
+    }
+
     public int getPathWidth() {
         return pathWidth;
     }
