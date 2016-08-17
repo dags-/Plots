@@ -119,7 +119,7 @@ public class Database {
         });
     }
 
-    private void update(Statement statement, Consumer<Boolean> callback) {
+    public void update(Statement statement, Consumer<Boolean> callback) {
         getService().execute(() -> {
             try (Connection connection = getDataSource().getConnection()) {
                 Plots.log("Update: {}", statement.getStatement());

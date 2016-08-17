@@ -8,6 +8,7 @@ import me.dags.commandbus.annotation.Command;
 import me.dags.commandbus.annotation.One;
 import me.dags.plots.Plots;
 import me.dags.plots.database.Queries;
+import me.dags.plots.database.statment.Delete;
 import me.dags.plots.database.statment.Select;
 import me.dags.plots.plot.*;
 import org.spongepowered.api.entity.living.player.Player;
@@ -51,21 +52,40 @@ public class PlotCommands {
         });
     }
 
-    @Command(aliases = "unclaim", parent = "plot", perm = "plot.command.claim")
+    @Command(aliases = "unclaim", parent = "plot", perm = "plot.command.unclaim.self")
     public void unclaim(@Caller Player player) {
         processLocation(player, ((plotWorld, plotId) -> {
             PlotUser plotUser = plotWorld.getUser(player.getUniqueId());
-            if (plotUser.isPresent()) {
-                if (plotUser.isOwner(plotId)) {
-                    PlotUser updated = plotUser.toBuilder().removePlot(plotId).build();
-                    plotWorld.updateUser(updated, plotId);
-                    plotWorld.resetPlot(plotId);
-                    format.info("Unclaimed plot ").stress(plotId).tell(player);
-                } else {
-                    format.error("You do not own this plot").tell(player);
-                }
+            if (plotUser.isOwner(plotId)) {
+                PlotUser updated = plotUser.toBuilder().removePlot(plotId).build();
+                plotWorld.updateUser(updated, plotId);
+                plotWorld.resetPlot(plotId);
+                format.info("Unclaimed plot ").stress(plotId).tell(player);
+            } else if (player.hasPermission("plot.command.unclaim.other")){
+                Delete delete = Queries.deletePlot(plotWorld.getWorld(), plotId).build();
+                Plots.getDatabase().update(delete, result -> {
+                    if (result) {
+                        format.info("Unclaimed plot ").stress(plotId).tell(player);
+                        plotWorld.resetPlot(plotId);
+                    } else {
+                        format.error("Unable to un-claim plot ").stress(plotId).tell(player);
+                    }
+                });
             } else {
-                format.error("You do not own any plots").tell(player);
+                format.error("You do not own this plot").tell(player);
+            }
+        }));
+    }
+
+    @Command(aliases = "reset", parent = "plot", perm = "plot.command.reset.self")
+    public void reset(@Caller Player player) {
+        processLocation(player, ((plotWorld, plotId) -> {
+            PlotUser plotUser = plotWorld.getUser(player.getUniqueId());
+            if (plotUser.isOwner(plotId) || player.hasPermission("plot.command.reset.other")) {
+                format.info("Resetting plot ").stress(plotId).info("...").tell(player);
+                plotWorld.resetPlot(plotId);
+            } else {
+                format.error("You do not own this plot").tell(player);
             }
         }));
     }

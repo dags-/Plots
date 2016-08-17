@@ -146,4 +146,10 @@ public class Queries {
                 .in(user.getWorld())
                 .where(Where.of(Keys.UID, "=", Keys.uid(user.getUUID(), plotId)).build());
     }
+
+    public static Delete.Builder deletePlot(String world, PlotId plotId) {
+        return new Delete.Builder()
+                .in(world)
+                .where(matchPlot(plotId).build());
+    }
 }
