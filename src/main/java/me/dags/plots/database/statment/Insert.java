@@ -26,7 +26,7 @@ public class Insert implements Statement {
         private boolean merge = false;
         private final Map<String, Object> values = new HashMap<>();
 
-        public Builder table(String table) {
+        public Builder in(String table) {
             this.table = table;
             return this;
         }
@@ -44,7 +44,7 @@ public class Insert implements Statement {
         private String allToString(Collection<?> collection, boolean key) {
             StringBuilder builder = new StringBuilder();
             for (Object o : collection) {
-                builder.append(builder.length() > 0 ? ", " : "").append(key ? keyToString(o) : valToString(o));
+                builder.append(builder.length() > 0 ? ", " : "").append(key ? o.toString() : valToString(o));
             }
             return builder.toString();
         }

@@ -8,7 +8,7 @@ import com.flowpowered.math.vector.Vector3i;
  */
 public class PlotBounds {
 
-    static final PlotBounds EMPTY = new PlotBounds();
+    private static final PlotBounds EMPTY = new PlotBounds();
 
     private final Vector2i min;
     private final Vector2i max;
@@ -35,6 +35,14 @@ public class PlotBounds {
         return max;
     }
 
+    public Vector3i getBlockMin() {
+        return new Vector3i(min.getX(), 0, min.getY());
+    }
+
+    public Vector3i getBlockMax() {
+        return new Vector3i(max.getX(), 255, max.getY());
+    }
+
     public boolean contains(Vector3i pos) {
         return contains(pos.getX(), pos.getZ());
     }
@@ -44,6 +52,6 @@ public class PlotBounds {
     }
 
     public boolean contains(int x, int z) {
-        return x >= min.getX() && x < max.getX() && z >= min.getY() && z < max.getY();
+        return x > min.getX() && x < max.getX() && z > min.getY() && z < max.getY();
     }
 }

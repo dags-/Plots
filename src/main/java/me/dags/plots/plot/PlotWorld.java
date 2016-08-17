@@ -2,6 +2,8 @@ package me.dags.plots.plot;
 
 import com.flowpowered.math.vector.Vector3i;
 import me.dags.plots.Plots;
+import org.spongepowered.api.Sponge;
+import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
@@ -12,10 +14,14 @@ import org.spongepowered.api.event.entity.SpawnEntityEvent;
 import org.spongepowered.api.event.filter.cause.First;
 import org.spongepowered.api.event.item.inventory.UseItemStackEvent;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
+import org.spongepowered.api.event.world.ChangeWorldWeatherEvent;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.chat.ChatTypes;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
+import org.spongepowered.api.world.extent.MutableBiomeArea;
+import org.spongepowered.api.world.extent.MutableBlockVolume;
+import org.spongepowered.api.world.weather.Weathers;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,9 +39,20 @@ public class PlotWorld {
     private final Map<PlotId, PlotBounds> boundsCache = new HashMap<>();
 
     public PlotWorld(World world, PlotProvider plotProvider) {
+        world.setWeather(Weathers.CLEAR);
         this.world = world.getName();
         this.worldId = world.getUniqueId();
         this.plotProvider = plotProvider;
+    }
+
+    @Listener
+    public void onWeather(ChangeWorldWeatherEvent event) {
+        if (thisWorld(event.getTargetWorld())) {
+            event.setWeather(Weathers.CLEAR);
+            event.setDuration(Integer.MAX_VALUE);
+        }
+
+        Plots.log("Set weather for world: {}", world);
     }
 
     @Listener
@@ -112,6 +129,16 @@ public class PlotWorld {
                 }
             }
         }
+    }
+
+    public void resetPlot(PlotId plotId) {
+        Sponge.getServer().getWorld(worldId).ifPresent(world -> {
+            PlotBounds bounds = getPlotBounds(plotId);
+            MutableBlockVolume volume = world.getBlockView(bounds.getBlockMin(), bounds.getBlockMax());
+            MutableBiomeArea biomeArea = world.getBiomeView(bounds.getMin(), bounds.getMax());
+            volume.getBlockWorker().fill((x, y, z) -> BlockTypes.AIR.getDefaultState());
+            world.getWorldGenerator().getBaseGenerationPopulator().populate(world, volume, biomeArea.getImmutableBiomeCopy());
+        });
     }
 
     public void teleportToPlot(Player player, PlotId plotId) {

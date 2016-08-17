@@ -53,7 +53,7 @@ public class Table implements Statement {
         public String toString() {
             return "CREATE TABLE IF NOT EXISTS " +
                     keyToString(name) +
-                    " (" + allToString(columns) + ")";
+                    " (" + allToString(columns) + ", PRIMARY KEY(" + primary + ")" + ")";
         }
 
         @Override
@@ -73,7 +73,7 @@ public class Table implements Statement {
 
             @Override
             public String toString() {
-                return Builder.this.keyToString(key) + " " + type + (Builder.this.primary.equals(key) ? " PRIMARY KEY" : "");
+                return Builder.this.keyToString(key) + " " + type;
             }
         }
     }

@@ -25,7 +25,7 @@ public class Delete implements Statement {
         private final List<String> from = new ArrayList<>();
         private String where = "";
 
-        public Builder table(String name) {
+        public Builder in(String name) {
             this.from.add(name);
             return this;
         }

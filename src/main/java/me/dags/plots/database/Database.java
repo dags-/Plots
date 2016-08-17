@@ -24,14 +24,20 @@ public class Database {
 
     private final String database;
     private final Object plugin;
-    private final SpongeExecutorService service;
 
+    private SpongeExecutorService service;
     private DataSource dataSource;
 
     public Database(Object plugin, String database) {
-        this.service = Sponge.getScheduler().createAsyncExecutor(plugin);
         this.plugin = plugin;
         this.database = database;
+    }
+
+    private SpongeExecutorService getService() {
+        if (service == null) {
+            service = Sponge.getScheduler().createAsyncExecutor(plugin);
+        }
+        return service;
     }
 
     public DataSource getDataSource() throws SQLException {
@@ -42,9 +48,10 @@ public class Database {
     }
 
     public void loadWorld(String world) {
-        service.execute(() -> {
+        getService().execute(() -> {
             Table builder = new Table.Builder()
                     .name(world)
+                    .primary(Keys.UID)
                     .column(Keys.UID, "VARCHAR(56)")
                     .column(Keys.USER_ID, "VARCHAR(40)")
                     .column(Keys.PLOT_ID, "VARCHAR(16)")
@@ -72,7 +79,7 @@ public class Database {
     }
 
     public void saveUser(PlotUser user) {
-        service.execute(() -> {
+        getService().execute(() -> {
             try (Connection connection = dataSource.getConnection()) {
                 for (Map.Entry<PlotId, PlotMeta> entry : user.getPlots()) {
                     Insert insert = Queries.updateUserPlot(user, entry.getKey(), entry.getValue()).build();
@@ -86,7 +93,7 @@ public class Database {
     }
 
     public void createTable(Table table) {
-        service.execute(() -> {
+        getService().execute(() -> {
             try (Connection connection = getDataSource().getConnection()) {
                 Plots.log("Table: {}", table.getStatement());
 
@@ -98,7 +105,7 @@ public class Database {
     }
 
     public <T> void select(Select<T> select, Consumer<T> callback) {
-        service.execute(() -> {
+        getService().execute(() -> {
             try (Connection connection = getDataSource().getConnection()) {
                 Plots.log("Select: {}", select.getStatement());
                 ResultSet resultSet = connection.createStatement().executeQuery(select.getStatement());
@@ -113,7 +120,7 @@ public class Database {
     }
 
     private void update(Statement statement, Consumer<Boolean> callback) {
-        service.execute(() -> {
+        getService().execute(() -> {
             try (Connection connection = getDataSource().getConnection()) {
                 Plots.log("Update: {}", statement.getStatement());
 

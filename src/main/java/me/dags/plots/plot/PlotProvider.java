@@ -19,7 +19,7 @@ public class PlotProvider {
         this.top = properties.getMaxY();
         this.gridXWidth = properties.getXWidth() + (2 * properties.getWallWidth()) + properties.getPathWidth();
         this.gridZWidth = properties.getZWidth() + (2 * properties.getWallWidth()) + properties.getPathWidth();
-        this.minOffset = new Vector2i(properties.getWallWidth(), properties.getWallWidth());
+        this.minOffset = new Vector2i(properties.getWallWidth(), properties.getWallWidth()).sub(1, 1);
         this.maxOffset = new Vector2i(properties.getWallWidth() + properties.getXWidth(), properties.getWallWidth() + properties.getZWidth());
     }
 

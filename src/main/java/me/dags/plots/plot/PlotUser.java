@@ -56,7 +56,7 @@ public class PlotUser {
     }
 
     public Builder toBuilder() {
-        return builder().uuid(uuid).world(world).plot(plotData);
+        return isPresent() ? builder().uuid(uuid).world(world).plot(plotData) : builder();
     }
 
     public static Builder builder() {

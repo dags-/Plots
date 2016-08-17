@@ -21,6 +21,7 @@ public class Select<T> implements Statement {
         this.transformer = builder.transformer;
     }
 
+    @Override
     public String getStatement() {
         return statement;
     }
@@ -63,7 +64,8 @@ public class Select<T> implements Statement {
         private String allToString(Collection<String> collection, boolean key) {
             StringBuilder builder = new StringBuilder();
             for (String s : collection) {
-                builder.append(builder.length() > 0 ? ", " : "").append(key ? keyToString(s) : valToString(s));
+                builder.append(builder.length() > 0 ? ", " : "");
+                builder.append(s.endsWith("*") ? s : key ? keyToString(s) : valToString(s));
             }
             return builder.toString();
         }
