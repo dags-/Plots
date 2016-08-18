@@ -16,7 +16,7 @@ public class PlotUser {
     private PlotUser() {
         this.uuid = null;
         this.world = null;
-        this.plotData = null;
+        this.plotData = Collections.emptyMap();
     }
 
     private PlotUser(Builder builder) {

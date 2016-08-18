@@ -33,14 +33,21 @@ public class IO {
 
     public static Config getConfig(Path path) {
         Node node = HOCON.from(path);
+
         Config config;
+
         if (!node.isPresent()) {
+            Plots.log("Creating default config");
             config = new Config(true);
-            node = CONFIG_ADAPTER.toNode(config);
-            HOCON.to(node, path);
         } else {
+            Plots.log("Loading config from");
             config = CONFIG_ADAPTER.fromNode(node);
         }
+
+        Plots.log("Saving config to: {}", path);
+        Node updated = CONFIG_ADAPTER.toNode(config);
+        HOCON.to(updated, path);
+
         return config;
     }
 }

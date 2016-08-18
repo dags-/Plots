@@ -20,6 +20,7 @@ public class ConfigAdapter implements NodeTypeAdapter<Config> {
     @Override
     public Node toNode(Config config) {
         NodeObject configNode = new NodeObject();
+        configNode.put("database_logger", config.logDatabase());
         configNode.put("message_format", NodeTypeAdapters.serialize(config.getMessageFormat().toMap()));
         return configNode;
     }
@@ -27,9 +28,12 @@ public class ConfigAdapter implements NodeTypeAdapter<Config> {
     @Override
     public Config fromNode(Node node) {
         Config config = new Config();
+        node.asNodeObject().ifPresent("database_logger", value -> {
+            config.setDatabaseLogging(value.asBoolean());
+        });
         node.asNodeObject().ifPresent("message_format", child -> {
             @SuppressWarnings("unchecked")
-            Map<Object, Object> map = (Map<Object, Object>) toObject(node);
+            Map<Object, Object> map = (Map<Object, Object>) toObject(child);
             config.setMessageFormat(CommandBus.getFormatter(map));
         });
         return config;

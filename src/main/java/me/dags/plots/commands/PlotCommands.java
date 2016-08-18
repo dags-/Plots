@@ -8,9 +8,11 @@ import me.dags.commandbus.annotation.One;
 import me.dags.plots.Plots;
 import me.dags.plots.database.Queries;
 import me.dags.plots.database.statment.Delete;
+import me.dags.plots.database.statment.Insert;
 import me.dags.plots.database.statment.Select;
 import me.dags.plots.plot.*;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.text.Text;
 
 import java.util.Optional;
@@ -56,6 +58,75 @@ public class PlotCommands {
         });
     }
 
+    @Command(aliases = "add", parent = "plot", perm = "plot.command.whitelist.add", desc = "Allow another player to build on your plot")
+    public void add(@Caller Player player, @One("player") User user) {
+        if (player.getUniqueId().equals(user.getUniqueId())) {
+            FORMAT.error("You cannot add yourself to your own whitelists!").tell(player);
+            return;
+        }
+
+        processLocation(player, ((plotWorld, plotId) -> {
+
+            PlotUser plotUser = plotWorld.getUser(player.getUniqueId());
+            if (plotUser.isOwner(plotId) || player.hasPermission("plot.command.whitelist.force.add")) {
+                PlotUser other = plotWorld.getUser(user.getUniqueId());
+                if (!other.isPresent()) {
+                    other = PlotUser.builder()
+                            .world(plotWorld.getWorld())
+                            .uuid(user.getUniqueId())
+                            .plot(plotId, PlotMeta.EMPTY)
+                            .build();
+                }
+
+                Insert insert = Queries.updateUserPlot(other, plotId, other.getMeta(plotId)).build();
+                Plots.getDatabase().update(insert, result -> {
+                    if (result) {
+                        FORMAT.info("User ").stress(user.getName()).info(" is now whitelisted on your plot!").tell(player);
+                        user.getPlayer().ifPresent(FORMAT.stress(player.getName()).info(" added you to their plot ").stress(plotId)::tell);
+                        plotWorld.refreshUser(user.getUniqueId());
+                    } else {
+                        FORMAT.error("Unable to add ").stress(user.getName()).info(" to plot ").stress(plotId).tell(player);
+                    }
+                });
+
+            } else {
+                FORMAT.error("You do not own this plot!").tell(player);
+            }
+        }));
+    }
+
+    @Command(aliases = "remove", parent = "plot", perm = "plot.command.whitelist.remove", desc = "Remove a whitelisted player from your plot")
+    public void remove(@Caller Player player, @One("player") User user) {
+        if (player.getUniqueId().equals(user.getUniqueId())) {
+            FORMAT.error("You cannot remove yourself from your own whitelists!").tell(player);
+            return;
+        }
+
+        processLocation(player, ((plotWorld, plotId) -> {
+            PlotUser plotUser = plotWorld.getUser(player.getUniqueId());
+            if (plotUser.isOwner(plotId) || player.hasPermission("plot.command.whitelist.force.remove")) {
+                PlotUser other = plotWorld.getUser(user.getUniqueId())
+                        .toBuilder()
+                        .uuid(user.getUniqueId())
+                        .world(plotWorld.getWorld())
+                        .build();
+
+                Delete delete = Queries.deleteUserPlot(other, plotId).build();
+                Plots.getDatabase().update(delete, result -> {
+                    if (result) {
+                        FORMAT.info("Successfully removed ").stress(user.getName()).info(" from plot ").stress(plotId).tell(player);
+                        user.getPlayer().ifPresent(FORMAT.subdued("You have been removed from plot ").stress(plotId)::tell);
+                        plotWorld.refreshUser(user.getUniqueId());
+                    } else {
+                        FORMAT.error("Unable to remove ").stress(user.getName()).info(" from plot ").stress(plotId).tell(player);
+                    }
+                });
+            } else {
+                FORMAT.error("You do not own this plot!").tell(player);
+            }
+        }));
+    }
+
     @Command(aliases = "unclaim", parent = "plot", perm = "plot.command.unclaim.self", desc = "Unclaim a plot and reset it")
     public void unclaim(@Caller Player player) {
         processLocation(player, ((plotWorld, plotId) -> {
@@ -74,24 +145,18 @@ public class PlotCommands {
             unclaim(player);
             return;
         }
-
         processLocation(player, ((plotWorld, plotId) -> {
             PlotUser plotUser = plotWorld.getUser(player.getUniqueId());
-            if (plotUser.isOwner(plotId)) {
-                PlotUser updated = plotUser.toBuilder().removePlot(plotId).build();
-                plotWorld.updateUser(updated, plotId);
-                plotWorld.resetPlot(plotId);
-                FORMAT.info("Unclaimed plot ").stress(plotId).tell(player);
-            } else if (player.hasPermission("plot.command.unclaim.other")){
-                Delete delete = Queries.deletePlot(plotWorld.getWorld(), plotId).build();
-                Plots.getDatabase().update(delete, result -> {
-                    if (result) {
+            if (plotUser.isOwner(plotId) || player.hasPermission("plot.command.unclaim.other")) {
+                Plots.getDatabase().deletePlot(plotWorld.getWorld(), plotId, evicted -> {
+                    if (evicted.size() > 0) {
                         FORMAT.info("Unclaimed plot ").stress(plotId).tell(player);
-                        plotWorld.resetPlot(plotId);
+                        evicted.forEach(plotWorld::refreshUser);
                     } else {
-                        FORMAT.error("Unable to un-claim plot ").stress(plotId).tell(player);
+                        FORMAT.error("Plot ").stress(plotId).error(" does not appear to have been claimed").tell(player);
                     }
                 });
+                plotWorld.resetPlot(plotId);
             } else {
                 FORMAT.error("You do not own this plot").tell(player);
             }

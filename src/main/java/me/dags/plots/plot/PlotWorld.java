@@ -19,6 +19,7 @@ import org.spongepowered.api.event.filter.cause.First;
 import org.spongepowered.api.event.item.inventory.UseItemStackEvent;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
 import org.spongepowered.api.event.world.ChangeWorldWeatherEvent;
+import org.spongepowered.api.text.chat.ChatTypes;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 import org.spongepowered.api.world.extent.MutableBiomeArea;
@@ -136,7 +137,7 @@ public class PlotWorld {
                         if (user.isPresent()) {
                             message.info(", Owner: ").stress(user.get().getName());
                         }
-                        message.tell(player);
+                        player.sendMessage(ChatTypes.ACTION_BAR, message.build());
                     });
                 }
             }
@@ -190,6 +191,14 @@ public class PlotWorld {
         if (user.isPresent()) {
             addUser(user);
             Plots.getDatabase().updateUser(user, plotId);
+        }
+    }
+
+    public void refreshUser(UUID uuid) {
+        if (plotUsers.containsKey(uuid)) {
+            Plots.getDatabase().loadUser(world, uuid, user -> {
+                plotUsers.put(uuid, user);
+            });
         }
     }
 

@@ -15,6 +15,7 @@ import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
+import org.spongepowered.api.event.game.state.GameStoppingServerEvent;
 import org.spongepowered.api.event.world.LoadWorldEvent;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.world.World;
@@ -28,7 +29,7 @@ import java.nio.file.Path;
 @Plugin(id = Plots.ID, version = "0.1")
 public class Plots {
 
-    static final String ID = "plots";
+    public static final String ID = "plots";
 
     private static final Logger logger = LoggerFactory.getLogger(ID);
     private static Plots instance;
@@ -41,7 +42,7 @@ public class Plots {
 
     @Inject
     public Plots(@ConfigDir(sharedRoot = false) Path configDir) {
-        instance = this;
+        Plots.instance = this;
         this.configDir = configDir;
         this.database = new Database(this, "jdbc:h2:" + configDir.resolve("plots_data").toAbsolutePath());
     }
@@ -49,6 +50,7 @@ public class Plots {
     @Listener
     public void init(GameInitializationEvent event) {
         config = IO.getConfig(configDir.resolve("config.conf"));
+        database.init();
 
         if (!Files.exists(instance.configDir.resolve("generators").resolve("default.conf"))) {
             IO.saveProperties(GeneratorProperties.DEFAULT, instance.configDir.resolve("generators"));
@@ -60,7 +62,7 @@ public class Plots {
         CommandBus.newInstance(logger).register(PlotworldCommands.class).submit(this);
     }
 
-    @Listener (order = Order.PRE)
+    @Listener (order = Order.POST)
     public void onWorldLoad(LoadWorldEvent event) {
         World world = event.getTargetWorld();
         if (world.getWorldGenerator().getBaseGenerationPopulator() instanceof PlotGenerator) {
@@ -68,6 +70,11 @@ public class Plots {
             Plots.getApi().registerPlotWorld(new PlotWorld(world, plotGenerator.plotProvider()));
             Plots.getDatabase().loadWorld(world.getName());
         }
+    }
+
+    @Listener (order = Order.EARLY)
+    public void onShutDown(GameStoppingServerEvent event) {
+        database.close();
     }
 
     public static Database getDatabase() {

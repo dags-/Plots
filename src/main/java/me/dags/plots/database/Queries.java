@@ -162,19 +162,12 @@ public class Queries {
                 .transformer(owner());
     }
 
-    public static Select.Builder<Set<UUID>> selectPlotOwners(String world, PlotId plotId) {
+    public static Select.Builder<Set<UUID>> selectWhitelistedUsers(String world, PlotId plotId) {
         return new Select.Builder<Set<UUID>>()
                 .select(Keys.USER_ID)
                 .from(world)
-                .where(matchPlotOwners(plotId).build())
+                .where(matchWhitelisted(plotId).build())
                 .transformer(userIds());
-    }
-
-    public static Select.Builder<PlotUser> selectWhitelistedUsers(String world, PlotId plotId) {
-        return new Select.Builder<PlotUser>()
-                .select(Keys.USER_ID)
-                .from(world)
-                .where(matchWhitelisted(plotId).build());
     }
 
     public static Select.Builder<PlotId> selectPlotByName(UUID owner, String world, String name) {

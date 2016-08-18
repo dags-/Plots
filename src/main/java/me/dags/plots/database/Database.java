@@ -5,6 +5,8 @@ import me.dags.plots.database.statment.*;
 import me.dags.plots.plot.PlotId;
 import me.dags.plots.plot.PlotMeta;
 import me.dags.plots.plot.PlotUser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.scheduler.SpongeExecutorService;
 import org.spongepowered.api.service.sql.SqlService;
@@ -14,7 +16,9 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 /**
@@ -22,8 +26,11 @@ import java.util.function.Consumer;
  */
 public class Database {
 
+    private static final Logger logger = LoggerFactory.getLogger(Plots.ID + "_db");
+
     private final String database;
     private final Object plugin;
+    private volatile boolean log;
 
     private SpongeExecutorService service;
     private DataSource dataSource;
@@ -31,6 +38,22 @@ public class Database {
     public Database(Object plugin, String database) {
         this.plugin = plugin;
         this.database = database;
+    }
+
+    public void init() {
+        this.log = Plots.getConfig().logDatabase();
+    }
+
+    public synchronized void close() {
+        try {
+            log("Shutting down executor service");
+            service.shutdown();
+
+            log("Awaiting termination");
+            service.awaitTermination(1, TimeUnit.SECONDS);
+        } catch (Throwable t) {
+            log("Error during shutdown:\n{}", t.getMessage());
+        }
     }
 
     private SpongeExecutorService getService() {
@@ -92,10 +115,27 @@ public class Database {
         });
     }
 
+    public void deletePlot(String world, PlotId plotId, Consumer<Set<UUID>> callback) {
+        getService().execute(() -> {
+            Select<Set<UUID>> whitelisted = Queries.selectWhitelistedUsers(world, plotId).build();
+            try (Connection connection = getDataSource().getConnection()) {
+                ResultSet resultSet = connection.createStatement().executeQuery(whitelisted.getStatement());
+                Set<UUID> whitelist = whitelisted.transform(resultSet);
+                for (UUID uuid : whitelist) {
+                    Delete delete = new Delete.Builder().in(world).where(Where.of(Keys.UID, "=" ,Keys.uid(uuid, plotId)).build()).build();
+                    connection.createStatement().execute(delete.getStatement());
+                }
+                scheduleCallback(whitelist, callback);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
     public void createTable(Table table) {
         getService().execute(() -> {
             try (Connection connection = getDataSource().getConnection()) {
-                Plots.log("Table: {}", table.getStatement());
+                log("Table: {}", table.getStatement());
 
                 connection.createStatement().execute(table.getStatement());
             } catch (SQLException e) {
@@ -107,7 +147,7 @@ public class Database {
     public <T> void select(Select<T> select, Consumer<T> callback) {
         getService().execute(() -> {
             try (Connection connection = getDataSource().getConnection()) {
-                Plots.log("Select: {}", select.getStatement());
+                log("Select: {}", select.getStatement());
                 ResultSet resultSet = connection.createStatement().executeQuery(select.getStatement());
                 T result = select.transform(resultSet);
                 if (result != null) {
@@ -122,7 +162,7 @@ public class Database {
     public void update(Statement statement, Consumer<Boolean> callback) {
         getService().execute(() -> {
             try (Connection connection = getDataSource().getConnection()) {
-                Plots.log("Update: {}", statement.getStatement());
+                log("Update: {}", statement.getStatement());
 
                 int result = connection.createStatement().executeUpdate(statement.getStatement());
                 scheduleCallback(result != 0, callback);
@@ -134,5 +174,11 @@ public class Database {
 
     private <T> void scheduleCallback(T result, Consumer<T> callback) {
         Sponge.getScheduler().createTaskBuilder().execute(() -> callback.accept(result)).submit(plugin);
+    }
+
+    private void log(String message, Object... args) {
+        if (log) {
+            logger.debug(message, args);
+        }
     }
 }
