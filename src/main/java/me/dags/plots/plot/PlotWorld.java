@@ -157,6 +157,7 @@ public class PlotWorld {
         Vector3i position = plotProvider.plotWarp(getPlotBounds(plotId));
         Location<World> location = new Location<>(player.getWorld(), position);
         player.setLocationAndRotation(location, player.getRotation());
+        FORMAT.info("Teleporting to ").stress(getWorld()).info(";").stress(plotId).tell(player);
     }
 
     public String getWorld() {

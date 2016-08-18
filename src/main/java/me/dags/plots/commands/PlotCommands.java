@@ -11,7 +11,9 @@ import me.dags.plots.database.statment.Delete;
 import me.dags.plots.database.statment.Select;
 import me.dags.plots.plot.*;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.text.Text;
 
+import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -25,11 +27,14 @@ public class PlotCommands {
     @Command(aliases = "info", parent = "plot", perm = "plot.command.info")
     public void info(@Caller Player player) {
         processLocation(player, ((plotWorld, plotId) -> {
-            FORMAT.info("Plot: ").stress(plotId).tell(player);
+            Select<Text> info = Queries.selectPlotInfo(plotWorld.getWorld(), plotId, FORMAT).build();
+            Plots.getDatabase().select(info, message -> {
+                FORMAT.info("Plot: ").stress(plotId).append(message).tell(player);
+            });
         }));
     }
 
-    @Command(aliases = "claim", parent = "plot", perm = "plot.command.claim")
+    @Command(aliases = "claim", parent = "plot", perm = "plot.command.claim", desc = "Claim an empty plot to build on")
     public void claim(@Caller Player player) {
         processLocation(player, (plotWorld, plotId) -> {
             PlotUser plotUser = plotWorld.getUser(player.getUniqueId());
@@ -51,8 +56,25 @@ public class PlotCommands {
         });
     }
 
-    @Command(aliases = "unclaim", parent = "plot", perm = "plot.command.unclaim.self")
+    @Command(aliases = "unclaim", parent = "plot", perm = "plot.command.unclaim.self", desc = "Unclaim a plot and reset it")
     public void unclaim(@Caller Player player) {
+        processLocation(player, ((plotWorld, plotId) -> {
+            PlotUser plotUser = plotWorld.getUser(player.getUniqueId());
+            if (plotUser.isOwner(plotId) || player.hasPermission("plot.command.unclaim.other")) {
+                FORMAT.warn("Unclaiming a plot will delete everything inside it. Use '")
+                        .stress("/plot unclaim true")
+                        .warn("' if you wish to proceed").tell(player);
+            }
+        }));
+    }
+
+    @Command(aliases = "unclaim", parent = "plot", perm = "plot.command.unclaim.self")
+    public void unclaim(@Caller Player player, @One("confirm") boolean confirm) {
+        if (!confirm) {
+            unclaim(player);
+            return;
+        }
+
         processLocation(player, ((plotWorld, plotId) -> {
             PlotUser plotUser = plotWorld.getUser(player.getUniqueId());
             if (plotUser.isOwner(plotId)) {
@@ -76,8 +98,25 @@ public class PlotCommands {
         }));
     }
 
-    @Command(aliases = "reset", parent = "plot", perm = "plot.command.reset.self")
+    @Command(aliases = "reset", parent = "plot", perm = "plot.command.reset.self", desc = "Reset the entire plot to it's default state")
     public void reset(@Caller Player player) {
+        processLocation(player, ((plotWorld, plotId) -> {
+            PlotUser plotUser = plotWorld.getUser(player.getUniqueId());
+            if (plotUser.isOwner(plotId) || player.hasPermission("plot.command.unclaim.other")) {
+                FORMAT.warn("Resetting a plot will delete everything inside it. Use '")
+                        .stress("/plot reset true")
+                        .warn("' if you wish to proceed").tell(player);
+            }
+        }));
+    }
+
+    @Command(aliases = "reset", parent = "plot", perm = "plot.command.reset.self")
+    public void reset(@Caller Player player, @One("confirm") boolean confirm) {
+        if (!confirm) {
+            reset(player);
+            return;
+        }
+
         processLocation(player, ((plotWorld, plotId) -> {
             PlotUser plotUser = plotWorld.getUser(player.getUniqueId());
             if (plotUser.isOwner(plotId) || player.hasPermission("plot.command.reset.other")) {
@@ -89,44 +128,55 @@ public class PlotCommands {
         }));
     }
 
-    @Command(aliases = "name", parent = "plot", perm = "plot.command.name")
-    public void setName(@Caller Player player, @One("name") String name) {
+    @Command(aliases = "alias", parent = "plot", perm = "plot.command.name", desc = "Set an alias for the current plot")
+    public void alias(@Caller Player player, @One("alias") String alias) {
         processLocation(player, ((plotWorld, plotId) -> {
             PlotUser user = plotWorld.getUser(player.getUniqueId());
             if (user.isWhitelisted(plotId)) {
-                PlotMeta meta = user.getMeta(plotId).toBuilder().name(name).build();
+                PlotMeta meta = user.getMeta(plotId).toBuilder().name(alias).build();
                 PlotUser updated = user.toBuilder()
                         .world(plotWorld.getWorld())
                         .uuid(player.getUniqueId())
                         .plot(plotId, meta)
                         .build();
                 plotWorld.updateUser(updated, plotId);
-                FORMAT.info("Set custom name of ").stress(plotId).info(" to ").stress(name).tell(player);
+                FORMAT.info("Set custom name of ").stress(plotId).info(" to ").stress(alias).tell(player);
             } else {
                 FORMAT.error("You are not whitelisted on this plot!").tell(player);
             }
         }));
     }
 
-    @Command(aliases = "warp", parent = "plot", perm = "plot.command.warp")
-    public void warp(@Caller Player player, @One("name") String name) {
-        Select<PlotId> select = Queries.selectPlotByName(player.getUniqueId(), player.getWorld().getName(), name).build();
-        Plots.getDatabase().select(select, plotId -> {
-            if (plotId.isPresent()) {
-                processPlotWorld(player, plotWorld -> plotWorld.teleportToPlot(player, plotId));
-                FORMAT.info("Teleporting to ").stress(name).stress( " [" + plotId + "]").tell(player);
+    @Command(aliases = "tp", parent = "plot", perm = "plot.command.tp", desc = "Teleport to the given plotId/alias in your current world")
+    public void tp(@Caller Player player, @One("plot|alias") String plot) {
+        tp(player, player.getWorld().getName(), plot);
+    }
+
+    @Command(aliases = "tp", parent = "plot", perm = "plot.command.tp", desc = "Teleport to the given plotId/alias in the given world")
+    public void tp(@Caller Player player, @One("world") String world, @One("plot|alias") String plot) {
+        Optional<PlotWorld> optional = Plots.getApi().getPlotWorld(world);
+        if (optional.isPresent()) {
+            final PlotWorld plotWorld = optional.get();
+            if (PlotId.isValid(plot)) {
+                PlotId plotId = PlotId.valueOf(plot);
+                plotWorld.teleportToPlot(player, plotId);
             } else {
-                FORMAT.error("Unable to find plot ").stress(name).tell(player);
+                Select<PlotId> select = Queries.selectPlotByName(player.getUniqueId(), world, plot).build();
+                Plots.getDatabase().select(select, plotId -> {
+                    if (plotId.isPresent()) {
+                        plotWorld.teleportToPlot(player, plotId);
+                    } else {
+                        FORMAT.error("Unable to find plot ").stress(plot).tell(player);
+                    }
+                });
             }
-        });
+        } else {
+            FORMAT.error("Target world ").stress(world).error(" is not recognised as a PlotWorld!").tell(player);
+        }
     }
 
     private static void processPlotWorld(Player player, Consumer<PlotWorld> consumer) {
-        PlotWorld plotWorld = Plots.getApi().getPlotWorld(player.getWorld().getName());
-        if (plotWorld == null) {
-            return;
-        }
-        consumer.accept(plotWorld);
+        Plots.getApi().getPlotWorld(player.getWorld().getName()).ifPresent(consumer);
     }
 
     private void processLocation(Player player, BiConsumer<PlotWorld, PlotId> onSuccess) {

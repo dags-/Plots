@@ -50,18 +50,17 @@ public class PlotId {
         return hash;
     }
 
+    public static boolean isValid(String input) {
+        return input.matches("-?\\d+:-?\\d+");
+    }
+
     public static PlotId valueOf(String input) {
-        if (input != null && input.length() >= 3) {
+        if (input != null && isValid(input)) {
             String[] split = input.split(":");
-            try {
-                int x = Integer.valueOf(split[0]);
-                int z = Integer.valueOf(split[1]);
-                return new PlotId(x, z);
-            } catch (NumberFormatException e) {
-                e.printStackTrace();
-                return null;
-            }
+            int x = Integer.valueOf(split[0]);
+            int z = Integer.valueOf(split[1]);
+            return new PlotId(x, z);
         }
-        return null;
+        return EMPTY;
     }
 }

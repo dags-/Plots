@@ -1,5 +1,6 @@
 package me.dags.plots.database;
 
+import me.dags.commandbus.Format;
 import me.dags.plots.database.statment.Delete;
 import me.dags.plots.database.statment.Insert;
 import me.dags.plots.database.statment.Select;
@@ -10,6 +11,7 @@ import me.dags.plots.plot.PlotUser;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.service.user.UserStorageService;
+import org.spongepowered.api.text.Text;
 
 import java.util.HashSet;
 import java.util.Optional;
@@ -84,7 +86,30 @@ public class Queries {
             if (result.next()) {
                 id = result.getString(Keys.PLOT_ID);
             }
-            return id != null ? PlotId.valueOf(id) : PlotId.EMPTY;
+            return PlotId.valueOf(id);
+        };
+    }
+
+    public static ResultTransformer<Text> plotInfo(Format format) {
+        return result -> {
+            Format.MessageBuilder owner = format.message();
+            Format.MessageBuilder whitelist = format.message().append(Text.NEW_LINE).info("Whitelisted:");
+            final UserStorageService service = Sponge.getServiceManager().provideUnchecked(UserStorageService.class);
+            while (result.next()) {
+                String id = result.getString(Keys.USER_ID);
+                if (id != null) {
+                    UUID uuid = UUID.fromString(id);
+                    Optional<User> user = service.get(uuid);
+                    if (user.isPresent()) {
+                        if (result.getBoolean(Keys.META_OWNER)) {
+                            owner.append(Text.NEW_LINE).info("Owner: ").stress(user.get().getName());
+                        } else {
+                            whitelist.append(Text.NEW_LINE).info(" - ").stress(user.get().getName());
+                        }
+                    }
+                }
+            }
+            return owner.append(whitelist.build()).build();
         };
     }
 
@@ -103,6 +128,14 @@ public class Queries {
             }
             return builder.build();
         };
+    }
+
+    public static Select.Builder<Text> selectPlotInfo(String world, PlotId plotId, Format format) {
+        return new Select.Builder<Text>()
+                .select("*")
+                .from(world)
+                .where(matchPlot(plotId).build())
+                .transformer(plotInfo(format));
     }
 
     public static Select.Builder<Boolean> isClaimed(String world, PlotId plotId) {

@@ -27,8 +27,25 @@ public class PlotsAPI {
         return plugin.configDir;
     }
 
-    public PlotWorld getPlotWorld(String name) {
-        return worlds.get(name);
+    public Optional<PlotWorld> getPlotWorld(String name) {
+        PlotWorld world = worlds.get(name);
+        return world != null ? Optional.of(world) : matchPlotWorld(name);
+    }
+
+    public Optional<PlotWorld> matchPlotWorld(String name) {
+        String lowercaseName = name.toLowerCase();
+        PlotWorld bestMatch = null;
+        for (Map.Entry<String, PlotWorld> entry : worlds.entrySet()) {
+            if (entry.getKey().equalsIgnoreCase(lowercaseName)) {
+                return Optional.of(entry.getValue());
+            }
+            if (entry.getKey().toLowerCase().startsWith(lowercaseName)) {
+                if (bestMatch == null || entry.getValue().getWorld().length() < bestMatch.getWorld().length()) {
+                    bestMatch = entry.getValue();
+                }
+            }
+        }
+        return Optional.ofNullable(bestMatch);
     }
 
     public void registerPlotWorld(PlotWorld plotWorld) {
