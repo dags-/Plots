@@ -154,6 +154,23 @@ public class PlotWorld {
         });
     }
 
+    public void copyPlot(PlotId fromId, PlotId toId) {
+        Sponge.getServer().getWorld(worldId).ifPresent(world -> {
+            PlotBounds from = getPlotBounds(fromId);
+            PlotBounds to = getPlotBounds(toId);
+            MutableBlockVolume volFrom = world.getBlockView(from.getBlockMin(), from.getBlockMax());
+            MutableBlockVolume volTo = world.getBlockView(to.getBlockMin(), to.getBlockMax());
+
+            final Vector3i fromMin = from.getBlockMin();
+            final Vector3i toMin = to.getBlockMin();
+
+            volFrom.getBlockWorker().iterate((volume, x, y, z) -> {
+                int dx = x - fromMin.getX(), dz = z - fromMin.getZ();
+                volTo.setBlock(toMin.getX() + dx, y, toMin.getZ() + dz, volume.getBlock(x, y, z));
+            });
+        });
+    }
+
     public void teleportToPlot(Player player, PlotId plotId) {
         Vector3i position = plotProvider.plotWarp(getPlotBounds(plotId));
         Location<World> location = new Location<>(player.getWorld(), position);
@@ -177,6 +194,11 @@ public class PlotWorld {
         return bounds;
     }
 
+    public PlotUser getOrCreateUser(UUID uuid) {
+        PlotUser user = getUser(uuid);
+        return user.isPresent() ? user : PlotUser.builder().world(world).uuid(uuid).build();
+    }
+
     public PlotUser getUser(UUID uuid) {
         PlotUser user = plotUsers.get(uuid);
         return user != null ? user : PlotUser.EMPTY;
@@ -187,7 +209,7 @@ public class PlotWorld {
         return getPlotBounds(plotId).contains(vector3i) && getUser(uuid).isWhitelisted(plotId);
     }
 
-    public void updateUser(PlotUser user, PlotId plotId) {
+    public void WupdateUser(PlotUser user, PlotId plotId) {
         if (user.isPresent()) {
             addUser(user);
             Plots.getDatabase().updateUser(user, plotId);
