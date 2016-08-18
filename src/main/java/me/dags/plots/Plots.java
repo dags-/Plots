@@ -37,6 +37,8 @@ public class Plots {
     private final Database database;
     final Path configDir;
 
+    private Config config;
+
     @Inject
     public Plots(@ConfigDir(sharedRoot = false) Path configDir) {
         instance = this;
@@ -46,10 +48,14 @@ public class Plots {
 
     @Listener
     public void init(GameInitializationEvent event) {
+        config = IO.getConfig(configDir.resolve("config.conf"));
+
         if (!Files.exists(instance.configDir.resolve("generators").resolve("default.conf"))) {
             IO.saveProperties(GeneratorProperties.DEFAULT, instance.configDir.resolve("generators"));
         }
+
         IO.loadGeneratorProperties(instance.configDir.resolve("generators")).forEach(Plots.getApi()::register);
+
         CommandBus.newInstance(logger).register(PlotCommands.class).submit(this);
         CommandBus.newInstance(logger).register(PlotworldCommands.class).submit(this);
     }
@@ -70,6 +76,10 @@ public class Plots {
 
     public static PlotsAPI getApi() {
         return instance.plotsAPI;
+    }
+
+    public static Config getConfig() {
+        return instance.config;
     }
 
     public static String toGeneratorId(String name) {

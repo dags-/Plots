@@ -1,10 +1,14 @@
 package me.dags.plots.plot;
 
 import com.flowpowered.math.vector.Vector3i;
+import me.dags.commandbus.Format;
 import me.dags.plots.Plots;
+import me.dags.plots.database.Queries;
+import me.dags.plots.database.statment.Select;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
 import org.spongepowered.api.event.block.ChangeBlockEvent;
@@ -15,8 +19,6 @@ import org.spongepowered.api.event.filter.cause.First;
 import org.spongepowered.api.event.item.inventory.UseItemStackEvent;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
 import org.spongepowered.api.event.world.ChangeWorldWeatherEvent;
-import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.chat.ChatTypes;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 import org.spongepowered.api.world.extent.MutableBiomeArea;
@@ -25,12 +27,15 @@ import org.spongepowered.api.world.weather.Weathers;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
  * @author dags <dags@dags.me>
  */
 public class PlotWorld {
+
+    private static final Format FORMAT = Plots.getConfig().getMessageFormat();
 
     private final String world;
     private final UUID worldId;
@@ -122,10 +127,17 @@ public class PlotWorld {
             if (from.getX() != to.getX() || from.getZ() != to.getZ()) {
                 PlotId fromId = plotProvider.plotId(from);
                 PlotId toId = plotProvider.plotId(to);
-                if (fromId.equals(toId)) {
-                    if (!getPlotBounds(fromId).contains(from) && getPlotBounds(toId).contains(to)) {
-                        event.getTargetEntity().sendMessage(ChatTypes.ACTION_BAR, Text.of("Plot: ", toId));
-                    }
+                if (!getPlotBounds(fromId).contains(from) && getPlotBounds(toId).contains(to)) {
+                    final Player player = event.getTargetEntity();
+
+                    Select<Optional<User>> owner = Queries.selectPlotOwner(world, toId).build();
+                    Plots.getDatabase().select(owner, user -> {
+                        Format.MessageBuilder message = FORMAT.info("Plot: ").stress(toId);
+                        if (user.isPresent()) {
+                            message.info(", Owner: ").stress(user.get().getName());
+                        }
+                        message.tell(player);
+                    });
                 }
             }
         }

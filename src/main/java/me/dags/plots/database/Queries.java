@@ -7,8 +7,12 @@ import me.dags.plots.database.statment.Where;
 import me.dags.plots.plot.PlotId;
 import me.dags.plots.plot.PlotMeta;
 import me.dags.plots.plot.PlotUser;
+import org.spongepowered.api.Sponge;
+import org.spongepowered.api.entity.living.player.User;
+import org.spongepowered.api.service.user.UserStorageService;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -45,6 +49,19 @@ public class Queries {
                 return result.getString(Keys.USER_ID) != null;
             }
             return false;
+        };
+    }
+
+    public static ResultTransformer<Optional<User>> owner() {
+        return result -> {
+            if (result.next()) {
+                String id = result.getString(Keys.USER_ID);
+                if (id != null) {
+                    UUID uuid = UUID.fromString(id);
+                    return Sponge.getServiceManager().provideUnchecked(UserStorageService.class).get(uuid);
+                }
+            }
+            return Optional.empty();
         };
     }
 
@@ -102,6 +119,14 @@ public class Queries {
                 .from(world)
                 .where(matchUser(uuid).build())
                 .transformer(userTransformer(PlotUser.builder().world(world).uuid(uuid)));
+    }
+
+    public static Select.Builder<Optional<User>> selectPlotOwner(String world, PlotId plotId) {
+        return new Select.Builder<Optional<User>>()
+                .select(Keys.USER_ID)
+                .from(world)
+                .where(matchPlot(plotId).build())
+                .transformer(owner());
     }
 
     public static Select.Builder<Set<UUID>> selectPlotOwners(String world, PlotId plotId) {

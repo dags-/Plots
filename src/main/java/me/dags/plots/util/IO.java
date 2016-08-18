@@ -3,6 +3,7 @@ package me.dags.plots.util;
 import me.dags.data.NodeAdapter;
 import me.dags.data.node.Node;
 import me.dags.data.node.NodeTypeAdapter;
+import me.dags.plots.Config;
 import me.dags.plots.Plots;
 import me.dags.plots.generator.GeneratorProperties;
 
@@ -16,6 +17,7 @@ public class IO {
 
     private static final NodeAdapter HOCON = NodeAdapter.hocon();
     private static final NodeTypeAdapter<GeneratorProperties> GENERATOR_PROPERTIES = new GeneratorPropertiesAdapter();
+    private static final NodeTypeAdapter<Config> CONFIG_ADAPTER = new ConfigAdapter();
 
     public static void saveProperties(GeneratorProperties properties, Path dir) {
         Node node = GENERATOR_PROPERTIES.toNode(properties);
@@ -27,5 +29,18 @@ public class IO {
     public static Stream<GeneratorProperties> loadGeneratorProperties(Path dir) {
         Plots.log("Loading Generators from: {}", dir);
         return HOCON.fromDir(dir, ".conf").map(GENERATOR_PROPERTIES::fromNode);
+    }
+
+    public static Config getConfig(Path path) {
+        Node node = HOCON.from(path);
+        Config config;
+        if (!node.isPresent()) {
+            config = new Config(true);
+            node = CONFIG_ADAPTER.toNode(config);
+            HOCON.to(node, path);
+        } else {
+            config = CONFIG_ADAPTER.fromNode(node);
+        }
+        return config;
     }
 }
