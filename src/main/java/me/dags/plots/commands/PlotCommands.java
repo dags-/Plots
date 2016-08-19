@@ -180,8 +180,8 @@ public class PlotCommands {
         }));
     }
 
-    @Command(aliases = "copy", parent = "plot", perm = "plot.command.copy", desc = "Copy the plot at your location to the given plot")
-    public void copy(@Caller Player player, @One("plot|alias") String plot) {
+    @Command(aliases = "copyto", parent = "plot", perm = "plot.command.copy", desc = "Copy the plot at your location to the given plot")
+    public void copyTo(@Caller Player player, @One("plot | alias") String plot) {
         processLocation(player, ((plotWorld, fromId) -> {
             PlotUser user = plotWorld.getUser(player.getUniqueId());
             if (user.isWhitelisted(fromId)) {
@@ -232,7 +232,7 @@ public class PlotCommands {
     }
 
     @Command(aliases = "tp", parent = "plot", perm = "plot.command.tp", desc = "Teleport to the given plotId/alias in your current world")
-    public void tp(@Caller Player player, @One("plot|alias") String plot) {
+    public void tp(@Caller Player player, @One("plot | alias") String plot) {
         tp(player, player.getWorld().getName(), plot);
     }
 

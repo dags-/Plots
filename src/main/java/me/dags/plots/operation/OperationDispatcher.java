@@ -47,13 +47,19 @@ public class OperationDispatcher implements Runnable {
             while (iterator.hasNext()) {
                 Operation operation = iterator.next();
 
-                // The number of blocks actually processed.
-                // If the operation completes before hitting it's bpo, pass the spare to the next operation.
-                int processed = operation.process(bpo + extra);
-                extra = processed < bpo ? bpo - processed : 0;
+                try {
+                    // The number of blocks actually processed.
+                    // If the operation completes before hitting it's bpo, pass the spare to the next operation.
+                    int processed = operation.process(bpo + extra);
+                    extra = processed < bpo ? bpo - processed : 0;
 
-                // If operation has finished, remove from list
-                if (operation.complete()) {
+                    // If operation has finished, remove from list
+                    if (operation.complete()) {
+                        iterator.remove();
+                    }
+                } catch (Throwable t) {
+                    // Log & dispose the failing operation to avoid repeat errors
+                    t.printStackTrace();
                     iterator.remove();
                 }
             }
@@ -64,7 +70,7 @@ public class OperationDispatcher implements Runnable {
         if (closed) {
             return;
         }
-        
+
         closed = true;
         queue.clear();
 
