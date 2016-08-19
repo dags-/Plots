@@ -2,6 +2,7 @@ package me.dags.plots.operation;
 
 import me.dags.plots.Plots;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.List;
  */
 public class OperationDispatcher implements Runnable {
 
+    private final ArrayDeque<Operation> queue = new ArrayDeque<>();
     private final List<Operation> operations = new ArrayList<>();
     private final String name;
     private final int bpt;
@@ -26,7 +28,7 @@ public class OperationDispatcher implements Runnable {
         if (closed) {
             return;
         }
-        operations.add(operation);
+        queue.add(operation);
     }
 
     @Override
@@ -34,6 +36,9 @@ public class OperationDispatcher implements Runnable {
         if (closed) {
             return;
         }
+
+        drainQueue();
+
         if (operations.size() > 0) {
             // Calc blocks per operation
             int bpo = bpt / operations.size(), extra = 0;
@@ -59,11 +64,23 @@ public class OperationDispatcher implements Runnable {
         if (closed) {
             return;
         }
+        
         closed = true;
+        queue.clear();
+
         Plots.log("Finishing all remaining block operations for world: {}", name);
         for (Operation operation : operations) {
             while (!operation.complete()) {
                 operation.process(Integer.MAX_VALUE);
+            }
+        }
+    }
+
+    private void drainQueue() {
+        while (queue.size() > 0) {
+            Operation operation = queue.poll();
+            if (operation != null) {
+                operations.add(operation);
             }
         }
     }

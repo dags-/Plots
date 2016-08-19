@@ -23,20 +23,22 @@ public abstract class AbstractBlockOperation implements Operation {
 
     @Override
     public int process(int blocksToProcess) {
-        for (; y <= maxY && blocksToProcess > 0; y++) {
-            for (int x = this.x; x <= maxX && blocksToProcess > 0; x++) {
-                for (int z = this.z; z <= maxZ && blocksToProcess-- > 0; z++) {
+        for (; y <= maxY; y++) {
+            for (; x <= maxX; x++) {
+                for (; z <= maxZ; z++) {
                     processAt(x, y, z);
+
+                    if (blocksToProcess-- <= 0) {
+                        return 0;
+                    }
                 }
                 this.z = 0;
             }
             this.x = 0;
         }
-        if (y > maxY) {
-            this.complete = true;
-            if (callback != null) {
-                callback.run();
-            }
+        complete = true;
+        if (callback != null) {
+            callback.run();
         }
         return blocksToProcess;
     }

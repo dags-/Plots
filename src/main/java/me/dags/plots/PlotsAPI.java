@@ -31,11 +31,11 @@ public class PlotsAPI {
     }
 
     public OperationDispatcher getDispatcher() {
-        if (dispatcher != null) {
-            int bps = Plots.getConfig().blocksPerTick();
+        if (dispatcher == null) {
+            int bpt = Plots.getConfig().blocksPerTick();
 
-            Plots.log("Initializing OperationDispatcher. BPT={}", bps);
-            dispatcher = new OperationDispatcher(Plots.ID, bps);
+            Plots.log("Initializing OperationDispatcher. BPT={}", bpt);
+            dispatcher = new OperationDispatcher(Plots.ID, bpt);
             Sponge.getScheduler().createTaskBuilder().intervalTicks(1).delayTicks(1).execute(dispatcher).submit(plugin);
         }
         return dispatcher;
