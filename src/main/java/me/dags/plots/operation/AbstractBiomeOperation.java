@@ -21,13 +21,13 @@ public abstract class AbstractBiomeOperation implements Operation {
 
     @Override
     public int process(int blocksToProcess) {
-        for (int x = this.x; x < maxX && blocksToProcess > 0; x++) {
-            for (int z = this.z; z < maxZ && blocksToProcess-- > 0; z++) {
+        for (int x = this.x; x <= maxX && blocksToProcess > 0; x++) {
+            for (int z = this.z; z <= maxZ && blocksToProcess-- > 0; z++) {
                 processAt(x, z);
             }
             this.z = 0;
         }
-        if (this.x == maxX) {
+        if (this.x > maxX) {
             complete = true;
             if (callback != null) {
                 callback.run();
