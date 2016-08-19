@@ -2,6 +2,7 @@ package me.dags.plots;
 
 import me.dags.plots.generator.GeneratorProperties;
 import me.dags.plots.generator.PlotGenerator;
+import me.dags.plots.operation.OperationDispatcher;
 import me.dags.plots.plot.PlotWorld;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.world.gen.WorldGeneratorModifier;
@@ -19,12 +20,25 @@ public class PlotsAPI {
     private final Map<String, PlotWorld> worlds = new HashMap<>();
     private final Plots plugin;
 
+    private OperationDispatcher dispatcher;
+
     PlotsAPI(Plots plots) {
         this.plugin = plots;
     }
 
     public Path configDir() {
         return plugin.configDir;
+    }
+
+    public OperationDispatcher getDispatcher() {
+        if (dispatcher != null) {
+            int bps = Plots.getConfig().blocksPerTick();
+
+            Plots.log("Initializing OperationDispatcher. BPT={}", bps);
+            dispatcher = new OperationDispatcher(Plots.ID, bps);
+            Sponge.getScheduler().createTaskBuilder().intervalTicks(1).delayTicks(1).execute(dispatcher).submit(plugin);
+        }
+        return dispatcher;
     }
 
     public Optional<PlotWorld> getPlotWorld(String name) {

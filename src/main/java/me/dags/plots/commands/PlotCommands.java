@@ -36,11 +36,6 @@ public class PlotCommands {
         }));
     }
 
-    @Command(aliases = "copy", parent = "plot", perm = "plot.command.copy", desc = "Copy the plot at your location to the given plot")
-    public void copy(@Caller Player player, @One("plot|alias") String plot) {
-
-    }
-
     @Command(aliases = "claim", parent = "plot", perm = "plot.command.claim", desc = "Claim an empty plot to build on")
     public void claim(@Caller Player player) {
         processLocation(player, (plotWorld, plotId) -> {
@@ -181,6 +176,36 @@ public class PlotCommands {
                 plotWorld.resetPlot(plotId);
             } else {
                 FORMAT.error("You do not own this plot").tell(player);
+            }
+        }));
+    }
+
+    @Command(aliases = "copy", parent = "plot", perm = "plot.command.copy", desc = "Copy the plot at your location to the given plot")
+    public void copy(@Caller Player player, @One("plot|alias") String plot) {
+        processLocation(player, ((plotWorld, fromId) -> {
+            PlotUser user = plotWorld.getUser(player.getUniqueId());
+            if (user.isWhitelisted(fromId)) {
+                if (PlotId.isValid(plot)) {
+                    PlotId toId = PlotId.valueOf(plot);
+                    if (user.isOwner(toId)) {
+                        FORMAT.info("Copying plot ").stress(fromId).info(" to ").stress(toId).tell(player);
+                        plotWorld.copyPlot(fromId, toId);
+                    } else {
+                        FORMAT.error("You do not own the target plot ").stress(plot).tell(player);
+                    }
+                } else {
+                    Select<PlotId> selectNamed = Queries.selectPlotByName(user.getUUID(), plotWorld.getWorld(), plot).build();
+                    Plots.getDatabase().select(selectNamed, toId -> {
+                        if (toId.isPresent()) {
+                            FORMAT.info("Copying plot ").stress(fromId).info(" to ").stress(toId).tell(player);
+                            plotWorld.copyPlot(fromId, toId);
+                        } else {
+                            FORMAT.error("Unable to locate plot ").stress(player).tell(player);
+                        }
+                    });
+                }
+            } else {
+                FORMAT.error("You are not whitelisted on this plot").tell(player);
             }
         }));
     }

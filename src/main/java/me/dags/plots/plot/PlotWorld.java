@@ -5,6 +5,9 @@ import me.dags.commandbus.Format;
 import me.dags.plots.Plots;
 import me.dags.plots.database.Queries;
 import me.dags.plots.database.statment.Select;
+import me.dags.plots.operation.CopyBiomeOperation;
+import me.dags.plots.operation.CopyBlockOperation;
+import me.dags.plots.operation.FillBlockOperation;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.entity.living.player.Player;
@@ -148,9 +151,12 @@ public class PlotWorld {
         Sponge.getServer().getWorld(worldId).ifPresent(world -> {
             PlotBounds bounds = getPlotBounds(plotId);
             MutableBlockVolume volume = world.getBlockView(bounds.getBlockMin(), bounds.getBlockMax());
-            MutableBiomeArea biomeArea = world.getBiomeView(bounds.getMin(), bounds.getMax());
-            volume.getBlockWorker().fill((x, y, z) -> BlockTypes.AIR.getDefaultState());
-            world.getWorldGenerator().getBaseGenerationPopulator().populate(world, volume, biomeArea.getImmutableBiomeCopy());
+            FillBlockOperation fill = new FillBlockOperation(volume, BlockTypes.AIR.getDefaultState());
+            fill.onComplete(() -> {
+                MutableBiomeArea biomeArea = world.getBiomeView(bounds.getMin(), bounds.getMax());
+                world.getWorldGenerator().getBaseGenerationPopulator().populate(world, volume, biomeArea.getImmutableBiomeCopy());
+            });
+            Plots.getApi().getDispatcher().addOperation(fill);
         });
     }
 
@@ -160,14 +166,13 @@ public class PlotWorld {
             PlotBounds to = getPlotBounds(toId);
             MutableBlockVolume volFrom = world.getBlockView(from.getBlockMin(), from.getBlockMax());
             MutableBlockVolume volTo = world.getBlockView(to.getBlockMin(), to.getBlockMax());
-
-            final Vector3i fromMin = from.getBlockMin();
-            final Vector3i toMin = to.getBlockMin();
-
-            volFrom.getBlockWorker().iterate((volume, x, y, z) -> {
-                int dx = x - fromMin.getX(), dz = z - fromMin.getZ();
-                volTo.setBlock(toMin.getX() + dx, y, toMin.getZ() + dz, volume.getBlock(x, y, z));
+            CopyBlockOperation copyBlocks = new CopyBlockOperation(volFrom, volTo);
+            copyBlocks.onComplete(() -> {
+                MutableBiomeArea fromBiome = world.getBiomeView(from.getMin(), from.getMax());
+                MutableBiomeArea toBiome = world.getBiomeView(to.getMin(), to.getMax());
+                Plots.getApi().getDispatcher().addOperation(new CopyBiomeOperation(fromBiome, toBiome));
             });
+            Plots.getApi().getDispatcher().addOperation(copyBlocks);
         });
     }
 

@@ -75,6 +75,7 @@ public class Plots {
     @Listener (order = Order.EARLY)
     public void onShutDown(GameStoppingServerEvent event) {
         database.close();
+        getApi().getDispatcher().finishAll();
     }
 
     public static Database getDatabase() {
