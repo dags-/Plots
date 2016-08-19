@@ -192,6 +192,13 @@ public class Queries {
         return builder;
     }
 
+    public static Delete.Builder deleteWhitelisted(PlotUser user, PlotId plotId) {
+        return new Delete.Builder()
+                .in(user.getWorld())
+                .where(Where.of(Keys.UID, "=", Keys.uid(user.getUUID(), plotId))
+                        .and(Where.of(Keys.META_OWNER, "=", "NULL").or(Keys.META_OWNER, "=", false)).build());
+    }
+
     public static Delete.Builder deleteUserPlot(PlotUser user, PlotId plotId) {
         return new Delete.Builder()
                 .in(user.getWorld())

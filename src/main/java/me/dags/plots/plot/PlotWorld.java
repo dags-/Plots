@@ -85,7 +85,7 @@ public class PlotWorld {
     }
 
     @Listener (order = Order.PRE)
-    public void onInteract(InteractEntityEvent event, @First Player player) {
+    public void onInteractEntity(InteractEntityEvent event, @First Player player) {
         if (thisWorld(event.getTargetEntity().getWorld())) {
             if (!canBuild(player.getUniqueId(), event.getTargetEntity().getLocation().getBlockPosition())) {
                 event.setCancelled(true);

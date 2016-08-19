@@ -23,7 +23,7 @@ public class Delete implements Statement {
     public static class Builder implements StatementBuilder {
 
         private final List<String> from = new ArrayList<>();
-        private String where = "";
+        private Where where = null;
 
         public Builder in(String name) {
             this.from.add(name);
@@ -31,7 +31,7 @@ public class Delete implements Statement {
         }
 
         public Builder where(Where where) {
-            this.where = where.getStatement();
+            this.where = where;
             return this;
         }
 
@@ -45,7 +45,7 @@ public class Delete implements Statement {
 
         @Override
         public String toString() {
-            return "DELETE FROM " + allToString(from) + " WHERE " + where;
+            return "DELETE FROM " + allToString(from) + " WHERE " + where.getStatement();
         }
 
         @Override

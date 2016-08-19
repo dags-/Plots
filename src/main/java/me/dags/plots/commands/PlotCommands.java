@@ -99,7 +99,7 @@ public class PlotCommands {
             PlotUser plotUser = plotWorld.getOrCreateUser(player.getUniqueId());
             if (plotUser.isOwner(plotId) || player.hasPermission("plot.command.whitelist.force.remove")) {
                 PlotUser other = plotWorld.getOrCreateUser(user.getUniqueId());
-                Delete delete = Queries.deleteUserPlot(other, plotId).build();
+                Delete delete = Queries.deleteWhitelisted(other, plotId).build();
                 Plots.getDatabase().update(delete, result -> {
                     if (result) {
                         FORMAT.info("Successfully removed ").stress(user.getName()).info(" from plot ").stress(plotId).tell(player);
