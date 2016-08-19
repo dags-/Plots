@@ -48,10 +48,8 @@ public class OperationDispatcher implements Runnable {
                 Operation operation = iterator.next();
 
                 try {
-                    // The number of blocks actually processed.
-                    // If the operation completes before hitting it's bpo, pass the spare to the next operation.
-                    int processed = operation.process(bpo + extra);
-                    extra = processed < bpo ? bpo - processed : 0;
+                    // Returns the number of unused iterations. Let the next operation use them instead.
+                    extra = operation.process(bpo + extra);
 
                     // If operation has finished, remove from list
                     if (operation.complete()) {
