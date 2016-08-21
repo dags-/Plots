@@ -78,9 +78,19 @@ public class PlotWorld {
     }
 
     @Listener (order = Order.PRE)
-    public void onBlockChange(ChangeBlockEvent event, @First Player player) {
+    public void onBlockChange(ChangeBlockEvent event) {
         if (thisWorld(event.getTargetWorld())) {
-            event.filter(loc -> canBuild(player.getUniqueId(), loc.getBlockPosition()));
+            Optional<Player> optional = event.getCause().first(Player.class);
+            if (optional.isPresent()) {
+                Player player = optional.get();
+                event.filter(loc -> canBuild(player.getUniqueId(), loc.getBlockPosition()));
+            } else {
+                event.filter(loc -> {
+                    PlotId plotId = getPlotId(loc.getBlockPosition());
+                    PlotBounds bounds = getPlotBounds(plotId);
+                    return bounds.contains(loc.getBlockPosition());
+                });
+            }
         }
     }
 
