@@ -8,7 +8,7 @@ import com.flowpowered.math.vector.Vector3i;
  */
 public class PlotBounds {
 
-    private static final PlotBounds EMPTY = new PlotBounds();
+    static final PlotBounds EMPTY = new PlotBounds();
 
     private final Vector2i min;
     private final Vector2i max;

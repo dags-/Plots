@@ -214,13 +214,6 @@ public class PlotWorld {
         return getPlotBounds(plotId).contains(vector3i) && getUser(uuid).isWhitelisted(plotId);
     }
 
-    public void WupdateUser(PlotUser user, PlotId plotId) {
-        if (user.isPresent()) {
-            addUser(user);
-            Plots.getDatabase().updateUser(user, plotId);
-        }
-    }
-
     public void refreshUser(UUID uuid) {
         if (plotUsers.containsKey(uuid)) {
             Plots.getDatabase().loadUser(world, uuid, user -> {

@@ -12,17 +12,20 @@ public class PlotUser {
     private final UUID uuid;
     private final String world;
     private final Map<PlotId, PlotMeta> plotData;
+    private PlotMask mask = null;
 
     private PlotUser() {
         this.uuid = null;
         this.world = null;
         this.plotData = Collections.emptyMap();
+        this.mask = PlotMask.EMPTY;
     }
 
     private PlotUser(Builder builder) {
         this.uuid = builder.uuid;
         this.world = builder.world;
         this.plotData = Collections.unmodifiableMap(builder.plotData);
+        this.mask = null;
     }
 
     public boolean isPresent() {
@@ -39,6 +42,10 @@ public class PlotUser {
 
     public Collection<Map.Entry<PlotId, PlotMeta>> getPlots() {
         return plotData.entrySet();
+    }
+
+    public PlotMask getMask() {
+        return mask != null ? mask : (mask = PlotMask.calculate(getWorld(), plotData.keySet()));
     }
 
     public PlotMeta getMeta(PlotId plotId) {
