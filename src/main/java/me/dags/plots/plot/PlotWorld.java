@@ -84,37 +84,44 @@ public class PlotWorld {
             Optional<Player> optional = event.getCause().first(Player.class);
             if (optional.isPresent()) {
                 Player player = optional.get();
-                event.filter(loc -> canBuild(player.getUniqueId(), loc.getBlockPosition()));
+                if (!player.hasPermission("plots.bypass.build")) {
+                    event.filter(loc -> canDo(player, loc.getBlockPosition(), "plots.build"));
+                }
             } else {
-                event.filter(loc -> {
-                    PlotId plotId = getPlotId(loc.getBlockPosition());
-                    PlotBounds bounds = getPlotBounds(plotId);
-                    return bounds.contains(loc.getBlockPosition());
-                });
+                event.filter(loc -> withinPlot(loc.getBlockPosition()));
             }
         }
     }
 
+    // might not detect entities fired into the plot
     @Listener(order = Order.PRE)
     public void onInteractEntity(InteractEntityEvent event, @First Player player) {
         if (thisWorld(event.getTargetEntity().getWorld())) {
-            if (!canBuild(player.getUniqueId(), event.getTargetEntity().getLocation().getBlockPosition())) {
-                event.setCancelled(true);
+            if (!player.hasPermission("plots.bypass.entity.interact")) {
+                if (!canDo(player, event.getTargetEntity().getLocation().getBlockPosition(), "plots.entity.interact")) {
+                    event.setCancelled(true);
+                }
             }
         }
     }
 
     @Listener(order = Order.PRE)
     public void onUse(UseItemStackEvent.Start event, @First Player player) {
-        if (thisWorld(player.getWorld()) && !canBuild(player.getUniqueId(), player.getLocation().getBlockPosition())) {
-            event.setCancelled(true);
+        if (thisWorld(player.getWorld())) {
+            if (!player.hasPermission("plots.bypass.item.use")) {
+                if (!canDo(player, player.getLocation().getBlockPosition(), "plots.item.use")) {
+                    event.setCancelled(true);
+                }
+            }
         }
     }
 
     @Listener(order = Order.PRE)
     public void onSpawn(SpawnEntityEvent event, @First Player player) {
         if (thisWorld(event.getTargetWorld())) {
-            event.filterEntityLocations(loc -> canBuild(player.getUniqueId(), loc.getBlockPosition()));
+            if (!player.hasPermission("plots.bypass.entity.spawn")) {
+                event.filterEntityLocations(loc -> canDo(player, loc.getBlockPosition(), "plots.entity.spawn"));
+            }
         }
     }
 
@@ -229,9 +236,17 @@ public class PlotWorld {
         return user != null ? user : PlotUser.EMPTY;
     }
 
-    public boolean canBuild(UUID uuid, Vector3i vector3i) {
+    public boolean canDo(Player player, Vector3i position, String permission) {
+        if (!permission.isEmpty() && player.hasPermission(permission)) {
+            return false;
+        }
+        PlotId plotId = plotProvider.plotId(position);
+        return getPlotBounds(plotId).contains(position) && getUser(player.getUniqueId()).isWhitelisted(plotId);
+    }
+
+    public boolean withinPlot(Vector3i vector3i) {
         PlotId plotId = plotProvider.plotId(vector3i);
-        return getPlotBounds(plotId).contains(vector3i) && getUser(uuid).isWhitelisted(plotId);
+        return getPlotBounds(plotId).contains(vector3i);
     }
 
     public void refreshUser(UUID uuid) {
