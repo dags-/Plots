@@ -61,9 +61,8 @@ public class PlotWorld {
         if (thisWorld(event.getTargetWorld())) {
             event.setWeather(Weathers.CLEAR);
             event.setDuration(Integer.MAX_VALUE);
+            PlotsPlugin.log("Set weather for world: {}", world);
         }
-
-        PlotsPlugin.log("Set weather for world: {}", world);
     }
 
     @Listener
