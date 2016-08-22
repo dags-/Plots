@@ -24,7 +24,7 @@ public class OperationDispatcher implements Runnable {
         this.bpt = blocksPerTick;
     }
 
-    public void addOperation(Operation operation) {
+    public void queueOperation(Operation operation) {
         if (closed) {
             return;
         }

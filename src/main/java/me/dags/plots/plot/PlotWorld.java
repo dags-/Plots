@@ -7,6 +7,7 @@ import me.dags.plots.database.Queries;
 import me.dags.plots.database.statment.Select;
 import me.dags.plots.operation.CopyBiomeOperation;
 import me.dags.plots.operation.CopyBlockOperation;
+import me.dags.plots.operation.FillBiomeOperation;
 import me.dags.plots.operation.FillBlockOperation;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockTypes;
@@ -25,6 +26,7 @@ import org.spongepowered.api.event.world.ChangeWorldWeatherEvent;
 import org.spongepowered.api.text.chat.ChatTypes;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
+import org.spongepowered.api.world.biome.BiomeType;
 import org.spongepowered.api.world.extent.MutableBiomeArea;
 import org.spongepowered.api.world.extent.MutableBlockVolume;
 import org.spongepowered.api.world.weather.Weathers;
@@ -157,6 +159,15 @@ public class PlotWorld {
         }
     }
 
+    public void setBiome(PlotId plotId, BiomeType type) {
+        Sponge.getServer().getWorld(worldId).ifPresent(world -> {
+            PlotBounds bounds = getPlotBounds(plotId);
+            MutableBiomeArea area = world.getBiomeView(bounds.getMin(), bounds.getMax());
+            FillBiomeOperation fill = new FillBiomeOperation(world.getName(), area, type);
+            PlotsPlugin.getPlots().getDispatcher().queueOperation(fill);
+        });
+    }
+
     public void resetPlot(PlotId plotId) {
         Sponge.getServer().getWorld(worldId).ifPresent(world -> {
             PlotBounds bounds = getPlotBounds(plotId);
@@ -166,7 +177,7 @@ public class PlotWorld {
                 MutableBiomeArea biomeArea = world.getBiomeView(bounds.getMin(), bounds.getMax());
                 world.getWorldGenerator().getBaseGenerationPopulator().populate(world, volume, biomeArea.getImmutableBiomeCopy());
             });
-            PlotsPlugin.getPlots().getDispatcher().addOperation(fill);
+            PlotsPlugin.getPlots().getDispatcher().queueOperation(fill);
         });
     }
 
@@ -180,9 +191,9 @@ public class PlotWorld {
             copyBlocks.onComplete(() -> {
                 MutableBiomeArea fromBiome = world.getBiomeView(from.getMin(), from.getMax());
                 MutableBiomeArea toBiome = world.getBiomeView(to.getMin(), to.getMax());
-                PlotsPlugin.getPlots().getDispatcher().addOperation(new CopyBiomeOperation(getWorld(), fromBiome, toBiome));
+                PlotsPlugin.getPlots().getDispatcher().queueOperation(new CopyBiomeOperation(getWorld(), fromBiome, toBiome));
             });
-            PlotsPlugin.getPlots().getDispatcher().addOperation(copyBlocks);
+            PlotsPlugin.getPlots().getDispatcher().queueOperation(copyBlocks);
         });
     }
 

@@ -11,9 +11,11 @@ import me.dags.plots.database.statment.Delete;
 import me.dags.plots.database.statment.Insert;
 import me.dags.plots.database.statment.Select;
 import me.dags.plots.plot.*;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.world.biome.BiomeType;
 
 import java.util.Optional;
 import java.util.function.BiConsumer;
@@ -208,6 +210,24 @@ public class PlotCommands {
                 FORMAT.error("You are not whitelisted on this plot").tell(player);
             }
         }));
+    }
+
+    @Command(aliases = "biome", parent = "plot", perm = "plots.command.plot.biome")
+    public void biome(@Caller Player player, String biome) {
+        processLocation(player, (((plotWorld, plotId) -> {
+            PlotUser user = plotWorld.getUser(player.getUniqueId());
+            if (user.isOwner(plotId)) {
+                Optional<BiomeType> type = Sponge.getRegistry().getType(BiomeType.class, biome);
+                if (type.isPresent()) {
+                    plotWorld.setBiome(plotId, type.get());
+                    FORMAT.info("Setting plot ").stress(plotId).info("'s biome to ").stress(type.get().getName()).tell(player);
+                } else {
+                    FORMAT.error("Biome ").stress(biome).error(" not recognised").tell(player);
+                }
+            } else {
+                FORMAT.error("You don not own this plot").tell(player);
+            }
+        })));
     }
 
     @Command(aliases = "alias", parent = "plot", perm = "plots.command.plot.name", desc = "Set an alias for the current plot")
