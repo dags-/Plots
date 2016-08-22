@@ -10,7 +10,7 @@ import me.dags.plots.generator.GeneratorProperties;
 import me.dags.plots.generator.PlotGenerator;
 import me.dags.plots.plot.PlotWorld;
 import me.dags.plots.util.IO;
-import me.dags.plots.worldedit.WESupport;
+import me.dags.plots.util.Support;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongepowered.api.Sponge;
@@ -29,7 +29,7 @@ import java.nio.file.Path;
 /**
  * @author dags <dags@dags.me>
  */
-@Plugin(id = Plots.ID, version = "0.1")
+@Plugin(id = Plots.ID, name = Plots.ID, version = "0.1")
 public class Plots {
 
     public static final String ID = "plots";
@@ -55,11 +55,11 @@ public class Plots {
         config = IO.getConfig(configDir.resolve("config.conf"));
         database.init();
 
-        if (!Files.exists(instance.configDir.resolve("generators").resolve("default.conf"))) {
+        if (!Files.exists(getApi().generatorsDir().resolve("default.conf"))) {
             IO.saveProperties(GeneratorProperties.DEFAULT, instance.configDir.resolve("generators"));
         }
 
-        IO.loadGeneratorProperties(instance.configDir.resolve("generators")).forEach(Plots.getApi()::register);
+        IO.loadGeneratorProperties(getApi().generatorsDir()).forEach(Plots.getApi()::register);
 
         CommandBus.newInstance(logger)
                 .register(GenCommands.class)
@@ -67,7 +67,9 @@ public class Plots {
                 .register(WorldCommands.class)
                 .submit(this);
 
-        Sponge.getScheduler().createTaskBuilder().execute(WESupport::initialize).submit(this);
+        Sponge.getScheduler().createTaskBuilder()
+                .execute(Support.of("WorldEdit", "com.sk89q.worldedit.WorldEdit", "me.dags.plots.worldedit.WESessionListener"))
+                .submit(this);
     }
 
     @Listener (order = Order.POST)
