@@ -33,7 +33,7 @@ public class PlotMask {
     }
 
     static PlotMask calculate(String worldName, Collection<PlotId> plotIds) {
-        Optional<PlotWorld> world = PlotsPlugin.getPlots().getPlotWorld(worldName);
+        Optional<PlotWorld> world = PlotsPlugin.getPlots().getPlotWorldExact(worldName);
         if (world.isPresent()) {
             PlotMask root = PlotMask.EMPTY, mask = root;
             for (PlotId id : plotIds) {

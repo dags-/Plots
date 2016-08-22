@@ -28,7 +28,7 @@ public class WESessionListener implements Support.Hook {
         World world = event.getWorld();
         Actor actor = event.getActor();
         if (world != null && actor != null) {
-            Optional<PlotWorld> plotWorld = PlotsPlugin.getPlots().getPlotWorld(world.getName());
+            Optional<PlotWorld> plotWorld = PlotsPlugin.getPlots().getPlotWorldExact(world.getName());
             if (plotWorld.isPresent()) {
                 PlotUser user = plotWorld.get().getUser(actor.getUniqueId());
                 PlotMask mask = user.getMask();

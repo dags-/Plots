@@ -71,6 +71,10 @@ public class Plots {
         return world != null ? Optional.of(world) : matchPlotWorld(name);
     }
 
+    public Optional<PlotWorld> getPlotWorldExact(String name) {
+        return Optional.ofNullable(worlds.get(name));
+    }
+
     public Optional<PlotWorld> matchPlotWorld(String name) {
         String lowercaseName = name.toLowerCase();
         PlotWorld bestMatch = null;
@@ -88,9 +92,9 @@ public class Plots {
     }
 
     public void removePlotWorld(String world) {
-        getPlotWorld(world).ifPresent(plotWorld -> {
+        getPlotWorldExact(world).ifPresent(plotWorld -> {
             Sponge.getEventManager().unregisterListeners(plotWorld);
-            getDispatcher().finishAll(world);
+            getDispatcher().finishAll(plotWorld.getWorld());
             worlds.remove(world);
         });
     }
