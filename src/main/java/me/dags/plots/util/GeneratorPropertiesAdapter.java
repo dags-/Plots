@@ -24,10 +24,10 @@ public class GeneratorPropertiesAdapter implements NodeTypeAdapter<GeneratorProp
     public Node toNode(GeneratorProperties properties) {
         NodeObject node = new NodeObject();
         node.put("name", properties.name());
-        node.put("plotXWidth", properties.getXWidth());
-        node.put("plotZWidth", properties.getZWidth());
-        node.put("wallWidth", properties.getWallWidth());
-        node.put("pathWidth", properties.getPathWidth());
+        node.put("plot_x_width", properties.getXWidth());
+        node.put("plot_z_width", properties.getZWidth());
+        node.put("wall_width", properties.getWallWidth());
+        node.put("path_width", properties.getPathWidth());
         node.put("biome", properties.biomeType().getId());
 
         NodeArray layersNode = new NodeArray();
@@ -45,7 +45,7 @@ public class GeneratorPropertiesAdapter implements NodeTypeAdapter<GeneratorProp
         for (Map.Entry<String, String> rule : properties.gameRules().entrySet()) {
             gameRules.put(rule.getKey(), rule.getValue());
         }
-        node.put("gameRules", gameRules);
+        node.put("game_rules", gameRules);
 
         return node;
     }
@@ -56,10 +56,10 @@ public class GeneratorPropertiesAdapter implements NodeTypeAdapter<GeneratorProp
 
         GeneratorProperties.Builder builder = GeneratorProperties.builder();
         builder.name(get(object.get("name"), Node::asString, "error"));
-        builder.xWidth(get(object.get("plotXWidth"), n -> n.asNumber().intValue(), 42));
-        builder.zWidth(get(object.get("plotZWidth"), n -> n.asNumber().intValue(), 42));
-        builder.wallWidth(get(object.get("wallWidth"), n -> n.asNumber().intValue(), 1));
-        builder.pathWidth(get(object.get("pathWidth"), n -> n.asNumber().intValue(), 6));
+        builder.xWidth(get(object.get("plot_x_width"), n -> n.asNumber().intValue(), 42));
+        builder.zWidth(get(object.get("plot_z_width"), n -> n.asNumber().intValue(), 42));
+        builder.wallWidth(get(object.get("wall_width"), n -> n.asNumber().intValue(), 1));
+        builder.pathWidth(get(object.get("path_width"), n -> n.asNumber().intValue(), 6));
         builder.biome(get(object.get("biome"), n -> Sponge.getRegistry().getType(BiomeType.class, n.asString()).orElse(BiomeTypes.PLAINS), BiomeTypes.PLAINS));
 
         Node layers = object.get("layers");
@@ -76,10 +76,11 @@ public class GeneratorPropertiesAdapter implements NodeTypeAdapter<GeneratorProp
             }
         }
 
-        Node rules = object.get("gameRules");
+        Node rules = object.get("game_rules");
         if (rules.isPresent() && rules.isNodeObject()) {
             for (Map.Entry<Node, Node> rule : rules.asNodeObject().entries()) {
-                builder.gameRule(rule.getKey().asString(), rule.getValue().asString());
+                Object value = rule.getValue().asObject();
+                builder.gameRule(rule.getKey().asString(), value != null ? value.toString() : "false");
             }
         }
 

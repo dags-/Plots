@@ -13,7 +13,7 @@ import java.util.*;
 public class GeneratorProperties {
 
     public static final GeneratorProperties DEFAULT = builder()
-            .gameRule(Defaults.defaultGameRules())
+            .gameRules(Defaults.defaultGameRules())
             .layer(Defaults.defaultLayers())
             .name("default")
             .wallWidth(1)
@@ -119,7 +119,7 @@ public class GeneratorProperties {
                 .zWidth(zWidth)
                 .wallWidth(wallWidth)
                 .pathWidth(pathWidth)
-                .gameRule(gameRules)
+                .gameRules(gameRules)
                 .biome(biomeType)
                 .layer(layers)
                 .build();
@@ -180,7 +180,7 @@ public class GeneratorProperties {
             return this;
         }
 
-        public Builder gameRule(Map<String, String> map) {
+        public Builder gameRules(Map<String, String> map) {
             this.gameRules.putAll(map);
             return this;
         }
@@ -193,6 +193,10 @@ public class GeneratorProperties {
         public Builder clearLayers() {
             layers.clear();
             return this;
+        }
+
+        public Builder defaultGameRules() {
+            return gameRules(Defaults.defaultGameRules());
         }
 
         public GeneratorProperties build() {
