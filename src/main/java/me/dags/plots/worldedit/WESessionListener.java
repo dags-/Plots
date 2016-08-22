@@ -1,11 +1,8 @@
 package me.dags.plots.worldedit;
 
-import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.event.extent.EditSessionEvent;
 import com.sk89q.worldedit.extension.platform.Actor;
-import com.sk89q.worldedit.function.mask.Mask;
-import com.sk89q.worldedit.util.eventbus.EventHandler;
 import com.sk89q.worldedit.util.eventbus.Subscribe;
 import com.sk89q.worldedit.world.World;
 import me.dags.plots.Plots;
@@ -20,36 +17,18 @@ import java.util.Optional;
  */
 public class WESessionListener {
 
-    @Subscribe(priority = EventHandler.Priority.VERY_LATE)
-    public void onCreateSession(EditSessionEvent event) {
+    @Subscribe
+    public void onSessionEvent(EditSessionEvent event) {
         World world = event.getWorld();
         Actor actor = event.getActor();
         if (world != null && actor != null) {
-            LocalSession session = WorldEdit.getInstance().getSessionManager().get(actor);
-            Mask mask = session.getMask();
-
             Optional<PlotWorld> plotWorld = Plots.getApi().getPlotWorld(world.getName());
             if (plotWorld.isPresent()) {
-                PlotUser plotUser = plotWorld.get().getUser(actor.getUniqueId());
-                PlotMask plotMask = plotUser.getMask();
-
-                if (mask == null) {
-                    mask = new WEPlotMask(null, plotMask);
-                } else if (mask instanceof WEPlotMask) {
-                    WEPlotMask current = (WEPlotMask) mask;
-
-                    // Update WEMask if PlotUser's PlotMask has changed since last event
-                    if (current.getMask() != plotMask) {
-                        mask = new WEPlotMask(current.getOriginal(), plotMask);
-                    }
-                }
-            } else if (mask != null && mask instanceof WEPlotMask) {
-                // User has gone from a PlotWorld to non-PlotWorld
-                // - set their mask back to what it was originally (probably null)
-                mask = ((WEPlotMask) mask).getOriginal();
+                PlotUser user = plotWorld.get().getUser(actor.getUniqueId());
+                PlotMask mask = user.getMask();
+                WEMaskedExtent maskedExtent = new WEMaskedExtent(event.getExtent(), mask);
+                event.setExtent(maskedExtent);
             }
-
-            session.setMask(mask);
         }
     }
 
