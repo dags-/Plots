@@ -13,8 +13,8 @@ public class FillBiomeOperation extends AbstractBiomeOperation {
     private final Vector2i min;
     private final BiomeType biomeType;
 
-    public FillBiomeOperation(MutableBiomeArea biomeArea, BiomeType biomeType) {
-        super(biomeArea.getBiomeMin(), biomeArea.getBiomeMax());
+    public FillBiomeOperation(String world, MutableBiomeArea biomeArea, BiomeType biomeType) {
+        super(world, biomeArea.getBiomeMin(), biomeArea.getBiomeMax());
         this.biomeArea = biomeArea;
         this.min = biomeArea.getBiomeMin();
         this.biomeType = biomeType;

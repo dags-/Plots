@@ -5,6 +5,8 @@ package me.dags.plots.operation;
  */
 public interface Operation {
 
+    String getWorld();
+
     int process(int blocksToProcess);
 
     boolean complete();

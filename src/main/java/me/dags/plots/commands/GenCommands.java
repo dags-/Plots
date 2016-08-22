@@ -17,7 +17,6 @@ import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.world.biome.BiomeType;
 
-import java.nio.file.Files;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -159,6 +158,7 @@ public class GenCommands {
         if (builder.isPresent()) {
             GeneratorProperties properties = builder.get().build();
             IO.saveProperties(properties, Plots.getApi().generatorsDir());
+            BUILDERS.invalidate(source);
             FORMAT.info("Saved generator ").stress(properties.name()).info(" to file").tell(source);
         }
     }
@@ -166,10 +166,7 @@ public class GenCommands {
     @Command(aliases = "reload", parent = "gen", perm = "plots.command.gen.reload")
     public void reload(@Caller CommandSource source) {
         FORMAT.info("Reloading generators...").tell(source);
-        if (!Files.exists(Plots.getApi().configDir().resolve("generators").resolve("default.conf"))) {
-            IO.saveProperties(GeneratorProperties.DEFAULT, Plots.getApi().configDir().resolve("generators"));
-        }
-        IO.loadGeneratorProperties(Plots.getApi().configDir().resolve("generators")).forEach(Plots.getApi()::register);
+        Plots.getApi().reloadGenerators();
     }
 
     private static class RemoveListener implements RemovalListener<CommandSource, GeneratorProperties.Builder> {

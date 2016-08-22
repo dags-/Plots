@@ -7,6 +7,7 @@ import com.flowpowered.math.vector.Vector2i;
  */
 public abstract class AbstractBiomeOperation implements Operation {
 
+    private final String world;
     private final int maxX;
     private final int maxZ;
     private int x = 0;
@@ -14,9 +15,15 @@ public abstract class AbstractBiomeOperation implements Operation {
     private boolean complete = false;
     private Runnable callback = null;
 
-    AbstractBiomeOperation(Vector2i min, Vector2i max) {
+    AbstractBiomeOperation(String world, Vector2i min, Vector2i max) {
+        this.world = world;
         this.maxX = max.getX() - min.getX();
         this.maxZ = max.getY() - min.getY();
+    }
+
+    @Override
+    public String getWorld() {
+        return world;
     }
 
     @Override

@@ -5,7 +5,8 @@ import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
 import me.dags.commandbus.annotation.One;
 import me.dags.plots.Plots;
-import me.dags.plots.plot.PlotWorld;
+import me.dags.plots.generator.GeneratorProperties;
+import me.dags.plots.generator.PlotGenerator;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.entity.living.player.Player;
@@ -37,7 +38,11 @@ public class WorldCommands {
 
     @Command(aliases = "create", parent = "plotworld")
     public void create(@Caller CommandSource source, @One("generator") String generator, @One("world") String name) {
-        Plots.getApi().getGenerator(generator).ifPresent(plotGenerator -> {
+        Plots.getApi().getBaseGenerator(generator).ifPresent(properties -> {
+            GeneratorProperties worldProperties = properties.copyTo(name);
+            PlotGenerator plotGenerator = worldProperties.toGenerator();
+            Plots.getApi().registerWorldGenerator(plotGenerator);
+
             WorldCreationSettings settings = WorldCreationSettings.builder()
                     .generatorModifiers(plotGenerator)
                     .dimension(DimensionTypes.OVERWORLD)
@@ -54,7 +59,6 @@ public class WorldCommands {
                     .ifPresent(world -> {
                         plotGenerator.onLoadWorld(world);
                         FORMAT.info("Created world ").stress(world.getName()).tell(source);
-                        Plots.getApi().registerPlotWorld(new PlotWorld(world, plotGenerator.plotProvider()));
                     });
         });
     }

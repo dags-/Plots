@@ -15,8 +15,8 @@ public class CopyBiomeOperation extends AbstractBiomeOperation {
     private final Vector2i fromMin;
     private final Vector2i toMin;
 
-    public CopyBiomeOperation(BiomeArea from, MutableBiomeArea to) {
-        super(from.getBiomeMin(), from.getBiomeMax());
+    public CopyBiomeOperation(String world, BiomeArea from, MutableBiomeArea to) {
+        super(world, from.getBiomeMin(), from.getBiomeMax());
         if (!from.getBiomeSize().equals(to.getBiomeSize())) {
             throw new UnsupportedOperationException("Volumes must be equal in size!");
         }

@@ -161,7 +161,7 @@ public class PlotWorld {
         Sponge.getServer().getWorld(worldId).ifPresent(world -> {
             PlotBounds bounds = getPlotBounds(plotId);
             MutableBlockVolume volume = world.getBlockView(bounds.getBlockMin(), bounds.getBlockMax());
-            FillBlockOperation fill = new FillBlockOperation(volume, BlockTypes.AIR.getDefaultState());
+            FillBlockOperation fill = new FillBlockOperation(getWorld(), volume, BlockTypes.AIR.getDefaultState());
             fill.onComplete(() -> {
                 MutableBiomeArea biomeArea = world.getBiomeView(bounds.getMin(), bounds.getMax());
                 world.getWorldGenerator().getBaseGenerationPopulator().populate(world, volume, biomeArea.getImmutableBiomeCopy());
@@ -176,11 +176,11 @@ public class PlotWorld {
             PlotBounds to = getPlotBounds(toId);
             MutableBlockVolume volFrom = world.getBlockView(from.getBlockMin(), from.getBlockMax());
             MutableBlockVolume volTo = world.getBlockView(to.getBlockMin(), to.getBlockMax());
-            CopyBlockOperation copyBlocks = new CopyBlockOperation(volFrom, volTo);
+            CopyBlockOperation copyBlocks = new CopyBlockOperation(getWorld(), volFrom, volTo);
             copyBlocks.onComplete(() -> {
                 MutableBiomeArea fromBiome = world.getBiomeView(from.getMin(), from.getMax());
                 MutableBiomeArea toBiome = world.getBiomeView(to.getMin(), to.getMax());
-                Plots.getApi().getDispatcher().addOperation(new CopyBiomeOperation(fromBiome, toBiome));
+                Plots.getApi().getDispatcher().addOperation(new CopyBiomeOperation(getWorld(), fromBiome, toBiome));
             });
             Plots.getApi().getDispatcher().addOperation(copyBlocks);
         });

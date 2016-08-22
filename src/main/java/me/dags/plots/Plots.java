@@ -6,7 +6,6 @@ import me.dags.plots.commands.GenCommands;
 import me.dags.plots.commands.PlotCommands;
 import me.dags.plots.commands.WorldCommands;
 import me.dags.plots.database.Database;
-import me.dags.plots.generator.GeneratorProperties;
 import me.dags.plots.generator.PlotGenerator;
 import me.dags.plots.plot.PlotWorld;
 import me.dags.plots.util.IO;
@@ -20,10 +19,10 @@ import org.spongepowered.api.event.Order;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStoppingServerEvent;
 import org.spongepowered.api.event.world.LoadWorldEvent;
+import org.spongepowered.api.event.world.UnloadWorldEvent;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.world.World;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
@@ -55,11 +54,8 @@ public class Plots {
         config = IO.getConfig(configDir.resolve("config.conf"));
         database.init();
 
-        if (!Files.exists(getApi().generatorsDir().resolve("default.conf"))) {
-            IO.saveProperties(GeneratorProperties.DEFAULT, instance.configDir.resolve("generators"));
-        }
-
-        IO.loadGeneratorProperties(getApi().generatorsDir()).forEach(Plots.getApi()::register);
+        getApi().reloadGenerators();
+        getApi().loadWorldGenerators();
 
         CommandBus.newInstance(logger)
                 .register(GenCommands.class)
@@ -79,6 +75,14 @@ public class Plots {
             PlotGenerator plotGenerator = (PlotGenerator) world.getWorldGenerator().getBaseGenerationPopulator();
             Plots.getApi().registerPlotWorld(new PlotWorld(world, plotGenerator.plotProvider()));
             Plots.getDatabase().loadWorld(world.getName());
+        }
+    }
+
+    @Listener (order = Order.EARLY)
+    public void onWorldUnload(UnloadWorldEvent event) {
+        World world = event.getTargetWorld();
+        if (world.getWorldGenerator().getBaseGenerationPopulator() instanceof PlotGenerator) {
+            Plots.getApi().removePlotWorld(world.getName());
         }
     }
 

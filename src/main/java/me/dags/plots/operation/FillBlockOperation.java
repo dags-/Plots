@@ -13,8 +13,8 @@ public class FillBlockOperation extends AbstractBlockOperation {
     private final Vector3i toMin;
     private final BlockState state;
 
-    public FillBlockOperation(MutableBlockVolume to, BlockState state) {
-        super(to.getBlockMin(), to.getBlockMax());
+    public FillBlockOperation(String world, MutableBlockVolume to, BlockState state) {
+        super(world, to.getBlockMin(), to.getBlockMax());
         this.to = to;
         this.toMin = to.getBlockMin();
         this.state = state;

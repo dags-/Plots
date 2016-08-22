@@ -113,6 +113,18 @@ public class GeneratorProperties {
         return String.format("name=%s, dims=[%s,%s,%s,%s], biome=%s", name, xWidth, zWidth, wallWidth, pathWidth, biomeType.getName());
     }
 
+    public GeneratorProperties copyTo(String name) {
+        return builder().name(name)
+                .xWidth(xWidth)
+                .zWidth(zWidth)
+                .wallWidth(wallWidth)
+                .pathWidth(pathWidth)
+                .gameRule(gameRules)
+                .biome(biomeType)
+                .layer(layers)
+                .build();
+    }
+
     public static Builder builder() {
         return new Builder();
     }

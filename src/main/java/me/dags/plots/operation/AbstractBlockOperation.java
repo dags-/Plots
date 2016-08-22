@@ -7,6 +7,7 @@ import com.flowpowered.math.vector.Vector3i;
  */
 public abstract class AbstractBlockOperation implements Operation {
 
+    private final String world;
     private final int maxX, maxY, maxZ;
 
     private boolean complete = false;
@@ -15,10 +16,16 @@ public abstract class AbstractBlockOperation implements Operation {
     private int z = 0;
     private Runnable callback;
 
-    AbstractBlockOperation(Vector3i min, Vector3i max) {
+    AbstractBlockOperation(String world, Vector3i min, Vector3i max) {
+        this.world = world;
         this.maxX = max.getX() - min.getX();
         this.maxY = max.getY() - min.getY();
         this.maxZ = max.getZ() - min.getZ();
+    }
+
+    @Override
+    public String getWorld() {
+        return world;
     }
 
     @Override

@@ -15,8 +15,8 @@ public class CopyBlockOperation extends AbstractBlockOperation {
 
     private final Vector3i fromMin, toMin;
 
-    public CopyBlockOperation(BlockVolume from, MutableBlockVolume to) {
-        super(from.getBlockMin(), from.getBlockMax());
+    public CopyBlockOperation(String world, BlockVolume from, MutableBlockVolume to) {
+        super(world, from.getBlockMin(), from.getBlockMax());
         if (!from.getBlockSize().equals(to.getBlockSize())) {
             throw new UnsupportedOperationException("Volumes must be equal sizes!");
         }

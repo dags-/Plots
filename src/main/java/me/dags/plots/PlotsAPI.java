@@ -4,9 +4,11 @@ import me.dags.plots.generator.GeneratorProperties;
 import me.dags.plots.generator.PlotGenerator;
 import me.dags.plots.operation.OperationDispatcher;
 import me.dags.plots.plot.PlotWorld;
+import me.dags.plots.util.IO;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.world.gen.WorldGeneratorModifier;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,6 +20,7 @@ import java.util.Optional;
 public class PlotsAPI {
 
     private final Map<String, PlotWorld> worlds = new HashMap<>();
+    private final Map<String, GeneratorProperties> generators = new HashMap<>();
     private final Plots plugin;
 
     private OperationDispatcher dispatcher;
@@ -34,6 +37,20 @@ public class PlotsAPI {
         return plugin.configDir.resolve("generators");
     }
 
+    public void loadWorldGenerators() {
+        IO.loadGeneratorProperties(configDir().resolve("worlds"))
+                .map(GeneratorProperties::toGenerator)
+                .forEach(this::registerWorldGenerator);
+    }
+
+    public void reloadGenerators() {
+        if (!Files.exists(generatorsDir().resolve("default.conf"))) {
+            IO.saveProperties(GeneratorProperties.DEFAULT, generatorsDir());
+        }
+        generators.clear();
+        IO.loadGeneratorProperties(generatorsDir()).forEach(this::registerBaseGenerator);
+    }
+
     public OperationDispatcher getDispatcher() {
         if (dispatcher == null) {
             int bpt = Plots.getConfig().blocksPerTick();
@@ -43,6 +60,10 @@ public class PlotsAPI {
             Sponge.getScheduler().createTaskBuilder().intervalTicks(1).delayTicks(1).execute(dispatcher).submit(plugin);
         }
         return dispatcher;
+    }
+
+    public Optional<GeneratorProperties> getBaseGenerator(String name) {
+        return Optional.ofNullable(generators.get(name));
     }
 
     public Optional<PlotWorld> getPlotWorld(String name) {
@@ -66,19 +87,26 @@ public class PlotsAPI {
         return Optional.ofNullable(bestMatch);
     }
 
+    public void removePlotWorld(String world) {
+        getPlotWorld(world).ifPresent(plotWorld -> {
+            Sponge.getEventManager().unregisterListeners(plotWorld);
+            getDispatcher().finishAll(world);
+            worlds.remove(world);
+        });
+    }
+
     public void registerPlotWorld(PlotWorld plotWorld) {
         worlds.put(plotWorld.getWorld(), plotWorld);
         Sponge.getEventManager().registerListeners(plugin, plotWorld);
     }
 
-    public Optional<PlotGenerator> getGenerator(String name) {
-        return Sponge.getRegistry().getType(WorldGeneratorModifier.class, Plots.toGeneratorId(name))
-                .filter(PlotGenerator.class::isInstance)
-                .map(PlotGenerator.class::cast);
+    public void registerBaseGenerator(GeneratorProperties generatorProperties) {
+        Plots.log("Registering base generator {}", generatorProperties);
+        generators.put(generatorProperties.name(), generatorProperties);
     }
 
-    public void register(GeneratorProperties generatorProperties) {
-        Plots.log("Registering Generator: {}", generatorProperties);
-        Sponge.getRegistry().register(WorldGeneratorModifier.class, generatorProperties.toGenerator());
+    public void registerWorldGenerator(PlotGenerator plotGenerator) {
+        Plots.log("Registering world generator for {}", plotGenerator.getName());
+        Sponge.getRegistry().register(WorldGeneratorModifier.class, plotGenerator);
     }
 }

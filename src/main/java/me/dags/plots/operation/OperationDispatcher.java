@@ -64,6 +64,46 @@ public class OperationDispatcher implements Runnable {
         }
     }
 
+    public void finishAll(String world) {
+        if (closed) {
+            return;
+        }
+
+        // Remove queued operations for the world
+        if (queue.size() > 0) {
+            Iterator<Operation> queued = queue.iterator();
+            while (queued.hasNext()) {
+                Operation operation = queued.next();
+                if (operation.getWorld().equals(world)) {
+                    queued.remove();
+                }
+            }
+        }
+
+        // Finish all active operations
+        if (operations.size() > 0) {
+            Iterator<Operation> iterator = operations.iterator();
+
+            while (iterator.hasNext()) {
+                Operation operation = iterator.next();
+
+                if (!operation.getWorld().equals(world)) {
+                    continue;
+                }
+
+                try {
+                    while (!operation.complete()) {
+                        operation.process(Integer.MAX_VALUE);
+                    }
+                    iterator.remove();
+                } catch (Throwable t) {
+                    t.printStackTrace();
+                    iterator.remove();
+                }
+            }
+        }
+    }
+
     public void finishAll() {
         if (closed) {
             return;
