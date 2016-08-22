@@ -2,8 +2,9 @@ package me.dags.plots;
 
 import com.google.inject.Inject;
 import me.dags.commandbus.CommandBus;
+import me.dags.plots.commands.GenCommands;
 import me.dags.plots.commands.PlotCommands;
-import me.dags.plots.commands.PlotworldCommands;
+import me.dags.plots.commands.WorldCommands;
 import me.dags.plots.database.Database;
 import me.dags.plots.generator.GeneratorProperties;
 import me.dags.plots.generator.PlotGenerator;
@@ -60,8 +61,11 @@ public class Plots {
 
         IO.loadGeneratorProperties(instance.configDir.resolve("generators")).forEach(Plots.getApi()::register);
 
-        CommandBus.newInstance(logger).register(PlotCommands.class).submit(this);
-        CommandBus.newInstance(logger).register(PlotworldCommands.class).submit(this);
+        CommandBus.newInstance(logger)
+                .register(GenCommands.class)
+                .register(PlotCommands.class)
+                .register(WorldCommands.class)
+                .submit(this);
 
         Sponge.getScheduler().createTaskBuilder().execute(WESupport::initialize).submit(this);
     }

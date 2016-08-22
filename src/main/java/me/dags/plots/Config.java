@@ -3,6 +3,7 @@ package me.dags.plots;
 import me.dags.commandbus.CommandBus;
 import me.dags.commandbus.Format;
 import org.spongepowered.api.text.format.TextColors;
+import org.spongepowered.api.text.format.TextStyles;
 
 /**
  * @author dags <dags@dags.me>
@@ -17,6 +18,7 @@ public class Config {
 
     public Config(boolean defaultConfig) {
         message_format = CommandBus.newFormatBuilder()
+                .subdued(TextColors.GRAY, TextStyles.ITALIC)
                 .stress(TextColors.GOLD)
                 .info(TextColors.GREEN)
                 .build();

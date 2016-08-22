@@ -30,6 +30,10 @@ public class PlotsAPI {
         return plugin.configDir;
     }
 
+    public Path generatorsDir() {
+        return plugin.configDir.resolve("generators");
+    }
+
     public OperationDispatcher getDispatcher() {
         if (dispatcher == null) {
             int bpt = Plots.getConfig().blocksPerTick();

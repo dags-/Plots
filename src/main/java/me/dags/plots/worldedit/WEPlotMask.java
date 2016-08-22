@@ -13,10 +13,20 @@ import javax.annotation.Nullable;
  */
 public class WEPlotMask implements Mask, Mask2D {
 
+    private final Mask original;
     private final PlotMask mask;
 
-    WEPlotMask(PlotMask mask) {
+    WEPlotMask(Mask original, PlotMask mask) {
+        this.original = original;
         this.mask = mask;
+    }
+
+    public Mask getOriginal() {
+        return original;
+    }
+
+    public PlotMask getMask() {
+        return mask;
     }
 
     @Nullable
@@ -27,7 +37,7 @@ public class WEPlotMask implements Mask, Mask2D {
 
     @Override
     public boolean test(Vector vector) {
-        return mask.contains(vector.getBlockX(), vector.getBlockZ());
+        return (original != null && original.test(vector)) && mask.contains(vector.getBlockX(), vector.getBlockZ());
     }
 
     @Override

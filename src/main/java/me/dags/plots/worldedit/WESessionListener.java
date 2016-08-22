@@ -20,7 +20,7 @@ import java.util.Optional;
  */
 public class WESessionListener {
 
-    @Subscribe (priority = EventHandler.Priority.VERY_EARLY)
+    @Subscribe(priority = EventHandler.Priority.VERY_LATE)
     public void onCreateSession(EditSessionEvent event) {
         World world = event.getWorld();
         Actor actor = event.getActor();
@@ -32,9 +32,21 @@ public class WESessionListener {
             if (plotWorld.isPresent()) {
                 PlotUser plotUser = plotWorld.get().getUser(actor.getUniqueId());
                 PlotMask plotMask = plotUser.getMask();
-                mask = new WEPlotMask(plotMask);
-            } else if (mask instanceof WEPlotMask) {
-                mask = null;
+
+                if (mask == null) {
+                    mask = new WEPlotMask(null, plotMask);
+                } else if (mask instanceof WEPlotMask) {
+                    WEPlotMask current = (WEPlotMask) mask;
+
+                    // Update WEMask if PlotUser's PlotMask has changed since last event
+                    if (current.getMask() != plotMask) {
+                        mask = new WEPlotMask(current.getOriginal(), plotMask);
+                    }
+                }
+            } else if (mask != null && mask instanceof WEPlotMask) {
+                // User has gone from a PlotWorld to non-PlotWorld
+                // - set their mask back to what it was originally (probably null)
+                mask = ((WEPlotMask) mask).getOriginal();
             }
 
             session.setMask(mask);

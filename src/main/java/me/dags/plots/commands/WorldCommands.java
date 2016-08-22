@@ -1,40 +1,38 @@
 package me.dags.plots.commands;
 
+import me.dags.commandbus.Format;
 import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
 import me.dags.commandbus.annotation.One;
 import me.dags.plots.Plots;
-import me.dags.plots.generator.GeneratorProperties;
 import me.dags.plots.plot.PlotWorld;
-import me.dags.plots.util.IO;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.living.player.gamemode.GameModes;
-import org.spongepowered.api.text.Text;
 import org.spongepowered.api.world.DimensionTypes;
 import org.spongepowered.api.world.GeneratorTypes;
+import org.spongepowered.api.world.World;
 import org.spongepowered.api.world.WorldCreationSettings;
 
-import java.nio.file.Files;
+import java.util.Optional;
 
 /**
  * @author dags <dags@dags.me>
  */
-public class PlotworldCommands {
+public class WorldCommands {
+
+    private static final Format FORMAT = Plots.getConfig().getMessageFormat();
 
     @Command(aliases = "world")
-    public void worldWarp(@Caller Player player, @One("world") String world) {
-        Sponge.getServer().getWorld(world).ifPresent(w -> player.setLocation(w.getSpawnLocation()));
-    }
-
-    @Command(aliases = "reload", parent = "plotworld")
-    public void reload(@Caller CommandSource source) {
-        if (!Files.exists(Plots.getApi().configDir().resolve("generators").resolve("default.conf"))) {
-            IO.saveProperties(GeneratorProperties.DEFAULT, Plots.getApi().configDir().resolve("generators"));
+    public void world(@Caller Player player, @One("world") String name) {
+        Optional<World> world = Sponge.getServer().getWorld(name);
+        if (world.isPresent()) {
+            FORMAT.info("Teleporting to ").stress(world.get().getName()).tell(player);
+            player.setLocation(world.get().getSpawnLocation());
+        } else {
+            FORMAT.error("World ").stress(name).error(" does not exist").tell(player);
         }
-        IO.loadGeneratorProperties(Plots.getApi().configDir().resolve("generators")).forEach(Plots.getApi()::register);
-        source.sendMessage(Text.of("Reloading..."));
     }
 
     @Command(aliases = "create", parent = "plotworld")
@@ -55,7 +53,7 @@ public class PlotworldCommands {
                     .flatMap(Sponge.getServer()::loadWorld)
                     .ifPresent(world -> {
                         plotGenerator.onLoadWorld(world);
-                        source.sendMessage(Text.of("Created world: ", world.getName()));
+                        FORMAT.info("Created world ").stress(world.getName()).tell(source);
                         Plots.getApi().registerPlotWorld(new PlotWorld(world, plotGenerator.plotProvider()));
                     });
         });

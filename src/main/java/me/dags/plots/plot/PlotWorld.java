@@ -77,7 +77,7 @@ public class PlotWorld {
         removeUser(plotUser);
     }
 
-    @Listener (order = Order.PRE)
+    @Listener(order = Order.PRE)
     public void onBlockChange(ChangeBlockEvent event) {
         if (thisWorld(event.getTargetWorld())) {
             Optional<Player> optional = event.getCause().first(Player.class);
@@ -94,7 +94,7 @@ public class PlotWorld {
         }
     }
 
-    @Listener (order = Order.PRE)
+    @Listener(order = Order.PRE)
     public void onInteractEntity(InteractEntityEvent event, @First Player player) {
         if (thisWorld(event.getTargetEntity().getWorld())) {
             if (!canBuild(player.getUniqueId(), event.getTargetEntity().getLocation().getBlockPosition())) {
@@ -103,14 +103,14 @@ public class PlotWorld {
         }
     }
 
-    @Listener (order = Order.PRE)
+    @Listener(order = Order.PRE)
     public void onUse(UseItemStackEvent.Start event, @First Player player) {
         if (thisWorld(player.getWorld()) && !canBuild(player.getUniqueId(), player.getLocation().getBlockPosition())) {
             event.setCancelled(true);
         }
     }
 
-    @Listener (order = Order.PRE)
+    @Listener(order = Order.PRE)
     public void onSpawn(SpawnEntityEvent event, @First Player player) {
         if (thisWorld(event.getTargetWorld())) {
             event.filterEntityLocations(loc -> canBuild(player.getUniqueId(), loc.getBlockPosition()));
