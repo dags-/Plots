@@ -8,7 +8,7 @@ import me.dags.commandbus.Format;
 import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
 import me.dags.commandbus.annotation.One;
-import me.dags.plots.Plots;
+import me.dags.plots.PlotsPlugin;
 import me.dags.plots.generator.GeneratorProperties;
 import me.dags.plots.util.IO;
 import org.spongepowered.api.Sponge;
@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 public class GenCommands {
 
     private static final int TIME_OUT = 120;
-    private static final Format FORMAT = Plots.getConfig().getMessageFormat();
+    private static final Format FORMAT = PlotsPlugin.getConfig().getMessageFormat();
     private static final Cache<CommandSource, GeneratorProperties.Builder> BUILDERS = CacheBuilder.newBuilder()
             .expireAfterAccess(TIME_OUT, TimeUnit.SECONDS)
             .removalListener(new RemoveListener())
@@ -157,7 +157,7 @@ public class GenCommands {
         Optional<GeneratorProperties.Builder> builder = get(source);
         if (builder.isPresent()) {
             GeneratorProperties properties = builder.get().build();
-            IO.saveProperties(properties, Plots.getApi().generatorsDir());
+            IO.saveProperties(properties, PlotsPlugin.getPlots().generatorsDir());
             BUILDERS.invalidate(source);
             FORMAT.info("Saved generator ").stress(properties.name()).info(" to file").tell(source);
         }
@@ -166,7 +166,7 @@ public class GenCommands {
     @Command(aliases = "reload", parent = "gen", perm = "plots.command.gen.reload")
     public void reload(@Caller CommandSource source) {
         FORMAT.info("Reloading generators...").tell(source);
-        Plots.getApi().reloadGenerators();
+        PlotsPlugin.getPlots().reloadGenerators();
     }
 
     private static class RemoveListener implements RemovalListener<CommandSource, GeneratorProperties.Builder> {

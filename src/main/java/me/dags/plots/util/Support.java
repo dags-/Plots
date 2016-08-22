@@ -1,6 +1,6 @@
 package me.dags.plots.util;
 
-import me.dags.plots.Plots;
+import me.dags.plots.PlotsPlugin;
 
 /**
  * @author dags <dags@dags.me>
@@ -19,24 +19,24 @@ public class Support implements Runnable {
 
     @Override
     public void run() {
-        Plots.log("Checking for {}...", name);
+        PlotsPlugin.log("Checking for {}...", name);
         try {
             Class.forName(lookupClass);
             Class<?> hook = Class.forName(hookClass);
-            Plots.log("Detected support for {}", name);
+            PlotsPlugin.log("Detected support for {}", name);
             try {
                 Object object = hook.newInstance();
                 if (Hook.class.isInstance(object)) {
                     Hook.class.cast(object).init();
-                    Plots.log("Initialized support for {}", name);
+                    PlotsPlugin.log("Initialized support for {}", name);
                 } else {
-                    Plots.log("Hook class {} is not of the required type {}", hook, Hook.class);
+                    PlotsPlugin.log("Hook class {} is not of the required type {}", hook, Hook.class);
                 }
             } catch (InstantiationException | IllegalAccessException e) {
-                Plots.log("Unable to instantiate hook class {}", hookClass);
+                PlotsPlugin.log("Unable to instantiate hook class {}", hookClass);
             }
         } catch (ClassNotFoundException e) {
-            Plots.log("{} not detected. {} support disabled", lookupClass, name);
+            PlotsPlugin.log("{} not detected. {} support disabled", lookupClass, name);
         }
     }
 

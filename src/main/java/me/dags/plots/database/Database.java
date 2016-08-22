@@ -1,6 +1,6 @@
 package me.dags.plots.database;
 
-import me.dags.plots.Plots;
+import me.dags.plots.PlotsPlugin;
 import me.dags.plots.database.statment.*;
 import me.dags.plots.plot.PlotId;
 import me.dags.plots.plot.PlotMeta;
@@ -26,7 +26,7 @@ import java.util.function.Consumer;
  */
 public class Database {
 
-    private static final Logger logger = LoggerFactory.getLogger(Plots.ID + "_db");
+    private static final Logger logger = LoggerFactory.getLogger(PlotsPlugin.ID + "_db");
 
     private final String database;
     private final Object plugin;
@@ -41,7 +41,7 @@ public class Database {
     }
 
     public void init() {
-        this.log = Plots.getConfig().logDatabase();
+        this.log = PlotsPlugin.getConfig().logDatabase();
     }
 
     public synchronized void close() {

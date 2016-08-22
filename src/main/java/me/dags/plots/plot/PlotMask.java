@@ -1,6 +1,6 @@
 package me.dags.plots.plot;
 
-import me.dags.plots.Plots;
+import me.dags.plots.PlotsPlugin;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -33,7 +33,7 @@ public class PlotMask {
     }
 
     static PlotMask calculate(String worldName, Collection<PlotId> plotIds) {
-        Optional<PlotWorld> world = Plots.getApi().getPlotWorld(worldName);
+        Optional<PlotWorld> world = PlotsPlugin.getPlots().getPlotWorld(worldName);
         if (world.isPresent()) {
             PlotMask root = PlotMask.EMPTY, mask = root;
             for (PlotId id : plotIds) {

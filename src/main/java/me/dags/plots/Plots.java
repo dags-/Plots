@@ -1,114 +1,112 @@
 package me.dags.plots;
 
-import com.google.inject.Inject;
-import me.dags.commandbus.CommandBus;
-import me.dags.plots.commands.GenCommands;
-import me.dags.plots.commands.PlotCommands;
-import me.dags.plots.commands.WorldCommands;
-import me.dags.plots.database.Database;
+import me.dags.plots.generator.GeneratorProperties;
 import me.dags.plots.generator.PlotGenerator;
+import me.dags.plots.operation.OperationDispatcher;
 import me.dags.plots.plot.PlotWorld;
 import me.dags.plots.util.IO;
-import me.dags.plots.util.Support;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.spongepowered.api.Sponge;
-import org.spongepowered.api.config.ConfigDir;
-import org.spongepowered.api.event.Listener;
-import org.spongepowered.api.event.Order;
-import org.spongepowered.api.event.game.state.GameInitializationEvent;
-import org.spongepowered.api.event.game.state.GameStoppingServerEvent;
-import org.spongepowered.api.event.world.LoadWorldEvent;
-import org.spongepowered.api.event.world.UnloadWorldEvent;
-import org.spongepowered.api.plugin.Plugin;
-import org.spongepowered.api.world.World;
+import org.spongepowered.api.world.gen.WorldGeneratorModifier;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author dags <dags@dags.me>
  */
-@Plugin(id = Plots.ID, name = Plots.ID, version = "0.1")
 public class Plots {
 
-    public static final String ID = "plots";
+    private final Map<String, PlotWorld> worlds = new HashMap<>();
+    private final Map<String, GeneratorProperties> generators = new HashMap<>();
+    private final PlotsPlugin plugin;
 
-    private static final Logger logger = LoggerFactory.getLogger(ID);
-    private static Plots instance;
+    private OperationDispatcher dispatcher;
 
-    private final PlotsAPI plotsAPI = new PlotsAPI(this);
-    private final Database database;
-    final Path configDir;
-
-    private Config config;
-
-    @Inject
-    public Plots(@ConfigDir(sharedRoot = false) Path configDir) {
-        Plots.instance = this;
-        this.configDir = configDir;
-        this.database = new Database(this, "jdbc:h2:" + configDir.resolve("plots_data").toAbsolutePath());
+    Plots(PlotsPlugin plots) {
+        this.plugin = plots;
     }
 
-    @Listener
-    public void init(GameInitializationEvent event) {
-        config = IO.getConfig(configDir.resolve("config.conf"));
-        database.init();
-
-        getApi().reloadGenerators();
-        getApi().loadWorldGenerators();
-
-        CommandBus.newInstance(logger)
-                .register(GenCommands.class)
-                .register(PlotCommands.class)
-                .register(WorldCommands.class)
-                .submit(this);
-
-        Sponge.getScheduler().createTaskBuilder()
-                .execute(Support.of("WorldEdit", "com.sk89q.worldedit.WorldEdit", "me.dags.plots.worldedit.WESessionListener"))
-                .submit(this);
+    public Path configDir() {
+        return plugin.configDir;
     }
 
-    @Listener (order = Order.POST)
-    public void onWorldLoad(LoadWorldEvent event) {
-        World world = event.getTargetWorld();
-        if (world.getWorldGenerator().getBaseGenerationPopulator() instanceof PlotGenerator) {
-            PlotGenerator plotGenerator = (PlotGenerator) world.getWorldGenerator().getBaseGenerationPopulator();
-            Plots.getApi().registerPlotWorld(new PlotWorld(world, plotGenerator.plotProvider()));
-            Plots.getDatabase().loadWorld(world.getName());
+    public Path generatorsDir() {
+        return plugin.configDir.resolve("generators");
+    }
+
+    public void loadWorldGenerators() {
+        IO.loadGeneratorProperties(configDir().resolve("worlds"))
+                .map(GeneratorProperties::toGenerator)
+                .forEach(this::registerWorldGenerator);
+    }
+
+    public void reloadGenerators() {
+        if (!Files.exists(generatorsDir().resolve("default.conf"))) {
+            IO.saveProperties(GeneratorProperties.DEFAULT, generatorsDir());
         }
+        generators.clear();
+        IO.loadGeneratorProperties(generatorsDir()).forEach(this::registerBaseGenerator);
     }
 
-    @Listener (order = Order.EARLY)
-    public void onWorldUnload(UnloadWorldEvent event) {
-        World world = event.getTargetWorld();
-        if (world.getWorldGenerator().getBaseGenerationPopulator() instanceof PlotGenerator) {
-            Plots.getApi().removePlotWorld(world.getName());
+    public OperationDispatcher getDispatcher() {
+        if (dispatcher == null) {
+            int bpt = PlotsPlugin.getConfig().blocksPerTick();
+
+            PlotsPlugin.log("Initializing OperationDispatcher. BPT={}", bpt);
+            dispatcher = new OperationDispatcher(PlotsPlugin.ID, bpt);
+            Sponge.getScheduler().createTaskBuilder().intervalTicks(1).delayTicks(1).execute(dispatcher).submit(plugin);
         }
+        return dispatcher;
     }
 
-    @Listener (order = Order.EARLY)
-    public void onShutDown(GameStoppingServerEvent event) {
-        database.close();
-        getApi().getDispatcher().finishAll();
+    public Optional<GeneratorProperties> getBaseGenerator(String name) {
+        return Optional.ofNullable(generators.get(name));
     }
 
-    public static Database getDatabase() {
-        return instance.database;
+    public Optional<PlotWorld> getPlotWorld(String name) {
+        PlotWorld world = worlds.get(name);
+        return world != null ? Optional.of(world) : matchPlotWorld(name);
     }
 
-    public static PlotsAPI getApi() {
-        return instance.plotsAPI;
+    public Optional<PlotWorld> matchPlotWorld(String name) {
+        String lowercaseName = name.toLowerCase();
+        PlotWorld bestMatch = null;
+        for (Map.Entry<String, PlotWorld> entry : worlds.entrySet()) {
+            if (entry.getKey().equalsIgnoreCase(lowercaseName)) {
+                return Optional.of(entry.getValue());
+            }
+            if (entry.getKey().toLowerCase().startsWith(lowercaseName)) {
+                if (bestMatch == null || entry.getValue().getWorld().length() < bestMatch.getWorld().length()) {
+                    bestMatch = entry.getValue();
+                }
+            }
+        }
+        return Optional.ofNullable(bestMatch);
     }
 
-    public static Config getConfig() {
-        return instance.config;
+    public void removePlotWorld(String world) {
+        getPlotWorld(world).ifPresent(plotWorld -> {
+            Sponge.getEventManager().unregisterListeners(plotWorld);
+            getDispatcher().finishAll(world);
+            worlds.remove(world);
+        });
     }
 
-    public static String toGeneratorId(String name) {
-        return String.format("%s:%s", ID, name.toLowerCase());
+    public void registerPlotWorld(PlotWorld plotWorld) {
+        worlds.put(plotWorld.getWorld(), plotWorld);
+        Sponge.getEventManager().registerListeners(plugin, plotWorld);
     }
 
-    public static void log(String message, Object... args) {
-        logger.info(message, args);
+    public void registerBaseGenerator(GeneratorProperties generatorProperties) {
+        PlotsPlugin.log("Registering base generator {}", generatorProperties);
+        generators.put(generatorProperties.name(), generatorProperties);
+    }
+
+    public void registerWorldGenerator(PlotGenerator plotGenerator) {
+        PlotsPlugin.log("Registering world generator for {}", plotGenerator.getName());
+        Sponge.getRegistry().register(WorldGeneratorModifier.class, plotGenerator);
     }
 }
