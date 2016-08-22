@@ -1,5 +1,11 @@
 package me.dags.plots.plot;
 
+import me.dags.commandbus.Format;
+import me.dags.plots.Plots;
+import org.spongepowered.api.service.pagination.PaginationList;
+import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.action.TextActions;
+
 import java.util.*;
 
 /**
@@ -62,6 +68,19 @@ public class PlotUser {
         return meta != null && meta.isPresent() && meta.isOwner();
     }
 
+    public PaginationList listPlots() {
+        List<Text> lines = new ArrayList<>();
+        Format format = Plots.getConfig().getMessageFormat();
+        for (Map.Entry<PlotId, PlotMeta> entry : plotData.entrySet()) {
+            PlotId plotId = entry.getKey();
+            PlotMeta meta = entry.getValue();
+            String line = "(" + plotId + ")" + (meta.isPresent() && meta.hasName() ? " " + meta.getName() : "");
+            Text text = format.stress(" - ").info(line).build().toBuilder().onClick(TextActions.runCommand("/plot tp " + plotId)).build();
+            lines.add(text);
+        }
+        return PaginationList.builder().title(format.stress("Plots").build()).contents(lines).build();
+    }
+
     public Builder toBuilder() {
         return isPresent() ? builder().uuid(uuid).world(world).plot(plotData) : builder();
     }
@@ -102,7 +121,7 @@ public class PlotUser {
         }
 
         public PlotUser build() {
-            return plotData.isEmpty() ? PlotUser.EMPTY : new PlotUser(this);
+            return new PlotUser(this);
         }
     }
 }

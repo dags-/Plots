@@ -27,12 +27,16 @@ public class PlotMeta {
         return isOwner() || name != null;
     }
 
+    public boolean hasName() {
+        return name != null && !name.isEmpty();
+    }
+
     public boolean isOwner() {
         return isPresent() && owner;
     }
 
     public String getName() {
-        return isPresent() ? name : null;
+        return isPresent() ? name : "";
     }
 
     public Builder toBuilder() {

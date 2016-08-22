@@ -4,9 +4,10 @@ import me.dags.commandbus.Format;
 import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
 import me.dags.commandbus.annotation.One;
-import me.dags.plots.PlotsPlugin;
+import me.dags.plots.Plots;
 import me.dags.plots.generator.GeneratorProperties;
 import me.dags.plots.generator.PlotGenerator;
+import me.dags.plots.util.IO;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.entity.living.player.Player;
@@ -23,7 +24,7 @@ import java.util.Optional;
  */
 public class WorldCommands {
 
-    private static final Format FORMAT = PlotsPlugin.getConfig().getMessageFormat();
+    private static final Format FORMAT = Plots.getConfig().getMessageFormat();
 
     @Command(aliases = "world")
     public void world(@Caller Player player, @One("world") String name) {
@@ -38,10 +39,12 @@ public class WorldCommands {
 
     @Command(aliases = "create", parent = "plotworld")
     public void create(@Caller CommandSource source, @One("generator") String generator, @One("world") String name) {
-        PlotsPlugin.getPlots().getBaseGenerator(generator).ifPresent(properties -> {
+        Plots.getApi().getBaseGenerator(generator).ifPresent(properties -> {
             GeneratorProperties worldProperties = properties.copyTo(name);
             PlotGenerator plotGenerator = worldProperties.toGenerator();
-            PlotsPlugin.getPlots().registerWorldGenerator(plotGenerator);
+            Plots.getApi().registerWorldGenerator(plotGenerator);
+
+            IO.saveProperties(worldProperties, Plots.getApi().configDir().resolve("worlds"));
 
             WorldCreationSettings settings = WorldCreationSettings.builder()
                     .generatorModifiers(plotGenerator)

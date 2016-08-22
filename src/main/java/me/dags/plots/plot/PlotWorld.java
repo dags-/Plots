@@ -2,7 +2,7 @@ package me.dags.plots.plot;
 
 import com.flowpowered.math.vector.Vector3i;
 import me.dags.commandbus.Format;
-import me.dags.plots.PlotsPlugin;
+import me.dags.plots.Plots;
 import me.dags.plots.database.Queries;
 import me.dags.plots.database.statment.Select;
 import me.dags.plots.operation.CopyBiomeOperation;
@@ -41,7 +41,7 @@ import java.util.UUID;
  */
 public class PlotWorld {
 
-    private static final Format FORMAT = PlotsPlugin.getConfig().getMessageFormat();
+    private static final Format FORMAT = Plots.getConfig().getMessageFormat();
 
     private final String world;
     private final UUID worldId;
@@ -61,14 +61,14 @@ public class PlotWorld {
         if (thisWorld(event.getTargetWorld())) {
             event.setWeather(Weathers.CLEAR);
             event.setDuration(Integer.MAX_VALUE);
-            PlotsPlugin.log("Set weather for world: {}", world);
+            Plots.log("Set weather for world: {}", world);
         }
     }
 
     @Listener
     public void onJoin(ClientConnectionEvent.Join event) {
         if (thisWorld(event.getTargetEntity().getWorld())) {
-            PlotsPlugin.getDatabase().loadUser(world, event.getTargetEntity().getUniqueId(), this::addUser);
+            Plots.getDatabase().loadUser(world, event.getTargetEntity().getUniqueId(), this::addUser);
         }
     }
 
@@ -131,12 +131,12 @@ public class PlotWorld {
         World to = event.getToTransform().getExtent();
         if (from != to) {
             if (thisWorld(from)) {
-                PlotsPlugin.log("Dropping plotUser: {}", event.getTargetEntity().getName());
+                Plots.log("Dropping plotUser: {}", event.getTargetEntity().getName());
                 PlotUser plotUser = getUser(event.getTargetEntity().getUniqueId());
                 removeUser(plotUser);
             } else if (thisWorld(to)) {
-                PlotsPlugin.log("Getting plotUser: {}", event.getTargetEntity().getName());
-                PlotsPlugin.getDatabase().loadUser(world, event.getTargetEntity().getUniqueId(), this::addUser);
+                Plots.log("Getting plotUser: {}", event.getTargetEntity().getName());
+                Plots.getDatabase().loadUser(world, event.getTargetEntity().getUniqueId(), this::addUser);
             }
         }
     }
@@ -153,7 +153,7 @@ public class PlotWorld {
                     final Player player = event.getTargetEntity();
 
                     Select<Optional<User>> owner = Queries.selectPlotOwner(world, toId).build();
-                    PlotsPlugin.getDatabase().select(owner, user -> {
+                    Plots.getDatabase().select(owner, user -> {
                         Format.MessageBuilder message = FORMAT.info("Plot: ").stress(toId);
                         if (user.isPresent()) {
                             message.info(", Owner: ").stress(user.get().getName());
@@ -170,7 +170,7 @@ public class PlotWorld {
             PlotBounds bounds = getPlotBounds(plotId);
             MutableBiomeArea area = world.getBiomeView(bounds.getMin(), bounds.getMax());
             FillBiomeOperation fill = new FillBiomeOperation(world.getName(), area, type);
-            PlotsPlugin.getPlots().getDispatcher().queueOperation(fill);
+            Plots.getApi().getDispatcher().queueOperation(fill);
         });
     }
 
@@ -183,7 +183,7 @@ public class PlotWorld {
                 MutableBiomeArea biomeArea = world.getBiomeView(bounds.getMin(), bounds.getMax());
                 world.getWorldGenerator().getBaseGenerationPopulator().populate(world, volume, biomeArea.getImmutableBiomeCopy());
             });
-            PlotsPlugin.getPlots().getDispatcher().queueOperation(fill);
+            Plots.getApi().getDispatcher().queueOperation(fill);
         });
     }
 
@@ -197,9 +197,9 @@ public class PlotWorld {
             copyBlocks.onComplete(() -> {
                 MutableBiomeArea fromBiome = world.getBiomeView(from.getMin(), from.getMax());
                 MutableBiomeArea toBiome = world.getBiomeView(to.getMin(), to.getMax());
-                PlotsPlugin.getPlots().getDispatcher().queueOperation(new CopyBiomeOperation(getWorld(), fromBiome, toBiome));
+                Plots.getApi().getDispatcher().queueOperation(new CopyBiomeOperation(getWorld(), fromBiome, toBiome));
             });
-            PlotsPlugin.getPlots().getDispatcher().queueOperation(copyBlocks);
+            Plots.getApi().getDispatcher().queueOperation(copyBlocks);
         });
     }
 
@@ -228,7 +228,11 @@ public class PlotWorld {
 
     public PlotUser getOrCreateUser(UUID uuid) {
         PlotUser user = getUser(uuid);
-        return user.isPresent() ? user : PlotUser.builder().world(world).uuid(uuid).build();
+        if (!user.isPresent()) {
+            user = PlotUser.builder().world(world).uuid(uuid).build();
+            addUser(user);
+        }
+        return user;
     }
 
     public PlotUser getUser(UUID uuid) {
@@ -251,7 +255,7 @@ public class PlotWorld {
 
     public void refreshUser(UUID uuid) {
         if (plotUsers.containsKey(uuid)) {
-            PlotsPlugin.getDatabase().loadUser(world, uuid, user -> {
+            Plots.getDatabase().loadUser(world, uuid, user -> {
                 plotUsers.put(uuid, user);
             });
         }
@@ -259,6 +263,7 @@ public class PlotWorld {
 
     public void addUser(PlotUser user) {
         if (user.isPresent()) {
+            Plots.log("Adding user {}", user.getUUID());
             plotUsers.put(user.getUUID(), user);
         }
     }
@@ -269,7 +274,7 @@ public class PlotWorld {
             for (Map.Entry<PlotId, PlotMeta> entry : user.getPlots()) {
                 boundsCache.remove(entry.getKey());
             }
-            PlotsPlugin.getDatabase().saveUser(user);
+            Plots.getDatabase().saveUser(user);
         }
     }
 

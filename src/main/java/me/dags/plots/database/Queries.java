@@ -113,8 +113,9 @@ public class Queries {
         };
     }
 
-    public static ResultTransformer<PlotUser> userTransformer(PlotUser.Builder builder) {
+    public static ResultTransformer<PlotUser> userTransformer(String world, UUID uuid) {
         return result -> {
+            PlotUser.Builder builder = PlotUser.builder().world(world).uuid(uuid);
             while (result.next()) {
                 String id = result.getString(Keys.PLOT_ID);
                 if (id != null) {
@@ -151,7 +152,7 @@ public class Queries {
                 .select("*")
                 .from(world)
                 .where(matchUser(uuid).build())
-                .transformer(userTransformer(PlotUser.builder().world(world).uuid(uuid)));
+                .transformer(userTransformer(world, uuid));
     }
 
     public static Select.Builder<Optional<User>> selectPlotOwner(String world, PlotId plotId) {

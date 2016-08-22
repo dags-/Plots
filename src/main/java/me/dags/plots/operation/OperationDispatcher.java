@@ -1,6 +1,6 @@
 package me.dags.plots.operation;
 
-import me.dags.plots.PlotsPlugin;
+import me.dags.plots.Plots;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -112,7 +112,7 @@ public class OperationDispatcher implements Runnable {
         closed = true;
         queue.clear();
 
-        PlotsPlugin.log("Finishing all remaining block operations for world: {}", name);
+        Plots.log("Finishing all remaining block operations for world: {}", name);
         for (Operation operation : operations) {
             while (!operation.complete()) {
                 operation.process(Integer.MAX_VALUE);

@@ -1,6 +1,6 @@
 package me.dags.plots.database;
 
-import me.dags.plots.PlotsPlugin;
+import me.dags.plots.Plots;
 import me.dags.plots.database.statment.*;
 import me.dags.plots.plot.PlotId;
 import me.dags.plots.plot.PlotMeta;
@@ -26,7 +26,7 @@ import java.util.function.Consumer;
  */
 public class Database {
 
-    private static final Logger logger = LoggerFactory.getLogger(PlotsPlugin.ID + "_db");
+    private static final Logger logger = LoggerFactory.getLogger(Plots.ID + "_db");
 
     private final String database;
     private final Object plugin;
@@ -41,7 +41,7 @@ public class Database {
     }
 
     public void init() {
-        this.log = PlotsPlugin.getConfig().logDatabase();
+        this.log = Plots.getConfig().logDatabase();
     }
 
     public synchronized void close() {
@@ -89,16 +89,6 @@ public class Database {
     public void loadUser(String world, UUID uuid, Consumer<PlotUser> callback) {
         Select<PlotUser> select = Queries.selectUser(world, uuid).build();
         select(select, callback);
-    }
-
-    public void updateUser(PlotUser user, PlotId plotId) {
-        if (user.isWhitelisted(plotId)) {
-            Insert builder = Queries.updateUserPlot(user, plotId, user.getMeta(plotId)).build();
-            update(builder, b -> {});
-        } else {
-            Delete builder = Queries.deleteUserPlot(user, plotId).build();
-            update(builder, b -> {});
-        }
     }
 
     public void saveUser(PlotUser user) {

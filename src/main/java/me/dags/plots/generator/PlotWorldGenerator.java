@@ -1,7 +1,7 @@
 package me.dags.plots.generator;
 
 import com.flowpowered.math.vector.Vector3i;
-import me.dags.plots.PlotsPlugin;
+import me.dags.plots.Plots;
 import me.dags.plots.plot.PlotProvider;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataContainer;
@@ -56,7 +56,7 @@ public class PlotWorldGenerator implements PlotGenerator {
 
     @Override
     public String getId() {
-        return PlotsPlugin.toGeneratorId(getName());
+        return Plots.toGeneratorId(getName());
     }
 
     @Override
