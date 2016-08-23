@@ -32,14 +32,12 @@ public class PlotCommands {
     public void info(@Caller Player player) {
         processLocation(player, ((plotWorld, plotId) -> {
             Select<Text> info = Queries.selectPlotInfo(plotWorld.getWorld(), plotId, FORMAT).build();
-            Plots.getDatabase().select(info, message -> {
-                FORMAT.info("Plot: ").stress(plotId).append(message).tell(player);
-            });
+            Plots.getDatabase().select(info, message -> FORMAT.info("Plot: ").stress(plotId).append(message).tell(player));
         }));
     }
 
     @Command(aliases = {"maskall", "ma"}, parent = "plot", perm = "plots.command.plot.maskall")
-    public void anywhere(@Caller Player player) {
+    public void maskall(@Caller Player player) {
         processPlotWorld(player, plotWorld -> {
             PlotUser user = plotWorld.getUser(player.getUniqueId());
             if (user.getMask() == PlotMask.ANYWHERE) {
