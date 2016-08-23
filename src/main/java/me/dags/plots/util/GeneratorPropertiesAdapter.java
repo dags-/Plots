@@ -33,7 +33,7 @@ public class GeneratorPropertiesAdapter implements NodeTypeAdapter<GeneratorProp
         NodeArray layersNode = new NodeArray();
         for (LayerProperties layer : properties.layerProperties()) {
             NodeObject layerNode = new NodeObject();
-            layerNode.put("body", layer.body().getId());
+            layerNode.put("plot", layer.body().getId());
             layerNode.put("wall", layer.wall().getId());
             layerNode.put("path", layer.path().getId());
             layerNode.put("thickness", layer.thickness());
@@ -68,7 +68,7 @@ public class GeneratorPropertiesAdapter implements NodeTypeAdapter<GeneratorProp
                 if (!layer.isNodeObject()) {
                     continue;
                 }
-                BlockType body = blockType(layer.asNodeObject(), "body");
+                BlockType body = blockType(layer.asNodeObject(), "plot");
                 BlockType wall = blockType(layer.asNodeObject(), "wall");
                 BlockType path = blockType(layer.asNodeObject(), "path");
                 int thickness = get(layer.asNodeObject().get("thickness"), n -> n.asNumber().intValue(), 1);
