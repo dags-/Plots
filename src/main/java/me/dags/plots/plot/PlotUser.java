@@ -20,7 +20,7 @@ public class PlotUser {
     private final String world;
     private final Map<PlotId, PlotMeta> plotData;
 
-    private transient PlotMask mask = null;
+    private transient PlotMask mask = PlotMask.NOWHERE;
 
     private PlotUser() {
         this.uuid = PlotUser.DUMMY;
@@ -33,7 +33,7 @@ public class PlotUser {
         this.uuid = builder.uuid;
         this.world = builder.world;
         this.plotData = Collections.unmodifiableMap(builder.plotData);
-        this.mask = null;
+        this.mask = PlotMask.NOWHERE;
     }
 
     public boolean isPresent() {
@@ -53,7 +53,7 @@ public class PlotUser {
     }
 
     public PlotMask getMask() {
-        return mask != null ? mask : (mask = PlotMask.calculate(getWorld(), plotData.keySet()));
+        return mask == PlotMask.NOWHERE ? (mask = PlotMask.calculate(getWorld(), plotData.keySet())) : mask;
     }
 
     public PlotMeta getMeta(PlotId plotId) {
@@ -61,12 +61,14 @@ public class PlotUser {
         return meta != null ? meta : PlotMeta.EMPTY;
     }
 
-    public void maskAnywhere() {
-        this.mask = PlotMask.ANYWHERE;
-    }
-
-    public void resetMask() {
-        this.mask = null;
+    public boolean toggleMaskAll() {
+        if (this.mask == PlotMask.NOWHERE) {
+            this.mask = PlotMask.ANYWHERE;
+            return true;
+        } else {
+            this.mask = PlotMask.NOWHERE;
+            return true;
+        }
     }
 
     public boolean isWhitelisted(PlotId plotId) {

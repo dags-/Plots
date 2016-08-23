@@ -40,13 +40,11 @@ public class PlotCommands {
     public void maskall(@Caller Player player) {
         processPlotWorld(player, plotWorld -> {
             PlotUser user = plotWorld.getUser(player.getUniqueId());
-            if (user.getMask() == PlotMask.ANYWHERE) {
-                user.resetMask();
-                FORMAT.info("MaskAll ").stress("disabled").tell(player);
-            } else {
-                user.maskAnywhere();
+            if (user.toggleMaskAll()) {
                 FORMAT.info("MaskAll ").stress("enabled").tell(player);
                 FORMAT.warn("MaskAll allows tools like WorldEdit to modify ").stress("ANYWHERE").warn(" in the world. Use with care").tell(player);
+            } else {
+                FORMAT.info("MaskAll ").stress("disabled").tell(player);
             }
         });
     }

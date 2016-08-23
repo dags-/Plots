@@ -11,10 +11,18 @@ import java.util.Optional;
 public class PlotMask {
 
     static final PlotMask EMPTY = new PlotMask(PlotBounds.EMPTY);
-    public static final PlotMask ANYWHERE = new PlotMask(PlotBounds.EMPTY) {
+
+    static final PlotMask ANYWHERE = new PlotMask(PlotBounds.EMPTY) {
         @Override
         public boolean contains(int x, int z) {
             return true;
+        }
+    };
+
+    static final PlotMask NOWHERE = new PlotMask(PlotBounds.EMPTY) {
+        @Override
+        public boolean contains(int x, int z) {
+            return false;
         }
     };
 
