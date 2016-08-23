@@ -10,7 +10,13 @@ import java.util.Optional;
  */
 public class PlotMask {
 
-    static PlotMask EMPTY = new PlotMask(PlotBounds.EMPTY);
+    static final PlotMask EMPTY = new PlotMask(PlotBounds.EMPTY);
+    public static final PlotMask ANYWHERE = new PlotMask(PlotBounds.EMPTY) {
+        @Override
+        public boolean contains(int x, int z) {
+            return true;
+        }
+    };
 
     private final PlotBounds bounds;
     private PlotMask and = PlotMask.EMPTY;
@@ -24,8 +30,11 @@ public class PlotMask {
     }
 
     private PlotMask and(PlotBounds other) {
-        this.and = new PlotMask(other);
-        return and;
+        if (present()) {
+            this.and = new PlotMask(other);
+            return and;
+        }
+        return this;
     }
 
     private boolean present() {

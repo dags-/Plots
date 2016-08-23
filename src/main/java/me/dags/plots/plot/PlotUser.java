@@ -19,7 +19,8 @@ public class PlotUser {
     private final UUID uuid;
     private final String world;
     private final Map<PlotId, PlotMeta> plotData;
-    private PlotMask mask = null;
+
+    private transient PlotMask mask = null;
 
     private PlotUser() {
         this.uuid = PlotUser.DUMMY;
@@ -58,6 +59,14 @@ public class PlotUser {
     public PlotMeta getMeta(PlotId plotId) {
         PlotMeta meta = plotData.get(plotId);
         return meta != null ? meta : PlotMeta.EMPTY;
+    }
+
+    public void maskAnywhere() {
+        this.mask = PlotMask.ANYWHERE;
+    }
+
+    public void resetMask() {
+        this.mask = null;
     }
 
     public boolean isWhitelisted(PlotId plotId) {
