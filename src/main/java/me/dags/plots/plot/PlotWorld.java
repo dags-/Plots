@@ -23,6 +23,7 @@ import org.spongepowered.api.event.filter.cause.First;
 import org.spongepowered.api.event.item.inventory.UseItemStackEvent;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
 import org.spongepowered.api.event.world.ChangeWorldWeatherEvent;
+import org.spongepowered.api.service.permission.Subject;
 import org.spongepowered.api.text.chat.ChatTypes;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
@@ -84,9 +85,11 @@ public class PlotWorld {
             Optional<Player> optional = event.getCause().first(Player.class);
             if (optional.isPresent()) {
                 Player player = optional.get();
-                if (!player.hasPermission("plots.bypass.build")) {
-                    event.filter(loc -> canDo(player, loc.getBlockPosition(), "plots.build"));
+                if (player.hasPermission("plots.bypass.build")) {
+                    return;
                 }
+                boolean build = hasPermission(player, "plots.build");
+                event.filter(loc -> build && canEdit(player, loc.getBlockPosition()));
             } else {
                 event.filter(loc -> withinPlot(loc.getBlockPosition()));
             }
@@ -97,10 +100,11 @@ public class PlotWorld {
     @Listener(order = Order.PRE)
     public void onInteractEntity(InteractEntityEvent event, @First Player player) {
         if (thisWorld(event.getTargetEntity().getWorld())) {
-            if (!player.hasPermission("plots.bypass.entity.interact")) {
-                if (!canDo(player, event.getTargetEntity().getLocation().getBlockPosition(), "plots.entity.interact")) {
-                    event.setCancelled(true);
-                }
+            if (player.hasPermission("plots.bypass.entity.interact")) {
+                return;
+            }
+            if (!hasPermission(player, "plots.entity.interact") || !canEdit(player, event.getTargetEntity().getLocation().getBlockPosition())) {
+                event.setCancelled(true);
             }
         }
     }
@@ -108,10 +112,11 @@ public class PlotWorld {
     @Listener(order = Order.PRE)
     public void onUse(UseItemStackEvent.Start event, @First Player player) {
         if (thisWorld(player.getWorld())) {
-            if (!player.hasPermission("plots.bypass.item.use")) {
-                if (!canDo(player, player.getLocation().getBlockPosition(), "plots.item.use")) {
-                    event.setCancelled(true);
-                }
+            if (player.hasPermission("plots.bypass.item.use")) {
+                return;
+            }
+            if (!hasPermission(player, "plots.item.use") || !canEdit(player, player.getLocation().getBlockPosition())) {
+                event.setCancelled(true);
             }
         }
     }
@@ -119,9 +124,11 @@ public class PlotWorld {
     @Listener(order = Order.PRE)
     public void onSpawn(SpawnEntityEvent event, @First Player player) {
         if (thisWorld(event.getTargetWorld())) {
-            if (!player.hasPermission("plots.bypass.entity.spawn")) {
-                event.filterEntityLocations(loc -> canDo(player, loc.getBlockPosition(), "plots.entity.spawn"));
+            if (player.hasPermission("plots.bypass.entity.spawn")) {
+                return;
             }
+            boolean spawn = hasPermission(player, "plots.entity.spawn");
+            event.filterEntityLocations(loc -> spawn && canEdit(player, loc.getBlockPosition()));
         }
     }
 
@@ -234,10 +241,11 @@ public class PlotWorld {
         return user;
     }
 
-    public boolean canDo(Player player, Vector3i position, String permission) {
-        if (!permission.isEmpty() && player.hasPermission(permission)) {
-            return false;
-        }
+    private boolean hasPermission(Subject subject, String permission) {
+        return permission.isEmpty() || subject.hasPermission(permission);
+    }
+
+    public boolean canEdit(Player player, Vector3i position) {
         PlotId plotId = plotProvider.plotId(position);
         return getPlotBounds(plotId).contains(position) && getUser(player.getUniqueId()).isWhitelisted(plotId);
     }

@@ -26,7 +26,7 @@ public class WorldCommands {
 
     private static final Format FORMAT = Plots.getConfig().getMessageFormat();
 
-    @Command(aliases = "world")
+    @Command(aliases = "world", perm = "plots.command.world")
     public void world(@Caller Player player, @One("world") String name) {
         Optional<World> world = Sponge.getServer().getWorld(name);
         if (world.isPresent()) {

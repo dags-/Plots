@@ -101,6 +101,11 @@ public class PlotCommands {
             return;
         }
 
+        if (!user.hasPermission("plots.command.plot.whitelist.recipient") && !player.hasPermission("plots.command.plot.whitelist.force.add")) {
+            FORMAT.error("Target user ").stress(user.getName()).error(" does not have permission to be added to a plot").tell(player);
+            return;
+        }
+
         processLocation(player, ((plotWorld, plotId) -> {
             PlotUser plotUser = plotWorld.getUser(player.getUniqueId());
             if (plotUser.isOwner(plotId) || player.hasPermission("plots.command.plot.whitelist.force.add")) {
@@ -152,11 +157,11 @@ public class PlotCommands {
         }));
     }
 
-    @Command(aliases = "unclaim", parent = "plot", perm = "plots.command.plot.unclaim.self", desc = "Unclaim a plot and reset it")
+    @Command(aliases = "unclaim", parent = "plot", perm = "plots.command.plot.unclaim", desc = "Unclaim a plot and reset it")
     public void unclaim(@Caller Player player) {
         processLocation(player, ((plotWorld, plotId) -> {
             PlotUser plotUser = plotWorld.getUser(player.getUniqueId());
-            if (plotUser.isOwner(plotId) || player.hasPermission("plots.command.plot.unclaim.other")) {
+            if (plotUser.isOwner(plotId) || player.hasPermission("plots.command.plot.force.unclaim")) {
                 FORMAT.warn("Unclaiming a plot will remove all whitelisted users including the owner '")
                         .stress("/plot unclaim true")
                         .warn("' if you wish to proceed").tell(player);
@@ -164,7 +169,7 @@ public class PlotCommands {
         }));
     }
 
-    @Command(aliases = "unclaim", parent = "plot", perm = "plots.command.plot.unclaim.self")
+    @Command(aliases = "unclaim", parent = "plot", perm = "plots.command.plot.unclaim")
     public void unclaim(@Caller Player player, @One("confirm") boolean confirm) {
         if (!confirm) {
             unclaim(player);
@@ -172,7 +177,7 @@ public class PlotCommands {
         }
         processLocation(player, ((plotWorld, plotId) -> {
             PlotUser plotUser = plotWorld.getUser(player.getUniqueId());
-            if (plotUser.isOwner(plotId) || player.hasPermission("plots.command.plot.unclaim.other")) {
+            if (plotUser.isOwner(plotId) || player.hasPermission("plots.command.plot.force.unclaim")) {
                 Plots.getDatabase().deletePlot(plotWorld.getWorld(), plotId, evicted -> {
                     if (evicted.size() > 0) {
                         FORMAT.info("Unclaimed plot ").stress(plotId).tell(player);
@@ -187,11 +192,11 @@ public class PlotCommands {
         }));
     }
 
-    @Command(aliases = "reset", parent = "plot", perm = "plots.command.plot.reset.self", desc = "Reset the entire plot to it's default state")
+    @Command(aliases = "reset", parent = "plot", perm = "plots.command.plot.reset", desc = "Reset the entire plot to it's default state")
     public void reset(@Caller Player player) {
         processLocation(player, ((plotWorld, plotId) -> {
             PlotUser plotUser = plotWorld.getUser(player.getUniqueId());
-            if (plotUser.isOwner(plotId) || player.hasPermission("plots.command.plot.unclaim.other")) {
+            if (plotUser.isOwner(plotId) || player.hasPermission("plots.command.plot.force.reset")) {
                 FORMAT.warn("Resetting a plot will delete everything inside it. Use '")
                         .stress("/plot reset true")
                         .warn("' if you wish to proceed").tell(player);
@@ -199,7 +204,7 @@ public class PlotCommands {
         }));
     }
 
-    @Command(aliases = "reset", parent = "plot", perm = "plots.command.plot.reset.self")
+    @Command(aliases = "reset", parent = "plot", perm = "plots.command.plot.reset")
     public void reset(@Caller Player player, @One("confirm") boolean confirm) {
         if (!confirm) {
             reset(player);
@@ -207,7 +212,7 @@ public class PlotCommands {
         }
         processLocation(player, ((plotWorld, plotId) -> {
             PlotUser plotUser = plotWorld.getUser(player.getUniqueId());
-            if (plotUser.isOwner(plotId) || player.hasPermission("plots.command.plot.reset.other")) {
+            if (plotUser.isOwner(plotId) || player.hasPermission("plots.command.plot.force.reset")) {
                 FORMAT.info("Resetting plot ").stress(plotId).tell(player);
                 plotWorld.resetPlot(plotId);
             } else {
@@ -264,7 +269,7 @@ public class PlotCommands {
         })));
     }
 
-    @Command(aliases = "alias", parent = "plot", perm = "plots.command.plot.name", desc = "Set an alias for the current plot")
+    @Command(aliases = "alias", parent = "plot", perm = "plots.command.plot.alias", desc = "Set an alias for the current plot")
     public void alias(@Caller Player player, @One("alias") String alias) {
         processLocation(player, ((plotWorld, plotId) -> {
             PlotUser user = plotWorld.getUser(player.getUniqueId());
