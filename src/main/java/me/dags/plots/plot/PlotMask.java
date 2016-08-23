@@ -17,8 +17,8 @@ public class PlotMask {
         this.bounds = bounds;
     }
 
-    public boolean contains(int x, int z) {
-        return bounds.contains(x, z) || (and != null && and.contains(x, z));
+    public boolean contains(int x, int y, int z) {
+        return (y > 0 && y < 256) && bounds.contains(x, z) || (and != null && and.contains(x, y, z));
     }
 
     private PlotMask and(PlotBounds other) {
@@ -34,14 +34,14 @@ public class PlotMask {
 
     static final PlotMask ANYWHERE = new PlotMask(PlotBounds.EMPTY) {
         @Override
-        public boolean contains(int x, int z) {
-            return true;
+        public boolean contains(int x, int y, int z) {
+            return y > 0 && y < 256;
         }
     };
 
     static final PlotMask NOWHERE = new PlotMask(PlotBounds.EMPTY) {
         @Override
-        public boolean contains(int x, int z) {
+        public boolean contains(int x, int y, int z) {
             return false;
         }
     };

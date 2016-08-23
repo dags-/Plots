@@ -23,11 +23,11 @@ public class WEMaskedExtent extends AbstractDelegateExtent {
 
     @Override
     public boolean setBlock(Vector location, BaseBlock block) throws WorldEditException {
-        return mask.contains(location.getBlockX(), location.getBlockZ()) && super.setBlock(location, block);
+        return mask.contains(location.getBlockX(), location.getBlockY(), location.getBlockZ()) && super.setBlock(location, block);
     }
 
     @Override
     public boolean setBiome(Vector2D position, BaseBiome biome) {
-        return mask.contains(position.getBlockX(), position.getBlockZ()) && super.setBiome(position, biome);
+        return mask.contains(position.getBlockX(), 1, position.getBlockZ()) && super.setBiome(position, biome);
     }
 }
