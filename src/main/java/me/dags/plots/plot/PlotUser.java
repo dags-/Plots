@@ -26,14 +26,12 @@ public class PlotUser {
         this.uuid = PlotUser.DUMMY;
         this.world = "";
         this.plotData = Collections.emptyMap();
-        this.mask = PlotMask.EMPTY;
     }
 
     private PlotUser(Builder builder) {
         this.uuid = builder.uuid;
         this.world = builder.world;
         this.plotData = Collections.unmodifiableMap(builder.plotData);
-        this.mask = PlotMask.NOWHERE;
     }
 
     public boolean isPresent() {
