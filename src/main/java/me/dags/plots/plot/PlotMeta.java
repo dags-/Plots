@@ -12,23 +12,24 @@ public class PlotMeta {
 
     private PlotMeta() {
         this.owner = false;
-        this.name = null;
+        this.name = "";
     }
 
     private PlotMeta(Builder builder) {
         this.owner = builder.owner;
         this.name = builder.name;
     }
+
     public boolean isPresent() {
         return this != EMPTY;
     }
 
     public boolean hasMeta() {
-        return isOwner() || name != null;
+        return isOwner() || !name.isEmpty();
     }
 
     public boolean hasName() {
-        return name != null && !name.isEmpty();
+        return !name.isEmpty();
     }
 
     public boolean isOwner() {
@@ -36,11 +37,11 @@ public class PlotMeta {
     }
 
     public String getName() {
-        return isPresent() ? name : "";
+        return name;
     }
 
     public Builder toBuilder() {
-        return isPresent() ? builder().name(name).owner(owner) : builder();
+        return builder().name(name).owner(owner);
     }
 
     public static Builder builder() {
@@ -50,7 +51,7 @@ public class PlotMeta {
     public static class Builder {
 
         private boolean owner = false;
-        private String name = null;
+        private String name = "";
 
         public Builder owner(boolean b) {
             owner = b;

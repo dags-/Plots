@@ -10,12 +10,14 @@ import org.slf4j.LoggerFactory;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.scheduler.SpongeExecutorService;
 import org.spongepowered.api.service.sql.SqlService;
+import org.spongepowered.api.util.Tristate;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -134,28 +136,52 @@ public class Database {
         });
     }
 
-    public <T> void select(Select<T> select, Consumer<T> callback) {
+    public <T> void selectAndUpdate(Select<T> select, Consumer<Tristate> updateCallback) {
         getService().execute(() -> {
             try (Connection connection = getDataSource().getConnection()) {
                 log("Select: {}", select.getStatement());
+
                 ResultSet resultSet = connection.createStatement().executeQuery(select.getStatement());
                 T result = select.transform(resultSet);
-                if (result != null) {
-                    scheduleCallback(result, callback);
+                Optional<Statement> statement = select.andUpdate(result);
+
+                if (statement.isPresent()) {
+                    update(statement.get(), updateCallback);
+                } else {
+                    scheduleCallback(Tristate.UNDEFINED, updateCallback);
                 }
+
             } catch (SQLException e) {
                 e.printStackTrace();
             }
         });
     }
 
-    public void update(Statement statement, Consumer<Boolean> callback) {
+    public <T> void select(Select<T> select, Consumer<T> callback) {
+        getService().execute(() -> {
+            try (Connection connection = getDataSource().getConnection()) {
+                log("Select: {}", select.getStatement());
+
+                ResultSet resultSet = connection.createStatement().executeQuery(select.getStatement());
+                T result = select.transform(resultSet);
+                if (result != null) {
+                    scheduleCallback(result, callback);
+                }
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    public void update(Statement statement, Consumer<Tristate> callback) {
         getService().execute(() -> {
             try (Connection connection = getDataSource().getConnection()) {
                 log("Update: {}", statement.getStatement());
 
                 int result = connection.createStatement().executeUpdate(statement.getStatement());
-                scheduleCallback(result != 0, callback);
+                scheduleCallback(Tristate.fromBoolean(result != 0), callback);
+
             } catch (SQLException e) {
                 e.printStackTrace();
             }

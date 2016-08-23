@@ -7,6 +7,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * @author dags <dags@dags.me>
@@ -15,10 +17,12 @@ public class Select<T> implements Statement {
 
     private final String statement;
     private final ResultTransformer<T> transformer;
+    private final Function<T, ? extends Statement> andUpdate;
 
     private Select(Builder<T> builder) {
         this.statement = builder.toString();
         this.transformer = builder.transformer;
+        this.andUpdate = builder.andUpdate;
     }
 
     @Override
@@ -30,6 +34,13 @@ public class Select<T> implements Statement {
         return transformer.accept(result);
     }
 
+    public Optional<Statement> andUpdate(T t) {
+        if (andUpdate != null) {
+            return Optional.ofNullable(andUpdate.apply(t));
+        }
+        return Optional.empty();
+    }
+
     public static <T> Builder<T> builder() {
         return new Builder<T>();
     }
@@ -39,6 +50,7 @@ public class Select<T> implements Statement {
         private final List<String> select = new ArrayList<>();
         private final List<String> from = new ArrayList<>();
         private ResultTransformer<T> transformer = resultSet -> null;
+        private Function<T, ? extends Statement> andUpdate = null;
         private String where = "";
 
         public Builder<T> select(String select) {
@@ -58,6 +70,11 @@ public class Select<T> implements Statement {
 
         public Builder<T> transformer(ResultTransformer<T> transformer) {
             this.transformer = transformer;
+            return this;
+        }
+
+        public Builder<T> andUpdate(Function<T, ? extends Statement> andThen) {
+            this.andUpdate = andThen;
             return this;
         }
 

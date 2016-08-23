@@ -7,7 +7,6 @@ import me.dags.commandbus.annotation.Command;
 import me.dags.commandbus.annotation.One;
 import me.dags.plots.Plots;
 import me.dags.plots.database.Queries;
-import me.dags.plots.database.statment.Delete;
 import me.dags.plots.database.statment.Insert;
 import me.dags.plots.database.statment.Select;
 import me.dags.plots.plot.*;
@@ -15,6 +14,7 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.util.Tristate;
 import org.spongepowered.api.world.biome.BiomeType;
 
 import java.util.Optional;
@@ -38,7 +38,7 @@ public class PlotCommands {
         }));
     }
 
-    @Command(aliases = "list", parent = "plot", perm = "plots.command.plot.list")
+    @Command(aliases = "list", parent = "plot", perm = "plots.command.plot.list.self")
     public void list(@Caller Player player) {
         processPlotWorld(player, plotWorld -> {
             PlotUser user = plotWorld.getUser(player.getUniqueId());
@@ -46,24 +46,36 @@ public class PlotCommands {
         });
     }
 
+    @Command(aliases = "list", parent = "plot", perm = "plots.command.plot.list.other")
+    public void list(@Caller Player player, @One("player") User target) {
+        processPlotWorld(player, plotWorld -> {
+            Select<PlotUser> select = Queries.selectUser(plotWorld.getWorld(), target.getUniqueId()).build();
+            Plots.getDatabase().select(select, user -> {
+                if (user.isPresent()) {
+                    user.listPlots().sendTo(player);
+                } else {
+                    FORMAT.stress(target.getName()).error(" does not appear to own any plots in this world").tell(player);
+                }
+            });
+        });
+    }
+
     @Command(aliases = "claim", parent = "plot", perm = "plots.command.plot.claim", desc = "Claim an empty plot to build on")
     public void claim(@Caller Player player) {
         processLocation(player, (plotWorld, plotId) -> {
-            PlotUser plotUser = plotWorld.getOrCreateUser(player.getUniqueId());
-            Select<Boolean> claimed = Queries.isClaimed(plotWorld.getWorld(), plotId).build();
-            Plots.getDatabase().select(claimed, result -> {
-                if (!result) {
-                    Insert update = Queries.updateUserPlot(plotUser, plotId, PlotMeta.builder().owner(true).build()).build();
-                    Plots.getDatabase().update(update, success -> {
-                        if (success) {
-                            FORMAT.info("Claimed plot ").stress(plotId).tell(player);
-                            plotWorld.refreshUser(plotUser.getUUID());
-                        } else {
-                            FORMAT.error("Unable to claim plot ").stress(plotId).tell(player);
-                        }
-                    });
+            PlotUser plotUser = plotWorld.getUser(player.getUniqueId());
+            Select<Boolean> claim = Queries.isClaimed(plotWorld.getWorld(), plotId)
+                    .andUpdate(owned -> owned ? null : Queries.updateUserPlot(plotUser, plotId, PlotMeta.builder().owner(true).build()).build())
+                    .build();
+
+            Plots.getDatabase().selectAndUpdate(claim, result -> {
+                if (result == Tristate.TRUE) {
+                    FORMAT.info("Claimed plot ").stress(plotId).tell(player);
+                    plotWorld.refreshUser(plotUser.getUUID());
+                } else if (result == Tristate.UNDEFINED) {
+                    FORMAT.error("Plot ").stress(plotId).error(" has already been claimed").tell(player);
                 } else {
-                    FORMAT.error("This plot has already been claimed").tell(player);
+                    FORMAT.error("Unable to claim plot ").stress(plotId).tell(player);
                 }
             });
         });
@@ -79,11 +91,12 @@ public class PlotCommands {
         processLocation(player, ((plotWorld, plotId) -> {
             PlotUser plotUser = plotWorld.getUser(player.getUniqueId());
             if (plotUser.isOwner(plotId) || player.hasPermission("plots.command.plot.whitelist.force.add")) {
-                PlotUser other = plotWorld.getOrCreateUser(user.getUniqueId());
-                PlotMeta meta = other.getMeta(plotId);
-                Insert insert = Queries.updateUserPlot(other, plotId, meta).build();
-                Plots.getDatabase().update(insert, result -> {
-                    if (result) {
+                Select<PlotUser> select = Queries.selectUser(plotWorld.getWorld(), user.getUniqueId())
+                        .andUpdate(target -> Queries.updateUserPlot(target, plotId, target.getMeta(plotId)).build())
+                        .build();
+
+                Plots.getDatabase().selectAndUpdate(select, result -> {
+                    if (result == Tristate.TRUE) {
                         FORMAT.info("User ").stress(user.getName()).info(" is now whitelisted on your plot!").tell(player);
                         user.getPlayer().ifPresent(FORMAT.stress(player.getName()).info(" added you to their plot ").stress(plotId)::tell);
                         plotWorld.refreshUser(user.getUniqueId());
@@ -91,7 +104,6 @@ public class PlotCommands {
                         FORMAT.error("Unable to add ").stress(user.getName()).info(" to plot ").stress(plotId).tell(player);
                     }
                 });
-
             } else {
                 FORMAT.error("You do not own this plot!").tell(player);
             }
@@ -106,12 +118,14 @@ public class PlotCommands {
         }
 
         processLocation(player, ((plotWorld, plotId) -> {
-            PlotUser plotUser = plotWorld.getOrCreateUser(player.getUniqueId());
+            PlotUser plotUser = plotWorld.getUser(player.getUniqueId());
             if (plotUser.isOwner(plotId) || player.hasPermission("plots.command.plot.whitelist.force.remove")) {
-                PlotUser other = plotWorld.getOrCreateUser(user.getUniqueId());
-                Delete delete = Queries.deleteWhitelisted(other, plotId).build();
-                Plots.getDatabase().update(delete, result -> {
-                    if (result) {
+                Select<PlotUser> select = Queries.selectUser(plotWorld.getWorld(), user.getUniqueId())
+                        .andUpdate(target -> Queries.deleteWhitelisted(target, plotId).build())
+                        .build();
+
+                Plots.getDatabase().selectAndUpdate(select, result -> {
+                    if (result == Tristate.TRUE) {
                         FORMAT.info("Successfully removed ").stress(user.getName()).info(" from plot ").stress(plotId).tell(player);
                         user.getPlayer().ifPresent(FORMAT.subdued("You have been removed from plot ").stress(plotId)::tell);
                         plotWorld.refreshUser(user.getUniqueId());
@@ -130,7 +144,7 @@ public class PlotCommands {
         processLocation(player, ((plotWorld, plotId) -> {
             PlotUser plotUser = plotWorld.getUser(player.getUniqueId());
             if (plotUser.isOwner(plotId) || player.hasPermission("plots.command.plot.unclaim.other")) {
-                FORMAT.warn("Unclaiming a plot will delete everything inside it. Use '")
+                FORMAT.warn("Unclaiming a plot will remove all whitelisted users including the owner '")
                         .stress("/plot unclaim true")
                         .warn("' if you wish to proceed").tell(player);
             }
@@ -154,7 +168,6 @@ public class PlotCommands {
                         FORMAT.error("Plot ").stress(plotId).error(" does not appear to have been claimed").tell(player);
                     }
                 });
-                plotWorld.resetPlot(plotId);
             } else {
                 FORMAT.error("You do not own this plot").tell(player);
             }
@@ -241,12 +254,12 @@ public class PlotCommands {
     @Command(aliases = "alias", parent = "plot", perm = "plots.command.plot.name", desc = "Set an alias for the current plot")
     public void alias(@Caller Player player, @One("alias") String alias) {
         processLocation(player, ((plotWorld, plotId) -> {
-            PlotUser user = plotWorld.getOrCreateUser(player.getUniqueId());
+            PlotUser user = plotWorld.getUser(player.getUniqueId());
             if (user.isWhitelisted(plotId)) {
                 PlotMeta meta = user.getMeta(plotId).toBuilder().name(alias).build();
                 Insert update = Queries.updateUserPlot(user, plotId, meta).build();
                 Plots.getDatabase().update(update, success -> {
-                    if (success) {
+                    if (success == Tristate.TRUE) {
                         FORMAT.info("Set alias of ").stress(plotId).info(" to ").stress(alias).tell(player);
                         plotWorld.refreshUser(user.getUUID());
                     } else {

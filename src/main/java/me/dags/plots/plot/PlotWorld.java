@@ -226,18 +226,12 @@ public class PlotWorld {
         return bounds;
     }
 
-    public PlotUser getOrCreateUser(UUID uuid) {
-        PlotUser user = getUser(uuid);
-        if (!user.isPresent()) {
-            user = PlotUser.builder().world(world).uuid(uuid).build();
-            addUser(user);
-        }
-        return user;
-    }
-
     public PlotUser getUser(UUID uuid) {
         PlotUser user = plotUsers.get(uuid);
-        return user != null ? user : PlotUser.EMPTY;
+        if (user == null) {
+            throw new UnsupportedOperationException("User for " + uuid + " + should not be null!");
+        }
+        return user;
     }
 
     public boolean canDo(Player player, Vector3i position, String permission) {
@@ -265,6 +259,8 @@ public class PlotWorld {
         if (user.isPresent()) {
             Plots.log("Adding user {}", user.getUUID());
             plotUsers.put(user.getUUID(), user);
+        } else {
+            throw new UnsupportedOperationException("Attempted to add EMPTY PlotUser to PlotWord " + world);
         }
     }
 

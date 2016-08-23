@@ -10,6 +10,7 @@ import me.dags.plots.plot.PlotMeta;
 import me.dags.plots.plot.PlotUser;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.User;
+import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.service.user.UserStorageService;
 import org.spongepowered.api.text.Text;
 
@@ -128,6 +129,14 @@ public class Queries {
                 }
             }
             return builder.build();
+        };
+    }
+
+    public static ResultTransformer<PaginationList> listTransformer(String world, UUID uuid) {
+        return result -> {
+            ResultTransformer<PlotUser> transformer = userTransformer(world, uuid);
+            PlotUser plotUser = transformer.accept(result);
+            return plotUser.listPlots();
         };
     }
 

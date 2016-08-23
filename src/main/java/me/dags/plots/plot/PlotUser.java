@@ -13,6 +13,7 @@ import java.util.*;
  */
 public class PlotUser {
 
+    private static final UUID DUMMY = UUID.fromString("00000000-0000-0000-0000-000000000000");
     public static final PlotUser EMPTY = new PlotUser();
 
     private final UUID uuid;
@@ -21,8 +22,8 @@ public class PlotUser {
     private PlotMask mask = null;
 
     private PlotUser() {
-        this.uuid = null;
-        this.world = null;
+        this.uuid = PlotUser.DUMMY;
+        this.world = "";
         this.plotData = Collections.emptyMap();
         this.mask = PlotMask.EMPTY;
     }
@@ -91,9 +92,9 @@ public class PlotUser {
 
     public static class Builder {
 
-        private UUID uuid = null;
-        private String world = null;
-        private final Map<PlotId, PlotMeta> plotData = new HashMap<>();
+        private UUID uuid = DUMMY;
+        private String world = "";
+        private final Map<PlotId, PlotMeta> plotData = new HashMap<>(0);
 
         public Builder uuid(UUID id) {
             this.uuid = id;
@@ -121,6 +122,12 @@ public class PlotUser {
         }
 
         public PlotUser build() {
+            if (uuid == PlotUser.DUMMY) {
+                throw new UnsupportedOperationException("UUID not set!");
+            }
+            if (world.isEmpty()) {
+                throw new UnsupportedOperationException("World cannot be empty!");
+            }
             return new PlotUser(this);
         }
     }
