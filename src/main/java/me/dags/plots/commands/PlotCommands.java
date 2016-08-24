@@ -36,6 +36,21 @@ public class PlotCommands {
         }));
     }
 
+    @Command(aliases = "auto", parent = "plot", perm = "plots.command.plot.auto")
+    public void auto(@Caller Player player) {
+        processPlotWorld(player, plotWorld -> {
+            PlotId closest = plotWorld.getPlotId(player.getLocation().getBlockPosition());
+            Plots.getDatabase().findFreePlot(plotWorld.getWorld(), closest, plotId -> {
+                if (plotId.isPresent()) {
+                    tp(player, plotWorld.getWorld(), plotId.toString());
+                    claim(player, plotWorld, plotId);
+                } else {
+                    FORMAT.error("Unable to find a free plot. Sorry about that...").tell(player);
+                }
+            });
+        });
+    }
+
     @Command(aliases = {"maskall", "ma"}, parent = "plot", perm = "plots.command.plot.maskall")
     public void maskall(@Caller Player player) {
         processPlotWorld(player, plotWorld -> {
@@ -74,21 +89,7 @@ public class PlotCommands {
     @Command(aliases = "claim", parent = "plot", perm = "plots.command.plot.claim", desc = "Claim an empty plot to build on")
     public void claim(@Caller Player player) {
         processLocation(player, (plotWorld, plotId) -> {
-            PlotUser plotUser = plotWorld.getUser(player.getUniqueId());
-            Select<Boolean> claim = Queries.isClaimed(plotWorld.getWorld(), plotId)
-                    .andUpdate(owned -> owned ? null : Queries.updateUserPlot(plotUser, plotId, PlotMeta.builder().owner(true).build()).build())
-                    .build();
-
-            Plots.getDatabase().selectAndUpdate(claim, result -> {
-                if (result == Tristate.TRUE) {
-                    FORMAT.info("Claimed plot ").stress(plotId).tell(player);
-                    plotWorld.refreshUser(plotUser.getUUID());
-                } else if (result == Tristate.UNDEFINED) {
-                    FORMAT.error("Plot ").stress(plotId).error(" has already been claimed").tell(player);
-                } else {
-                    FORMAT.error("Unable to claim plot ").stress(plotId).tell(player);
-                }
-            });
+            claim(player, plotWorld, plotId);
         });
     }
 
@@ -316,8 +317,22 @@ public class PlotCommands {
         }
     }
 
-    private static void processPlotWorld(Player player, Consumer<PlotWorld> consumer) {
-        Plots.getApi().getPlotWorld(player.getWorld().getName()).ifPresent(consumer);
+    private void claim(Player player, PlotWorld plotWorld, PlotId plotId) {
+        PlotUser plotUser = plotWorld.getUser(player.getUniqueId());
+        Select<Boolean> claim = Queries.isClaimed(plotWorld.getWorld(), plotId)
+                .andUpdate(owned -> owned ? null : Queries.updateUserPlot(plotUser, plotId, PlotMeta.builder().owner(true).build()).build())
+                .build();
+
+        Plots.getDatabase().selectAndUpdate(claim, result -> {
+            if (result == Tristate.TRUE) {
+                FORMAT.info("Claimed plot ").stress(plotId).tell(player);
+                plotWorld.refreshUser(plotUser.getUUID());
+            } else if (result == Tristate.UNDEFINED) {
+                FORMAT.error("Plot ").stress(plotId).error(" has already been claimed").tell(player);
+            } else {
+                FORMAT.error("Unable to claim plot ").stress(plotId).tell(player);
+            }
+        });
     }
 
     private void processLocation(Player player, BiConsumer<PlotWorld, PlotId> onSuccess) {
@@ -331,5 +346,9 @@ public class PlotCommands {
                 FORMAT.error("You are not inside a plot!").tell(player);
             }
         });
+    }
+
+    private static void processPlotWorld(Player player, Consumer<PlotWorld> consumer) {
+        Plots.getApi().getPlotWorld(player.getWorld().getName()).ifPresent(consumer);
     }
 }

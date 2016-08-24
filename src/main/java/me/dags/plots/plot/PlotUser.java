@@ -106,27 +106,33 @@ public class PlotUser {
         private final Map<PlotId, PlotMeta> plotData = new HashMap<>(0);
 
         public Builder uuid(UUID id) {
-            this.uuid = id;
+            this.uuid = id != null ? id : DUMMY;
             return this;
         }
 
         public Builder world(String world) {
-            this.world = world;
+            this.world = world != null ? world : "";
             return this;
         }
 
         public Builder plot(Map<PlotId, PlotMeta> plotData) {
-            this.plotData.putAll(plotData);
+            if (plotData != null) {
+                this.plotData.putAll(plotData);
+            }
             return this;
         }
 
         public Builder plot(PlotId plotId, PlotMeta data) {
-            plotData.put(plotId, data);
+            if (plotId != null && data != null) {
+                plotData.put(plotId, data);
+            }
             return this;
         }
 
         public Builder removePlot(PlotId plotId) {
-            plotData.remove(plotId);
+            if (plotId != null) {
+                plotData.remove(plotId);
+            }
             return this;
         }
 

@@ -98,8 +98,10 @@ public class Database {
             try (Connection connection = dataSource.getConnection()) {
                 for (Map.Entry<PlotId, PlotMeta> entry : user.getPlots()) {
                     Insert insert = Queries.updateUserPlot(user, entry.getKey(), entry.getValue()).build();
-                    connection.createStatement().executeUpdate(insert.getStatement());
-                    connection.commit();
+
+                    try (java.sql.Statement stmt = connection.createStatement()) {
+                        stmt.executeUpdate(insert.getStatement());
+                    }
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -115,9 +117,23 @@ public class Database {
                 Set<UUID> whitelist = whitelisted.transform(resultSet);
                 for (UUID uuid : whitelist) {
                     Delete delete = new Delete.Builder().in(world).where(Where.of(Keys.UID, "=" ,Keys.uid(uuid, plotId)).build()).build();
-                    connection.createStatement().execute(delete.getStatement());
+
+                    try (java.sql.Statement stmt = connection.createStatement()) {
+                        stmt.execute(delete.getStatement());
+                    }
                 }
                 scheduleCallback(whitelist, callback);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    public void findFreePlot(String world, PlotId closest, Consumer<PlotId> callback) {
+        getService().execute(() -> {
+            try {
+                PlotId plotId = findFreePlot(world, closest);
+                scheduleCallback(plotId, callback);
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -129,7 +145,9 @@ public class Database {
             try (Connection connection = getDataSource().getConnection()) {
                 log("Table: {}", table.getStatement());
 
-                connection.createStatement().execute(table.getStatement());
+                try (java.sql.Statement stmt = connection.createStatement()) {
+                    stmt.execute(table.getStatement());
+                }
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -141,16 +159,17 @@ public class Database {
             try (Connection connection = getDataSource().getConnection()) {
                 log("Select: {}", select.getStatement());
 
-                ResultSet resultSet = connection.createStatement().executeQuery(select.getStatement());
-                T result = select.transform(resultSet);
-                Optional<Statement> statement = select.andUpdate(result);
+                try (java.sql.Statement stmt = connection.createStatement()) {
+                    ResultSet resultSet = stmt.executeQuery(select.getStatement());
+                    T result = select.transform(resultSet);
+                    Optional<Statement> statement = select.andUpdate(result);
 
-                if (statement.isPresent()) {
-                    update(statement.get(), updateCallback);
-                } else {
-                    scheduleCallback(Tristate.UNDEFINED, updateCallback);
+                    if (statement.isPresent()) {
+                        update(statement.get(), updateCallback);
+                    } else {
+                        scheduleCallback(Tristate.UNDEFINED, updateCallback);
+                    }
                 }
-
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -162,12 +181,13 @@ public class Database {
             try (Connection connection = getDataSource().getConnection()) {
                 log("Select: {}", select.getStatement());
 
-                ResultSet resultSet = connection.createStatement().executeQuery(select.getStatement());
-                T result = select.transform(resultSet);
-                if (result != null) {
-                    scheduleCallback(result, callback);
+                try (java.sql.Statement stmt = connection.createStatement()) {
+                    ResultSet resultSet = stmt.executeQuery(select.getStatement());
+                    T result = select.transform(resultSet);
+                    if (result != null) {
+                        scheduleCallback(result, callback);
+                    }
                 }
-
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -179,13 +199,78 @@ public class Database {
             try (Connection connection = getDataSource().getConnection()) {
                 log("Update: {}", statement.getStatement());
 
-                int result = connection.createStatement().executeUpdate(statement.getStatement());
-                scheduleCallback(Tristate.fromBoolean(result != 0), callback);
-
+                try (java.sql.Statement stmt = connection.createStatement()) {
+                    int result = stmt.executeUpdate(statement.getStatement());
+                    scheduleCallback(Tristate.fromBoolean(result != 0), callback);
+                }
             } catch (SQLException e) {
                 e.printStackTrace();
             }
         });
+    }
+
+    public void contains(Select lookup, Consumer<Boolean> callback) {
+        getService().execute(() -> {
+            try {
+                boolean result = contains(lookup);
+                scheduleCallback(result, callback);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    public boolean contains(Select lookup) throws SQLException {
+        try (Connection connection = getDataSource().getConnection()) {
+            try (java.sql.Statement stmt = connection.createStatement()) {
+                return stmt.executeQuery(lookup.getStatement()).next();
+            }
+        }
+    }
+
+    private PlotId findFreePlot(String world, PlotId closest) throws SQLException {
+        int x = closest.plotX(), z = closest.plotZ(), xMax = x, xMin = x, zMax = z, zMin = z;
+        int timeout = 10000;
+        for (int d = 1; d < timeout; d++) {
+            xMax += d; xMin -= d; zMax += d; zMin -= d;
+            while (x < xMax) {
+                if (!plotIsClaimed(world, x, z)) {
+                    return new PlotId(x, z);
+                }
+                x++;
+            }
+            while (z < zMax) {
+                if (!plotIsClaimed(world, x, z)) {
+                    return new PlotId(x, z);
+                }
+                z++;
+            }
+            while (x > xMin) {
+                if (!plotIsClaimed(world, x, z)) {
+                    return new PlotId(x, z);
+                }
+                x--;
+            }
+            while (z > zMin) {
+                if (!plotIsClaimed(world, x, z)) {
+                    return new PlotId(x, z);
+                }
+                z--;
+            }
+        }
+        return PlotId.EMPTY;
+    }
+
+    private boolean plotIsClaimed(String world, int x, int z) throws SQLException {
+        String id = PlotId.string(x, z);
+
+        Select select = Select.builder()
+                .select(Keys.PLOT_ID)
+                .from(world)
+                .where(Where.of(Keys.PLOT_ID, "=", id).build())
+                .build();
+
+        return contains(select);
     }
 
     private <T> void scheduleCallback(T result, Consumer<T> callback) {

@@ -30,18 +30,15 @@ public class ConfigAdapter implements NodeTypeAdapter<Config> {
     public Config fromNode(Node node) {
         NodeObject object = node.asNodeObject();
         Config config = new Config();
-        object.ifPresent("blocks_per_tick", value -> {
-            config.setBlocksPerTick(value.asNumber().intValue());
-        });
-        object.ifPresent("database_logger", value -> {
-            config.setDatabaseLogging(value.asBoolean());
-        });
-        object.ifPresent("message_format", child -> {
-            @SuppressWarnings("unchecked")
-            Map<Object, Object> map = (Map<Object, Object>) toObject(child);
-            config.setMessageFormat(CommandBus.getFormatter(map));
-        });
+        config.setBlocksPerTick(object.map("blocks_per_tick", n -> n.asNumber().intValue(), 10000));
+        config.setDatabaseLogging(object.map("database_logger", Node::asBoolean, true));
+        config.setMessageFormat(object.map("message_format", n -> CommandBus.getFormatter(ConfigAdapter.toMap(n)), CommandBus.newFormatBuilder().build()));
         return config;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<Object, Object> toMap(Node node) {
+        return (Map<Object, Object>) toObject(node);
     }
 
     private static Object toObject(Node node) {

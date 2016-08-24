@@ -53,13 +53,13 @@ public class PlotMeta {
         private boolean owner = false;
         private String name = "";
 
-        public Builder owner(boolean b) {
-            owner = b;
+        public Builder owner(boolean owner) {
+            this.owner = owner;
             return this;
         }
 
         public Builder name(String name) {
-            this.name = name;
+            this.name = name == null ? "" : name;
             return this;
         }
 

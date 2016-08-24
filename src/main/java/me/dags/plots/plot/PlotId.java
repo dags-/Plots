@@ -37,7 +37,7 @@ public class PlotId {
 
     @Override
     public String toString() {
-        return x + ":" + z;
+        return string(x, z);
     }
 
     @Override
@@ -48,6 +48,10 @@ public class PlotId {
     @Override
     public int hashCode() {
         return hash;
+    }
+
+    public static String string(int x, int z) {
+        return x + ":" + z;
     }
 
     public static boolean isValid(String input) {
