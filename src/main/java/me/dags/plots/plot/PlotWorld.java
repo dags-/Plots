@@ -23,7 +23,6 @@ import org.spongepowered.api.event.entity.SpawnEntityEvent;
 import org.spongepowered.api.event.filter.cause.First;
 import org.spongepowered.api.event.item.inventory.UseItemStackEvent;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
-import org.spongepowered.api.event.world.ChangeWorldWeatherEvent;
 import org.spongepowered.api.service.permission.Subject;
 import org.spongepowered.api.text.chat.ChatTypes;
 import org.spongepowered.api.world.Location;
@@ -56,15 +55,6 @@ public class PlotWorld {
         this.world = world.getName();
         this.worldId = world.getUniqueId();
         this.plotProvider = plotProvider;
-    }
-
-    @Listener
-    public void onWeather(ChangeWorldWeatherEvent event) {
-        if (thisWorld(event.getTargetWorld())) {
-            event.setWeather(Weathers.CLEAR);
-            event.setDuration(Integer.MAX_VALUE);
-            Plots.log("Set weather for world: {}", world);
-        }
     }
 
     @Listener
