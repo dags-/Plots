@@ -1,5 +1,6 @@
 package me.dags.plots.plot;
 
+import com.flowpowered.math.vector.Vector3d;
 import com.flowpowered.math.vector.Vector3i;
 import me.dags.commandbus.Format;
 import me.dags.plots.Plots;
@@ -213,8 +214,8 @@ public class PlotWorld {
     public void teleportToPlot(Player player, PlotId plotId) {
         Vector3i position = plotProvider.plotWarp(getPlotBounds(plotId));
         Location<World> location = new Location<>(player.getWorld(), position);
-        player.setLocationAndRotation(location, player.getRotation());
-        FORMAT.info("Teleporting to ").stress(getWorld()).info(";").stress(plotId).tell(player);
+        player.setLocationAndRotation(location, new Vector3d(0, -45, 0));
+        FORMAT.info("Teleporting to ").stress(getWorld() + ": ").stress(plotId).tell(player);
     }
 
     public String getWorld() {

@@ -28,14 +28,6 @@ public class PlotCommands {
 
     private static final Format FORMAT = Plots.getConfig().getMessageFormat();
 
-    @Command(aliases = "info", parent = "plot", perm = "plots.command.plot.info")
-    public void info(@Caller Player player) {
-        processLocation(player, ((plotWorld, plotId) -> {
-            Select<Text> info = Queries.selectPlotInfo(plotWorld.getWorld(), plotId, FORMAT).build();
-            Plots.getDatabase().select(info, message -> FORMAT.info("Plot: ").stress(plotId).append(message).tell(player));
-        }));
-    }
-
     @Command(aliases = "auto", parent = "plot", perm = "plots.command.plot.auto")
     public void auto(@Caller Player player) {
         processPlotWorld(player, plotWorld -> {
@@ -51,17 +43,56 @@ public class PlotCommands {
         });
     }
 
-    @Command(aliases = {"maskall", "ma"}, parent = "plot", perm = "plots.command.plot.maskall")
-    public void maskall(@Caller Player player) {
-        processPlotWorld(player, plotWorld -> {
-            PlotUser user = plotWorld.getUser(player.getUniqueId());
-            if (user.toggleMaskAll()) {
-                FORMAT.info("MaskAll ").stress("enabled").tell(player);
-                FORMAT.warn("MaskAll allows tools like WorldEdit to modify ").stress("ANYWHERE").warn(" in the world. Use with care").tell(player);
-            } else {
-                FORMAT.info("MaskAll ").stress("disabled").tell(player);
-            }
+    @Command(aliases = "claim", parent = "plot", perm = "plots.command.plot.claim", desc = "Claim an empty plot to build on")
+    public void claim(@Caller Player player) {
+        processLocation(player, (plotWorld, plotId) -> {
+            claim(player, plotWorld, plotId);
         });
+    }
+
+    @Command(aliases = "unclaim", parent = "plot", perm = "plots.command.plot.unclaim", desc = "Unclaim a plot and reset it")
+    public void unclaim(@Caller Player player) {
+        processLocation(player, ((plotWorld, plotId) -> {
+            PlotUser plotUser = plotWorld.getUser(player.getUniqueId());
+            if (plotUser.isOwner(plotId) || player.hasPermission("plots.command.plot.force.unclaim")) {
+                FORMAT.warn("Unclaiming a plot will remove all whitelisted users including the owner '")
+                        .stress("/plot unclaim true")
+                        .warn("' if you wish to proceed").tell(player);
+            }
+        }));
+    }
+
+    @Command(aliases = "unclaim", parent = "plot", perm = "plots.command.plot.unclaim")
+    public void unclaim(@Caller Player player, @One("confirm") boolean confirm) {
+        if (!confirm) {
+            unclaim(player);
+            return;
+        }
+        processLocation(player, ((plotWorld, plotId) -> {
+            PlotUser plotUser = plotWorld.getUser(player.getUniqueId());
+            if (plotUser.isOwner(plotId) || player.hasPermission("plots.command.plot.force.unclaim")) {
+                Plots.getDatabase().deletePlot(plotWorld.getWorld(), plotId, evicted -> {
+                    if (evicted.size() > 0) {
+                        FORMAT.info("Unclaimed plot ").stress(plotId).tell(player);
+                        evicted.forEach(plotWorld::refreshUser);
+                    } else {
+                        FORMAT.error("Plot ").stress(plotId).error(" does not appear to have been claimed").tell(player);
+                    }
+                });
+            } else {
+                FORMAT.error("You do not own this plot").tell(player);
+            }
+        }));
+    }
+
+
+
+    @Command(aliases = "info", parent = "plot", perm = "plots.command.plot.info")
+    public void info(@Caller Player player) {
+        processLocation(player, ((plotWorld, plotId) -> {
+            Select<Text> info = Queries.selectPlotInfo(plotWorld.getWorld(), plotId, FORMAT).build();
+            Plots.getDatabase().select(info, message -> FORMAT.info("Plot: ").stress(plotId).append(message).tell(player));
+        }));
     }
 
     @Command(aliases = "list", parent = "plot", perm = "plots.command.plot.list.self")
@@ -86,12 +117,119 @@ public class PlotCommands {
         });
     }
 
-    @Command(aliases = "claim", parent = "plot", perm = "plots.command.plot.claim", desc = "Claim an empty plot to build on")
-    public void claim(@Caller Player player) {
-        processLocation(player, (plotWorld, plotId) -> {
-            claim(player, plotWorld, plotId);
+    @Command(aliases = "tp", parent = "plot", perm = "plots.command.plot.tp", desc = "Teleport to the given plotId/alias in your current world")
+    public void tp(@Caller Player player, @One("plot | alias") String plot) {
+        tp(player, player.getWorld().getName(), plot);
+    }
+
+    @Command(aliases = "tp", parent = "plot", perm = "plots.command.plot.tp", desc = "Teleport to the given plotId/alias in the given world")
+    public void tp(@Caller Player player, @One("world") String world, @One("plot|alias") String plot) {
+        Optional<PlotWorld> optional = Plots.getApi().getPlotWorld(world);
+        if (optional.isPresent()) {
+            final PlotWorld plotWorld = optional.get();
+            if (PlotId.isValid(plot)) {
+                PlotId plotId = PlotId.valueOf(plot);
+                plotWorld.teleportToPlot(player, plotId);
+            } else {
+                Select<PlotId> select = Queries.selectPlotByName(player.getUniqueId(), world, plot).build();
+                Plots.getDatabase().select(select, plotId -> {
+                    if (plotId.isPresent()) {
+                        plotWorld.teleportToPlot(player, plotId);
+                    } else {
+                        FORMAT.error("Unable to find plot ").stress(plot).tell(player);
+                    }
+                });
+            }
+        } else {
+            FORMAT.error("Target world ").stress(world).error(" is not recognised as a PlotWorld!").tell(player);
+        }
+    }
+
+
+
+    @Command(aliases = "alias", parent = "plot", perm = "plots.command.plot.alias", desc = "Set an alias for the current plot")
+    public void alias(@Caller Player player, @One("alias") String alias) {
+        processLocation(player, ((plotWorld, plotId) -> {
+            PlotUser user = plotWorld.getUser(player.getUniqueId());
+            if (user.isWhitelisted(plotId)) {
+                PlotMeta meta = user.getMeta(plotId).toBuilder().name(alias).build();
+                Insert update = Queries.updateUserPlot(user, plotId, meta).build();
+                Plots.getDatabase().update(update, success -> {
+                    if (success == Tristate.TRUE) {
+                        FORMAT.info("Set alias of ").stress(plotId).info(" to ").stress(alias).tell(player);
+                        plotWorld.refreshUser(user.getUUID());
+                    } else {
+                        FORMAT.info("Unable to set alias ").stress(alias).info(" for ").stress(plotId).tell(player);
+                    }
+                });
+            } else {
+                FORMAT.error("You are not whitelisted on this plot!").tell(player);
+            }
+        }));
+    }
+
+    @Command(aliases = "biome", parent = "plot", perm = "plots.command.plot.biome")
+    public void biome(@Caller Player player, String biome) {
+        processLocation(player, (((plotWorld, plotId) -> {
+            PlotUser user = plotWorld.getUser(player.getUniqueId());
+            if (user.isOwner(plotId)) {
+                Optional<BiomeType> type = Sponge.getRegistry().getType(BiomeType.class, biome);
+                if (type.isPresent()) {
+                    plotWorld.setBiome(plotId, type.get());
+                    FORMAT.info("Setting plot ").stress(plotId).info("'s biome to ").stress(type.get().getName()).tell(player);
+                } else {
+                    FORMAT.error("Biome ").stress(biome).error(" not recognised").tell(player);
+                }
+            } else {
+                FORMAT.error("You don not own this plot").tell(player);
+            }
+        })));
+    }
+
+    @Command(aliases = "copyto", parent = "plot", perm = "plots.command.plot.copy", desc = "Copy the plot at your location to the given plot")
+    public void copyTo(@Caller Player player, @One("plot | alias") String plot) {
+        processLocation(player, ((plotWorld, fromId) -> {
+            PlotUser user = plotWorld.getUser(player.getUniqueId());
+            if (user.isWhitelisted(fromId)) {
+                if (PlotId.isValid(plot)) {
+                    PlotId toId = PlotId.valueOf(plot);
+                    if (user.isOwner(toId)) {
+                        FORMAT.info("Copying plot ").stress(fromId).info(" to ").stress(toId).tell(player);
+                        plotWorld.copyPlot(fromId, toId);
+                    } else {
+                        FORMAT.error("You do not own the target plot ").stress(plot).tell(player);
+                    }
+                } else {
+                    Select<PlotId> selectNamed = Queries.selectPlotByName(user.getUUID(), plotWorld.getWorld(), plot).build();
+                    Plots.getDatabase().select(selectNamed, toId -> {
+                        if (toId.isPresent()) {
+                            FORMAT.info("Copying plot ").stress(fromId).info(" to ").stress(toId).tell(player);
+                            plotWorld.copyPlot(fromId, toId);
+                        } else {
+                            FORMAT.error("Unable to locate plot ").stress(player).tell(player);
+                        }
+                    });
+                }
+            } else {
+                FORMAT.error("You are not whitelisted on this plot").tell(player);
+            }
+        }));
+    }
+
+    @Command(aliases = {"maskall", "ma"}, parent = "plot", perm = "plots.command.plot.maskall")
+    public void maskall(@Caller Player player) {
+        processPlotWorld(player, plotWorld -> {
+            PlotUser user = plotWorld.getUser(player.getUniqueId());
+            if (user.toggleMaskAll()) {
+                FORMAT.info("MaskAll ").stress("enabled").tell(player);
+                FORMAT.warn("MaskAll allows tools like WorldEdit to modify ").stress("ANYWHERE").warn(" in the world. Use with care").tell(player);
+            } else {
+                FORMAT.info("MaskAll ").stress("disabled").tell(player);
+            }
         });
     }
+
+
 
     @Command(aliases = "add", parent = "plot", perm = "plots.command.plot.whitelist.add", desc = "Allow another player to build on your plot")
     public void add(@Caller Player player, @One("player") User user) {
@@ -156,40 +294,7 @@ public class PlotCommands {
         }));
     }
 
-    @Command(aliases = "unclaim", parent = "plot", perm = "plots.command.plot.unclaim", desc = "Unclaim a plot and reset it")
-    public void unclaim(@Caller Player player) {
-        processLocation(player, ((plotWorld, plotId) -> {
-            PlotUser plotUser = plotWorld.getUser(player.getUniqueId());
-            if (plotUser.isOwner(plotId) || player.hasPermission("plots.command.plot.force.unclaim")) {
-                FORMAT.warn("Unclaiming a plot will remove all whitelisted users including the owner '")
-                        .stress("/plot unclaim true")
-                        .warn("' if you wish to proceed").tell(player);
-            }
-        }));
-    }
 
-    @Command(aliases = "unclaim", parent = "plot", perm = "plots.command.plot.unclaim")
-    public void unclaim(@Caller Player player, @One("confirm") boolean confirm) {
-        if (!confirm) {
-            unclaim(player);
-            return;
-        }
-        processLocation(player, ((plotWorld, plotId) -> {
-            PlotUser plotUser = plotWorld.getUser(player.getUniqueId());
-            if (plotUser.isOwner(plotId) || player.hasPermission("plots.command.plot.force.unclaim")) {
-                Plots.getDatabase().deletePlot(plotWorld.getWorld(), plotId, evicted -> {
-                    if (evicted.size() > 0) {
-                        FORMAT.info("Unclaimed plot ").stress(plotId).tell(player);
-                        evicted.forEach(plotWorld::refreshUser);
-                    } else {
-                        FORMAT.error("Plot ").stress(plotId).error(" does not appear to have been claimed").tell(player);
-                    }
-                });
-            } else {
-                FORMAT.error("You do not own this plot").tell(player);
-            }
-        }));
-    }
 
     @Command(aliases = "reset", parent = "plot", perm = "plots.command.plot.reset", desc = "Reset the entire plot to it's default state")
     public void reset(@Caller Player player) {
@@ -220,102 +325,7 @@ public class PlotCommands {
         }));
     }
 
-    @Command(aliases = "copyto", parent = "plot", perm = "plots.command.plot.copy", desc = "Copy the plot at your location to the given plot")
-    public void copyTo(@Caller Player player, @One("plot | alias") String plot) {
-        processLocation(player, ((plotWorld, fromId) -> {
-            PlotUser user = plotWorld.getUser(player.getUniqueId());
-            if (user.isWhitelisted(fromId)) {
-                if (PlotId.isValid(plot)) {
-                    PlotId toId = PlotId.valueOf(plot);
-                    if (user.isOwner(toId)) {
-                        FORMAT.info("Copying plot ").stress(fromId).info(" to ").stress(toId).tell(player);
-                        plotWorld.copyPlot(fromId, toId);
-                    } else {
-                        FORMAT.error("You do not own the target plot ").stress(plot).tell(player);
-                    }
-                } else {
-                    Select<PlotId> selectNamed = Queries.selectPlotByName(user.getUUID(), plotWorld.getWorld(), plot).build();
-                    Plots.getDatabase().select(selectNamed, toId -> {
-                        if (toId.isPresent()) {
-                            FORMAT.info("Copying plot ").stress(fromId).info(" to ").stress(toId).tell(player);
-                            plotWorld.copyPlot(fromId, toId);
-                        } else {
-                            FORMAT.error("Unable to locate plot ").stress(player).tell(player);
-                        }
-                    });
-                }
-            } else {
-                FORMAT.error("You are not whitelisted on this plot").tell(player);
-            }
-        }));
-    }
 
-    @Command(aliases = "biome", parent = "plot", perm = "plots.command.plot.biome")
-    public void biome(@Caller Player player, String biome) {
-        processLocation(player, (((plotWorld, plotId) -> {
-            PlotUser user = plotWorld.getUser(player.getUniqueId());
-            if (user.isOwner(plotId)) {
-                Optional<BiomeType> type = Sponge.getRegistry().getType(BiomeType.class, biome);
-                if (type.isPresent()) {
-                    plotWorld.setBiome(plotId, type.get());
-                    FORMAT.info("Setting plot ").stress(plotId).info("'s biome to ").stress(type.get().getName()).tell(player);
-                } else {
-                    FORMAT.error("Biome ").stress(biome).error(" not recognised").tell(player);
-                }
-            } else {
-                FORMAT.error("You don not own this plot").tell(player);
-            }
-        })));
-    }
-
-    @Command(aliases = "alias", parent = "plot", perm = "plots.command.plot.alias", desc = "Set an alias for the current plot")
-    public void alias(@Caller Player player, @One("alias") String alias) {
-        processLocation(player, ((plotWorld, plotId) -> {
-            PlotUser user = plotWorld.getUser(player.getUniqueId());
-            if (user.isWhitelisted(plotId)) {
-                PlotMeta meta = user.getMeta(plotId).toBuilder().name(alias).build();
-                Insert update = Queries.updateUserPlot(user, plotId, meta).build();
-                Plots.getDatabase().update(update, success -> {
-                    if (success == Tristate.TRUE) {
-                        FORMAT.info("Set alias of ").stress(plotId).info(" to ").stress(alias).tell(player);
-                        plotWorld.refreshUser(user.getUUID());
-                    } else {
-                        FORMAT.info("Unable to set alias ").stress(alias).info(" for ").stress(plotId).tell(player);
-                    }
-                });
-            } else {
-                FORMAT.error("You are not whitelisted on this plot!").tell(player);
-            }
-        }));
-    }
-
-    @Command(aliases = "tp", parent = "plot", perm = "plots.command.plot.tp", desc = "Teleport to the given plotId/alias in your current world")
-    public void tp(@Caller Player player, @One("plot | alias") String plot) {
-        tp(player, player.getWorld().getName(), plot);
-    }
-
-    @Command(aliases = "tp", parent = "plot", perm = "plots.command.plot.tp", desc = "Teleport to the given plotId/alias in the given world")
-    public void tp(@Caller Player player, @One("world") String world, @One("plot|alias") String plot) {
-        Optional<PlotWorld> optional = Plots.getApi().getPlotWorld(world);
-        if (optional.isPresent()) {
-            final PlotWorld plotWorld = optional.get();
-            if (PlotId.isValid(plot)) {
-                PlotId plotId = PlotId.valueOf(plot);
-                plotWorld.teleportToPlot(player, plotId);
-            } else {
-                Select<PlotId> select = Queries.selectPlotByName(player.getUniqueId(), world, plot).build();
-                Plots.getDatabase().select(select, plotId -> {
-                    if (plotId.isPresent()) {
-                        plotWorld.teleportToPlot(player, plotId);
-                    } else {
-                        FORMAT.error("Unable to find plot ").stress(plot).tell(player);
-                    }
-                });
-            }
-        } else {
-            FORMAT.error("Target world ").stress(world).error(" is not recognised as a PlotWorld!").tell(player);
-        }
-    }
 
     private void claim(Player player, PlotWorld plotWorld, PlotId plotId) {
         PlotUser plotUser = plotWorld.getUser(player.getUniqueId());

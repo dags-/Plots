@@ -10,6 +10,7 @@ import me.dags.plots.generator.GeneratorProperties;
 public class PlotProvider {
 
     private final int top;
+    private final int wallWidth;
     private final int gridXWidth;
     private final int gridZWidth;
     private final Vector2i minOffset;
@@ -17,6 +18,7 @@ public class PlotProvider {
 
     public PlotProvider(GeneratorProperties properties) {
         this.top = properties.getMaxY();
+        this.wallWidth = properties.getWallWidth();
         this.gridXWidth = properties.getXWidth() + (2 * properties.getWallWidth()) + properties.getPathWidth();
         this.gridZWidth = properties.getZWidth() + (2 * properties.getWallWidth()) + properties.getPathWidth();
         this.minOffset = new Vector2i(properties.getWallWidth(), properties.getWallWidth()).sub(1, 1);
@@ -43,6 +45,6 @@ public class PlotProvider {
     }
 
     public Vector3i plotWarp(PlotBounds plotBounds) {
-        return new Vector3i(plotBounds.getMin().getX(), top, plotBounds.getMin().getY());
+        return new Vector3i(plotBounds.getMin().getX() - wallWidth, top, plotBounds.getMin().getY() - wallWidth);
     }
 }
