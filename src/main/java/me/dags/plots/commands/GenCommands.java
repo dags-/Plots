@@ -8,6 +8,7 @@ import me.dags.commandbus.Format;
 import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
 import me.dags.commandbus.annotation.One;
+import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
 import me.dags.plots.generator.GeneratorProperties;
 import me.dags.plots.util.IO;
@@ -41,7 +42,7 @@ public class GenCommands {
         return get;
     }
 
-    @Command(aliases = {"help", "?"}, parent = "gen", perm = "plots.commands.gen.help")
+    @Command(aliases = {"help", "?"}, parent = "gen", perm = Permissions.GEN_EDIT)
     public void help(@Caller CommandSource source) {
         FORMAT.info("/gen create <name>").tell(source);
         FORMAT.info("/gen biome <biome>").tell(source);
@@ -52,7 +53,7 @@ public class GenCommands {
         FORMAT.info("/gen save").tell(source);
     }
 
-    @Command(aliases = "create", parent = "gen", perm = "plots.command.gen.create")
+    @Command(aliases = "create", parent = "gen", perm = Permissions.GEN_EDIT)
     public void create(@Caller CommandSource source, @One("name") String name) {
         BUILDERS.put(source, GeneratorProperties.builder().name(name));
         FORMAT.info("Building new Generator ").stress(name).tell(source);
@@ -60,14 +61,14 @@ public class GenCommands {
         FORMAT.subdued("Changes will be discarded if you are inactive for +" + TIME_OUT + " seconds").tell(source);
     }
 
-    @Command(aliases = "dims", parent = "gen", perm = "plots.command.gen.dims")
+    @Command(aliases = "dims", parent = "gen", perm = Permissions.GEN_EDIT)
     public void dims(@Caller CommandSource source, @One("x width") int x, @One("z width") int z, @One("path width") int path, @One("wall width") int wall) {
         plot(source, x, z);
         wall(source, wall);
         path(source, path);
     }
 
-    @Command(aliases = "path", parent = "gen dim", perm = "plots.command.gen.dims")
+    @Command(aliases = "path", parent = "gen dim", perm = Permissions.GEN_EDIT)
     public void path(@Caller CommandSource source, @One("width") int width) {
         Optional<GeneratorProperties.Builder> builder = get(source);
         if (builder.isPresent()) {
@@ -76,7 +77,7 @@ public class GenCommands {
         }
     }
 
-    @Command(aliases = "plot", parent = "gen dim", perm = "plots.command.gen.dims")
+    @Command(aliases = "plot", parent = "gen dim", perm = Permissions.GEN_EDIT)
     public void plot(@Caller CommandSource source, @One("x width") int xWidth, @One("z width") int zWidth) {
         Optional<GeneratorProperties.Builder> builder = get(source);
         if (builder.isPresent()) {
@@ -85,7 +86,7 @@ public class GenCommands {
         }
     }
 
-    @Command(aliases = "wall", parent = "gen dim", perm = "plots.command.gen.dims")
+    @Command(aliases = "wall", parent = "gen dim", perm = Permissions.GEN_EDIT)
     public void wall(@Caller CommandSource source, @One("width") int width) {
         Optional<GeneratorProperties.Builder> builder = get(source);
         if (builder.isPresent()) {
@@ -94,7 +95,7 @@ public class GenCommands {
         }
     }
 
-    @Command(aliases = "biome", parent = "gen", perm = "plots.command.gen.biome")
+    @Command(aliases = "biome", parent = "gen", perm = Permissions.GEN_EDIT)
     public void biome(@Caller CommandSource source, @One("biome") String biome) {
         Optional<GeneratorProperties.Builder> builder = get(source);
         if (builder.isPresent()) {
@@ -108,7 +109,7 @@ public class GenCommands {
         }
     }
 
-    @Command(aliases = "rule", parent = "gen", perm = "plots.command.gen.rule")
+    @Command(aliases = "rule", parent = "gen", perm = Permissions.GEN_EDIT)
     public void rule(@Caller CommandSource source, @One("rule") String rule, @One("value") String value) {
         Optional<GeneratorProperties.Builder> builder = get(source);
         if (builder.isPresent()) {
@@ -117,7 +118,7 @@ public class GenCommands {
         }
     }
 
-    @Command(aliases = "layer", parent = "gen", perm = "plots.command.gen.layer")
+    @Command(aliases = "layer", parent = "gen", perm = Permissions.GEN_EDIT)
     public void layer(@Caller CommandSource source, @One("plot material") String plot, @One("path material") String path, @One("wall material") String wall, @One("thickness") int thickness) {
         Optional<GeneratorProperties.Builder> builder = get(source);
         if (builder.isPresent()) {
@@ -152,7 +153,7 @@ public class GenCommands {
         }
     }
 
-    @Command(aliases = "save", parent = "gen", perm = "plots.command.gen.save")
+    @Command(aliases = "save", parent = "gen", perm = Permissions.GEN_EDIT)
     public void save(@Caller CommandSource source) {
         Optional<GeneratorProperties.Builder> builder = get(source);
         if (builder.isPresent()) {
@@ -163,7 +164,7 @@ public class GenCommands {
         }
     }
 
-    @Command(aliases = "reload", parent = "gen", perm = "plots.command.gen.reload")
+    @Command(aliases = "reload", parent = "gen", perm = Permissions.GEN_EDIT)
     public void reload(@Caller CommandSource source) {
         FORMAT.info("Reloading generators...").tell(source);
         Plots.getApi().reloadGenerators();

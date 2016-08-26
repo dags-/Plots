@@ -10,7 +10,7 @@ import org.spongepowered.api.text.format.TextStyles;
  */
 public class Config {
 
-    private int blocks_per_tick = 10000;
+    private int blocks_per_tick = 5000;
     private boolean database_logger = true;
     private Format message_format = CommandBus.newFormatBuilder().build();
 

@@ -8,7 +8,7 @@ import com.flowpowered.math.vector.Vector3i;
 public abstract class AbstractBlockOperation implements Operation {
 
     private final String world;
-    private final int maxX, maxY, maxZ;
+    private final int maxX, minY, maxZ;
 
     private boolean complete = false;
     private int x = 0;
@@ -19,8 +19,9 @@ public abstract class AbstractBlockOperation implements Operation {
     AbstractBlockOperation(String world, Vector3i min, Vector3i max) {
         this.world = world;
         this.maxX = max.getX() - min.getX();
-        this.maxY = max.getY() - min.getY();
+        this.minY = min.getY();
         this.maxZ = max.getZ() - min.getZ();
+        this.y = max.getY() - min.getY();
     }
 
     @Override
@@ -30,7 +31,7 @@ public abstract class AbstractBlockOperation implements Operation {
 
     @Override
     public int process(int blocksToProcess) {
-        for (; y <= maxY; y++) {
+        for (; y >= minY; y--) {
             for (; x <= maxX; x++) {
                 for (; z <= maxZ; z++) {
                     processAt(x, y, z);

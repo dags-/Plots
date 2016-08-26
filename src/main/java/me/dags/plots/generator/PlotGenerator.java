@@ -14,4 +14,6 @@ public interface PlotGenerator extends WorldGeneratorModifier, GenerationPopulat
     PlotProvider plotProvider();
 
     void onLoadWorld(World world);
+
+    Layer layerAtHeight(int y);
 }

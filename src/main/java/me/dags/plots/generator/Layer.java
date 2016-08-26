@@ -27,6 +27,10 @@ public class Layer {
         applyLayer(buffer, y);
     }
 
+    public BlockType getBlockAt(int x, int z) {
+        return layer.get(x, z);
+    }
+
     protected void applyLayer(MutableBlockVolume buffer, int y) {
         Vector3i min = buffer.getBlockMin(), max = buffer.getBlockMax();
         for (int z = min.getZ(); z <= max.getZ(); z++) {

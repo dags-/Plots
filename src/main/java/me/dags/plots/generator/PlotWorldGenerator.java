@@ -81,7 +81,8 @@ public class PlotWorldGenerator implements PlotGenerator {
         }
     }
 
-    private Layer layerAtHeight(int y) {
+    @Override
+    public Layer layerAtHeight(int y) {
         Layer result = layers[layers.length - 1];
         int height = 0;
         for (Layer layer : layers) {

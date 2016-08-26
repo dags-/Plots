@@ -25,6 +25,10 @@ public class PlotProvider {
         this.maxOffset = new Vector2i(properties.getWallWidth() + properties.getXWidth(), properties.getWallWidth() + properties.getZWidth());
     }
 
+    public int getTop() {
+        return top;
+    }
+
     public PlotId plotId(Vector3i position) {
         int x = position.getX(), z = position.getZ();
         x = (x < 0 ? x - gridXWidth : x) / gridXWidth;
