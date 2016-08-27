@@ -63,6 +63,10 @@ public class Layer {
                 }
             }
         }
+
+        public BlockType getBlockAt(int x, int z) {
+            return base;
+        }
     }
 
     public static class Builder {

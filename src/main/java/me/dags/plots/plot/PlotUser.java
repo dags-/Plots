@@ -60,12 +60,12 @@ public class PlotUser {
     }
 
     public boolean toggleMaskAll() {
-        if (this.mask == PlotMask.NOWHERE) {
+        if (this.mask != PlotMask.ANYWHERE) {
             this.mask = PlotMask.ANYWHERE;
             return true;
         } else {
             this.mask = PlotMask.NOWHERE;
-            return true;
+            return false;
         }
     }
 

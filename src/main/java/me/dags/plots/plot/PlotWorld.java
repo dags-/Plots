@@ -13,6 +13,8 @@ import me.dags.plots.operation.FillBiomeOperation;
 import me.dags.plots.operation.ResetOperation;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.Entity;
+import org.spongepowered.api.entity.EntitySnapshot;
+import org.spongepowered.api.entity.EntityTypes;
 import org.spongepowered.api.entity.living.ArmorStand;
 import org.spongepowered.api.entity.living.Living;
 import org.spongepowered.api.entity.living.player.Player;
@@ -24,6 +26,7 @@ import org.spongepowered.api.event.block.ChangeBlockEvent;
 import org.spongepowered.api.event.block.InteractBlockEvent;
 import org.spongepowered.api.event.cause.entity.damage.source.EntityDamageSource;
 import org.spongepowered.api.event.cause.entity.damage.source.IndirectEntityDamageSource;
+import org.spongepowered.api.event.cause.entity.spawn.EntitySpawnCause;
 import org.spongepowered.api.event.entity.DamageEntityEvent;
 import org.spongepowered.api.event.entity.DisplaceEntityEvent;
 import org.spongepowered.api.event.entity.InteractEntityEvent;
@@ -33,6 +36,7 @@ import org.spongepowered.api.event.item.inventory.DropItemEvent;
 import org.spongepowered.api.event.item.inventory.UseItemStackEvent;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
 import org.spongepowered.api.event.world.ExplosionEvent;
+import org.spongepowered.api.scheduler.Task;
 import org.spongepowered.api.service.permission.Subject;
 import org.spongepowered.api.text.chat.ChatTypes;
 import org.spongepowered.api.util.Tristate;
@@ -70,8 +74,14 @@ public class PlotWorld {
 
     @Listener
     public void onJoin(ClientConnectionEvent.Join event) {
-        if (thisWorld(event.getTargetEntity().getWorld())) {
-            Plots.getDatabase().loadUser(world, event.getTargetEntity().getUniqueId(), this::addUser);
+        World world = event.getTargetEntity().getWorld();
+        if (thisWorld(world)) {
+            Player player = event.getTargetEntity();
+            Plots.getDatabase().loadUser(getWorld(), player.getUniqueId(), this::addUser);
+            Task.Builder builder = Task.builder().execute(() -> {
+                onPlayerMove(player, world.getSpawnLocation().getBlockPosition(), player.getLocation().getBlockPosition());
+            });
+            Plots.submitTask(builder);
         }
     }
 
@@ -177,14 +187,23 @@ public class PlotWorld {
         }
     }
 
+    // DropItemEvent is dumb
     @Listener(order = Order.PRE)
-    public void onDrop(DropItemEvent.Dispense event, @First Player player) {
-        if (thisWorld(player.getWorld())) {
-            if (player.hasPermission(Permissions.ACTION_BYPASS)) {
+    public void drop(DropItemEvent event, @First EntitySpawnCause cause) {
+        EntitySnapshot snapshot = cause.getEntity();
+        if (getWorldId() == cause.getEntity().getWorldUniqueId()) {
+            if (snapshot.getType() != EntityTypes.PLAYER) {
                 return;
             }
-            boolean permission = hasPermission(player, Permissions.ACTION_DROP);
-            event.filterEntityLocations(loc -> permission && !canEdit(player, loc.getBlockPosition()));
+            // wut
+            snapshot.restore().map(Player.class::cast).ifPresent(player -> {
+                if (player.hasPermission(Permissions.ACTION_BYPASS)) {
+                    return;
+                }
+                if (!hasPermission(player, Permissions.ACTION_DROP) || !canEdit(player, player.getLocation().getBlockPosition())) {
+                    event.setCancelled(true);
+                }
+            });
         }
     }
 
@@ -222,7 +241,7 @@ public class PlotWorld {
     }
 
     @Listener
-    public void onEntityMove(DisplaceEntityEvent.Move.TargetLiving event) {
+    public void onEntityMove(DisplaceEntityEvent.Move event) {
         if (thisWorld(event.getToTransform().getExtent())) {
             Vector3i from = event.getFromTransform().getLocation().getBlockPosition();
             Vector3i to = event.getToTransform().getLocation().getBlockPosition();
@@ -230,20 +249,20 @@ public class PlotWorld {
                 if (event.getTargetEntity() instanceof Player) {
                     onPlayerMove((Player) event.getTargetEntity(), from, to);
                 } else {
-                    onLivingMove(event, event.getTargetEntity(), from, to);
+                    onEntityMove(event, event.getTargetEntity(), from, to);
                 }
             }
         }
     }
 
-    private void onLivingMove(Cancellable event, Living living, Vector3i from, Vector3i to) {
+    private void onEntityMove(Cancellable event, Entity entity, Vector3i from, Vector3i to) {
         if (from.getX() != to.getX() || from.getZ() != to.getZ()) {
             PlotId fromId = getPlotId(from);
             PlotBounds bounds = getPlotBounds(fromId);
 
             if (!bounds.contains(from)) {
                 // entity is already outside of a plot so remove it
-                living.remove();
+                entity.remove();
             } else if (!bounds.contains(to)) {
                 // entity attempted to leave the bounds of a plot so prevent it
                 event.setCancelled(true);

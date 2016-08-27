@@ -21,6 +21,7 @@ import org.spongepowered.api.event.game.state.GameStoppingServerEvent;
 import org.spongepowered.api.event.world.LoadWorldEvent;
 import org.spongepowered.api.event.world.UnloadWorldEvent;
 import org.spongepowered.api.plugin.Plugin;
+import org.spongepowered.api.scheduler.Task;
 import org.spongepowered.api.world.World;
 
 import java.nio.file.Path;
@@ -110,5 +111,9 @@ public class Plots {
 
     public static void log(String message, Object... args) {
         logger.info(message, args);
+    }
+
+    public static void submitTask(Task.Builder builder) {
+        builder.submit(instance);
     }
 }

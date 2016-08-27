@@ -47,6 +47,9 @@ public class GridMap<T> {
     }
 
     private int index(int x, int z) {
+        if (this == EMPTY) {
+            throw new UnsupportedOperationException("GridMap is empty!");
+        }
         x = (x = x % xWidth) < 0 ? xWidth + x : x;
         z = (z = z % zWidth) < 0 ? zWidth + z : z;
         return x + (z * xWidth);
