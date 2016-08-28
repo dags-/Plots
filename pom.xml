@@ -88,7 +88,7 @@
         <dependency>
             <groupId>com.github.dags-</groupId>
             <artifactId>VoxelSniper</artifactId>
-            <version>sponge-1.8.9-sponge-1.8.9-v5.171.0-g9c30c7e-32</version>
+            <version>spongedev-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
