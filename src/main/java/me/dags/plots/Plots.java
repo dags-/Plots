@@ -67,6 +67,10 @@ public class Plots {
         Sponge.getScheduler().createTaskBuilder()
                 .execute(Support.of("WorldEdit", "com.sk89q.worldedit.WorldEdit", "me.dags.plots.worldedit.WESessionListener"))
                 .submit(this);
+
+        Sponge.getScheduler().createTaskBuilder()
+                .execute(Support.of("VoxelSniper", "com.thevoxelbox.voxelsniper.brush.mask.Mask", "me.dags.plots.voxelsniper.SniperListener"))
+                .submit(this);
     }
 
     @Listener (order = Order.POST)

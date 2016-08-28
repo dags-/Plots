@@ -32,7 +32,7 @@ public class PlotMask {
         return this != PlotMask.NOWHERE;
     }
 
-    static final PlotMask ANYWHERE = new PlotMask(PlotBounds.EMPTY) {
+    public static final PlotMask ANYWHERE = new PlotMask(PlotBounds.EMPTY) {
         @Override
         public boolean contains(int x, int y, int z) {
             return y > 0 && y < 256;
