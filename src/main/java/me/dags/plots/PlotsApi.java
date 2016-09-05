@@ -93,7 +93,7 @@ public class PlotsApi {
 
     public void removePlotWorld(String world) {
         getPlotWorldExact(world).ifPresent(plotWorld -> {
-            Sponge.getEventManager().unregisterListeners(plotWorld);
+            plotWorld.unregister();
             getDispatcher().finishAll(plotWorld.getWorld());
             worlds.remove(world);
         });
@@ -101,7 +101,7 @@ public class PlotsApi {
 
     public void registerPlotWorld(PlotWorld plotWorld) {
         worlds.put(plotWorld.getWorld(), plotWorld);
-        Sponge.getEventManager().registerListeners(plugin, plotWorld);
+        plotWorld.register(plugin);
     }
 
     public void registerBaseGenerator(GeneratorProperties generatorProperties) {
