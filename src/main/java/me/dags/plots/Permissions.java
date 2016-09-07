@@ -7,6 +7,8 @@ public final class Permissions {
 
     public static final String PLOT_AUTO = "plots.command.auto";
     public static final String PLOT_CLAIM = "plots.command.claim";
+    public static final String PLOT_APPROVE = "plots.command.approve";
+    public static final String PLOT_APPROVAL_BYPASS = "plots.approval.bypass";
     public static final String PLOT_UNCLAIM = "plots.command.unclaim.self";
     public static final String PLOT_UNCLAIM_OTHER = "plots.command.unclaim.other";
     public static final String PLOT_INFO = "plots.command.info";

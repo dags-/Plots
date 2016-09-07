@@ -59,6 +59,14 @@ public class PlotUser {
         return meta != null ? meta : PlotMeta.EMPTY;
     }
 
+    public boolean hasPlot() {
+        return plotData.size() > 0;
+    }
+
+    public boolean isApproved() {
+        return plotData.values().stream().anyMatch(PlotMeta::isApproved);
+    }
+
     public boolean toggleMaskAll() {
         if (this.mask != PlotMask.ANYWHERE) {
             this.mask = PlotMask.ANYWHERE;

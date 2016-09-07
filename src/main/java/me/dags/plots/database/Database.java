@@ -82,6 +82,7 @@ public class Database {
                     .column(Keys.PLOT_ID, "VARCHAR(16)")
                     .column(Keys.META_NAME, "VARCHAR(16)")
                     .column(Keys.META_OWNER, "BOOLEAN")
+                    .column(Keys.META_APPROVED, "BOOLEAN")
                     .build();
 
             createTable(builder);

@@ -54,21 +54,27 @@ public class PlotCommands {
         processLocation(player, ((plotWorld, plotId) -> {
             PlotUser plotUser = plotWorld.getUser(player.getUniqueId());
             if (plotUser.isOwner(plotId) || player.hasPermission(Permissions.PLOT_UNCLAIM_OTHER)) {
-                FORMAT.warn("Unclaiming a plot will remove all whitelisted users including the owner '")
-                        .stress("/plot unclaim true")
-                        .warn("' if you wish to proceed").tell(player);
+                FORMAT.warn("Unclaiming a plot will remove all whitelisted users including the owner!").append(Text.NEW_LINE)
+                        .warn("To confirm, use either:").append(Text.NEW_LINE)
+                        .stress(" /plot unclaim true").warn(" - to unclaim and reset the plot").append(Text.NEW_LINE)
+                        .stress(" /plot unclaim false").warn(" - to unclaim and not reset the plot").tell(player);
             }
         }));
     }
 
     @Command(aliases = "unclaim", parent = "plot", perm = Permissions.PLOT_UNCLAIM)
-    public void unclaim(@Caller Player player, @One("confirm") boolean confirm) {
-        if (!confirm) {
-            unclaim(player);
-            return;
-        }
+    public void unclaim(@Caller Player player, @One("reset") boolean reset) {
         processLocation(player, ((plotWorld, plotId) -> {
             PlotUser plotUser = plotWorld.getUser(player.getUniqueId());
+
+            if (!reset && !player.hasPermission(Permissions.PLOT_APPROVAL_BYPASS) && !plotUser.isApproved()) {
+                FORMAT.error("Your plot will be reset if you wish to unclaim it. Use '")
+                        .stress("/plot unclaim true")
+                        .error("' if you wish to proceed")
+                        .tell(player);
+                return;
+            }
+
             if (plotUser.isOwner(plotId) || player.hasPermission(Permissions.PLOT_UNCLAIM_OTHER)) {
                 Plots.getDatabase().deletePlot(plotWorld.getWorld(), plotId, evicted -> {
                     if (evicted.size() > 0) {
@@ -84,6 +90,30 @@ public class PlotCommands {
         }));
     }
 
+    @Command(aliases = "approve", parent = "plot", perm = Permissions.PLOT_APPROVE)
+    public void approve(@Caller Player player) {
+        processLocation(player, (plotWorld, plotId) -> {
+            Select<Optional<User>> selectOwner = Queries.selectPlotOwner(plotWorld.getWorld(), plotId).build();
+            Plots.getDatabase().select(selectOwner, user -> {
+                if (user.isPresent()) {
+                    Select<PlotUser> selectUser = Queries.selectUser(plotWorld.getWorld(), user.get().getUniqueId()).build();
+                    Plots.getDatabase().select(selectUser, plotUser -> {
+                        if (plotUser.isPresent()) {
+                            PlotMeta updatedMeta = plotUser.getMeta(plotId).toBuilder().approved(true).build();
+                            PlotUser updatedUser = plotUser.toBuilder().plot(plotId, updatedMeta).build();
+                            Plots.getDatabase().saveUser(updatedUser);
+                            plotWorld.refreshUser(plotUser.getUUID());
+                            FORMAT.error("Successfully approved plot ").stress(plotId).tell(player);
+                        } else {
+                            FORMAT.error("Failed to approve plot ").stress(plotId).tell(player);
+                        }
+                    });
+                } else {
+                    FORMAT.error("Did not find an owner for plot ").stress(plotId).tell(player);
+                }
+            });
+        });
+    }
 
 
     @Command(aliases = "info", parent = "plot", perm = Permissions.PLOT_INFO)
@@ -305,6 +335,7 @@ public class PlotCommands {
             reset(player);
             return;
         }
+
         processLocation(player, ((plotWorld, plotId) -> {
             PlotUser plotUser = plotWorld.getUser(player.getUniqueId());
             if (plotUser.isOwner(plotId) || player.hasPermission(Permissions.PLOT_RESET_OTHER)) {
@@ -320,6 +351,11 @@ public class PlotCommands {
 
     private void claim(Player player, PlotWorld plotWorld, PlotId plotId) {
         PlotUser plotUser = plotWorld.getUser(player.getUniqueId());
+        if (plotUser.hasPlot() && !player.hasPermission(Permissions.PLOT_APPROVAL_BYPASS) && !plotUser.isApproved()) {
+            FORMAT.error("You must have one of your plots approved before claiming a new one").tell(player);
+            return;
+        }
+
         Select<Boolean> claim = Queries.isClaimed(plotWorld.getWorld(), plotId)
                 .andUpdate(owned -> owned ? null : Queries.updateUserPlot(plotUser, plotId, PlotMeta.builder().owner(true).build()).build())
                 .build();

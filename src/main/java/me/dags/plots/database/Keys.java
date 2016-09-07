@@ -14,6 +14,7 @@ public class Keys {
     public static final String PLOT_ID = "plot_id";
     public static final String META_NAME = "meta_name";
     public static final String META_OWNER = "meta_owner";
+    public static final String META_APPROVED = "meta_approved";
 
     static String uid(UUID uuid, PlotId plotId) {
         return uuid + ";" + plotId;

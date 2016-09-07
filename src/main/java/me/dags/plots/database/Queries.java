@@ -14,10 +14,7 @@ import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.service.user.UserStorageService;
 import org.spongepowered.api.text.Text;
 
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * @author dags <dags@dags.me>
@@ -91,6 +88,20 @@ public class Queries {
         };
     }
 
+    public static ResultTransformer<List<PlotMeta>> plotMetas() {
+        return resultSet -> {
+            List<PlotMeta> list = new ArrayList<>();
+            while (resultSet.next()) {
+                PlotMeta meta = PlotMeta.builder()
+                        .name(resultSet.getString(Keys.META_NAME))
+                        .owner(resultSet.getBoolean(Keys.META_OWNER))
+                        .approved(resultSet.getBoolean(Keys.META_APPROVED)).build();
+                list.add(meta);
+            }
+            return list;
+        };
+    }
+
     public static ResultTransformer<Text> plotInfo(Format format) {
         return result -> {
             Format.MessageBuilder owner = format.message();
@@ -124,7 +135,8 @@ public class Queries {
                     PlotMeta meta = PlotMeta.EMPTY;
                     String name = result.getString(Keys.META_NAME);
                     Boolean owner = result.getBoolean(Keys.META_OWNER);
-                    meta = PlotMeta.builder().name(name).owner(owner).build();
+                    Boolean approved = result.getBoolean(Keys.META_APPROVED);
+                    meta = PlotMeta.builder().name(name).owner(owner).approved(approved).build();
                     builder.plot(plotId, meta);
                 }
             }
@@ -138,6 +150,15 @@ public class Queries {
             PlotUser plotUser = transformer.accept(result);
             return plotUser.listPlots();
         };
+    }
+
+    public static Select<List<PlotMeta>> selectMetas(String world, PlotId plotId) {
+        return new Select.Builder<List<PlotMeta>>()
+                .select("*")
+                .from(world)
+                .where(matchPlot(plotId).build())
+                .transformer(plotMetas())
+                .build();
     }
 
     public static Select.Builder<Text> selectPlotInfo(String world, PlotId plotId, Format format) {

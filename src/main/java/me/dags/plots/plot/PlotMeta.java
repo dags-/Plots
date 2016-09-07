@@ -7,15 +7,18 @@ public class PlotMeta {
 
     public static final PlotMeta EMPTY = new PlotMeta();
 
+    private final boolean approved;
     private final boolean owner;
     private final String name;
 
     private PlotMeta() {
+        this.approved = false;
         this.owner = false;
         this.name = "";
     }
 
     private PlotMeta(Builder builder) {
+        this.approved = builder.approved;
         this.owner = builder.owner;
         this.name = builder.name;
     }
@@ -25,7 +28,7 @@ public class PlotMeta {
     }
 
     public boolean hasMeta() {
-        return isOwner() || !name.isEmpty();
+        return isApproved() || isOwner() || !name.isEmpty();
     }
 
     public boolean hasName() {
@@ -34,6 +37,10 @@ public class PlotMeta {
 
     public boolean isOwner() {
         return isPresent() && owner;
+    }
+
+    public boolean isApproved() {
+        return isOwner() && approved;
     }
 
     public String getName() {
@@ -50,6 +57,7 @@ public class PlotMeta {
 
     public static class Builder {
 
+        private boolean approved = false;
         private boolean owner = false;
         private String name = "";
 
@@ -60,6 +68,11 @@ public class PlotMeta {
 
         public Builder name(String name) {
             this.name = name == null ? "" : name;
+            return this;
+        }
+
+        public Builder approved(boolean approved) {
+            this.approved = approved;
             return this;
         }
 
