@@ -10,6 +10,7 @@ import me.dags.plots.Plots;
 import me.dags.plots.database.Queries;
 import me.dags.plots.database.statment.Insert;
 import me.dags.plots.database.statment.Select;
+import me.dags.plots.database.statment.Update;
 import me.dags.plots.plot.*;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
@@ -78,6 +79,11 @@ public class PlotCommands {
             if (plotUser.isOwner(plotId) || player.hasPermission(Permissions.PLOT_UNCLAIM_OTHER)) {
                 Plots.getDatabase().deletePlot(plotWorld.getWorld(), plotId, evicted -> {
                     if (evicted.size() > 0) {
+                        if (reset) {
+                            FORMAT.info("Resetting plot...").tell(player);
+                            plotWorld.resetPlot(plotId);
+                        }
+
                         FORMAT.info("Unclaimed plot ").stress(plotId).tell(player);
                         evicted.forEach(plotWorld::refreshUser);
                     } else {
@@ -94,22 +100,22 @@ public class PlotCommands {
     public void approve(@Caller Player player) {
         processLocation(player, (plotWorld, plotId) -> {
             Select<Optional<User>> selectOwner = Queries.selectPlotOwner(plotWorld.getWorld(), plotId).build();
-            Plots.getDatabase().select(selectOwner, user -> {
-                if (user.isPresent()) {
-                    Select<PlotUser> selectUser = Queries.selectUser(plotWorld.getWorld(), user.get().getUniqueId()).build();
-                    Plots.getDatabase().select(selectUser, plotUser -> {
-                        if (plotUser.isPresent()) {
-                            PlotMeta updatedMeta = plotUser.getMeta(plotId).toBuilder().approved(true).build();
-                            PlotUser updatedUser = plotUser.toBuilder().plot(plotId, updatedMeta).build();
-                            Plots.getDatabase().saveUser(updatedUser);
-                            plotWorld.refreshUser(plotUser.getUUID());
-                            FORMAT.error("Successfully approved plot ").stress(plotId).tell(player);
+            Plots.getDatabase().select(selectOwner, owner -> {
+                if (owner.isPresent()) {
+                    Update update = Queries.approvePlot(plotWorld.getWorld(), plotId);
+                    Plots.getDatabase().update(update, result -> {
+                        if (result == Tristate.TRUE) {
+                            FORMAT.info("Successfully approved plot ").stress(plotId).tell(player);
+                            owner.flatMap(User::getPlayer).ifPresent(p -> {
+                                FORMAT.info("Plot ").stress(plotId).info(" has been approved").tell(p);
+                                plotWorld.refreshUser(p.getUniqueId());
+                            });
                         } else {
                             FORMAT.error("Failed to approve plot ").stress(plotId).tell(player);
                         }
                     });
                 } else {
-                    FORMAT.error("Did not find an owner for plot ").stress(plotId).tell(player);
+                    FORMAT.error("This plot is not owned").tell(player);
                 }
             });
         });

@@ -1,10 +1,7 @@
 package me.dags.plots.database;
 
 import me.dags.commandbus.Format;
-import me.dags.plots.database.statment.Delete;
-import me.dags.plots.database.statment.Insert;
-import me.dags.plots.database.statment.Select;
-import me.dags.plots.database.statment.Where;
+import me.dags.plots.database.statment.*;
 import me.dags.plots.plot.PlotId;
 import me.dags.plots.plot.PlotMeta;
 import me.dags.plots.plot.PlotUser;
@@ -158,6 +155,14 @@ public class Queries {
                 .from(world)
                 .where(matchPlot(plotId).build())
                 .transformer(plotMetas())
+                .build();
+    }
+
+    public static Update approvePlot(String world, PlotId plotId) {
+        return new Update.Builder()
+                .in(world)
+                .set(Keys.META_APPROVED, true)
+                .where(Where.of(Keys.PLOT_ID, "=", plotId.toString()).and(Keys.META_OWNER, "=", true).build())
                 .build();
     }
 
