@@ -110,6 +110,7 @@ public class PlotWorld {
         PlotUser user = plotUsers.get(uuid);
         if (user == null) {
             Plots.log("User for {} should not be null!", uuid);
+            return PlotUser.EMPTY;
         }
         return user;
     }
