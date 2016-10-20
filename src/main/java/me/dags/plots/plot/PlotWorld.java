@@ -109,7 +109,7 @@ public class PlotWorld {
     public PlotUser getUser(UUID uuid) {
         PlotUser user = plotUsers.get(uuid);
         if (user == null) {
-            throw new UnsupportedOperationException("User for " + uuid + " + should not be null!");
+            Plots.log("User for {} should not be null!", uuid);
         }
         return user;
     }
