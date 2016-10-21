@@ -2,7 +2,7 @@
 | Command | Description |
 |---|---|
 |`/plot add <player>`|Add a player to the plot's whitelist to allow them to build|
-|`/plot alias <alias>`|Assign a plot a custom name, used to tp to it|
+|`/plot alias <name>`|Assign a plot a custom name, used to tp to it|
 |`/plot approve`|Mark a plot as 'approved' to allow the owner to claim new plots|
 |`/plot auto`|Automatically claim and teleport to a new plot|
 |`/plot biome <biome>`|Set every position in a plot to a given biome|
