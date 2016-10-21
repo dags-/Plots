@@ -7,7 +7,7 @@
 |`/plot auto`|Automatically claim and teleport to a new plot|
 |`/plot biome <biome>`|Set every position in a plot to a given biome|
 |`/plot claim`|Claim an un-owned plot|
-|`/plot copyto <plotid | alias>`|Copy the current plot to another (user must be whitelisted on the source and own the target)|
+|`/plot copyto <plotid | alias>`|Copy the current plot to another|
 |`/plot info`|Retreive information about the current plot|
 |`/plot list`|List all plots owned by you|
 |`/plot list <player>`|List all plots owned by the given player|
