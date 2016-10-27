@@ -1,3 +1,4 @@
+```
 Database: World {
     Collection: Users {
         UUID {
@@ -20,3 +21,4 @@ Database: World {
         }
     }
 }
+```
