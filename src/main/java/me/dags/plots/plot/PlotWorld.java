@@ -4,6 +4,7 @@ import com.flowpowered.math.vector.Vector3d;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import me.dags.plots.Plots;
 import me.dags.plots.database.PlotActions;
@@ -12,6 +13,7 @@ import me.dags.plots.operation.CopyBiomeOperation;
 import me.dags.plots.operation.CopyBlockOperation;
 import me.dags.plots.operation.FillBiomeOperation;
 import me.dags.plots.operation.ResetOperation;
+import org.bson.Document;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.world.Location;
@@ -33,7 +35,7 @@ public class PlotWorld {
     private final PlotSchema plotSchema;
     private final MongoDatabase database;
     private final LoadingCache<UUID, PlotUser> users;
-    private final PlotListener plotListener = new PlotListener(this);
+    private final PlotWorldListener plotListener = new PlotWorldListener(this);
 
     public PlotWorld(World world, MongoDatabase database, PlotSchema plotSchema) {
         this.world = world.getName();
@@ -49,12 +51,12 @@ public class PlotWorld {
         return world;
     }
 
-    public void register(Plots plots) {
-        Sponge.getEventManager().registerListeners(plots, plotListener);
+    public MongoCollection<Document> userCollection() {
+        return database.getCollection("users");
     }
 
-    public void unregister() {
-        Sponge.getEventManager().unregisterListeners(plotListener);
+    public MongoCollection<Document> plotCollection() {
+        return database.getCollection("plots");
     }
 
     public PlotSchema plotSchema() {
@@ -66,7 +68,23 @@ public class PlotWorld {
     }
 
     public PlotUser loadUser(UUID uuid) {
-        return UserActions.loadPlotUser(database.getCollection(world), plotSchema(), uuid);
+        return UserActions.loadPlotUser(userCollection(), plotSchema(), uuid);
+    }
+
+    public boolean equalsWorld(World world) {
+        return equalsWorld(world.getUniqueId());
+    }
+
+    public boolean equalsWorld(UUID worldId) {
+        return this.worldId.equals(worldId);
+    }
+
+    public void register(Plots plots) {
+        Sponge.getEventManager().registerListeners(plots, plotListener);
+    }
+
+    public void unregister() {
+        Sponge.getEventManager().unregisterListeners(plotListener);
     }
 
     public void refreshUser(UUID uuid) {
@@ -75,8 +93,8 @@ public class PlotWorld {
     }
 
     public void deletePlot(PlotId plotId, Runnable callback) {
-        Plots.API().executor().async(() -> PlotActions.removePlot(database.getCollection("plots"), plotId));
-        Plots.API().executor().async(() -> UserActions.removeAllPlot(database.getCollection("users"), plotId));
+        Plots.API().executor().async(() -> PlotActions.removePlot(plotCollection(), plotId));
+        Plots.API().executor().async(() -> UserActions.removeAllPlot(userCollection(), plotId));
         resetPlot(plotId, callback);
     }
 
@@ -125,14 +143,6 @@ public class PlotWorld {
         Vector3d rotation = new Vector3d(0, -45, 0);
         Location<World> location = new Location<>(player.getWorld(), position);
         player.setLocationAndRotation(location, rotation);
-    }
-
-    public boolean equalsWorld(World world) {
-        return equalsWorld(world.getUniqueId());
-    }
-
-    public boolean equalsWorld(UUID worldId) {
-        return this.worldId.equals(worldId);
     }
 
     private class UserLoaderSaver extends CacheLoader<UUID, PlotUser> {

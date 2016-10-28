@@ -1,4 +1,4 @@
-package me.dags.plots.database;
+package me.dags.plots.util;
 
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.scheduler.SpongeExecutorService;

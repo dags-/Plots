@@ -2,6 +2,8 @@ package me.dags.plots.plot;
 
 import com.flowpowered.math.vector.Vector3i;
 import me.dags.plots.Permissions;
+import me.dags.plots.Plots;
+import me.dags.plots.database.PlotActions;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.EntitySnapshot;
 import org.spongepowered.api.entity.EntityTypes;
@@ -29,11 +31,11 @@ import org.spongepowered.api.util.Tristate;
 /**
  * @author dags <dags@dags.me>
  */
-public class PlotListener {
+public class PlotWorldListener {
 
     private final PlotWorld plotWorld;
 
-    PlotListener(PlotWorld plotWorld) {
+    PlotWorldListener(PlotWorld plotWorld) {
         this.plotWorld = plotWorld;
     }
 
@@ -216,8 +218,9 @@ public class PlotListener {
         PlotId toId = plotWorld.plotSchema().plotId(to);
         if (plotWorld.plotSchema().plotBounds(toId).contains(to)) {
             // player entered the bounds of a new plot
-
-            // TODO PRINT PLOT INFO MESSAGE
+            Plots.executor().async(() -> PlotActions.plotInfo(plotWorld.userCollection(), toId), plotInfo -> {
+                // TODO PRINT PLOT INFO MESSAGE TO ACTION BAR
+            });
         }
     }
 }

@@ -1,6 +1,6 @@
 package me.dags.plots;
 
-import me.dags.plots.database.Executor;
+import me.dags.plots.util.Executor;
 import me.dags.plots.generator.GeneratorProperties;
 import me.dags.plots.generator.PlotGenerator;
 import me.dags.plots.operation.OperationDispatcher;
@@ -23,13 +23,11 @@ public class PlotsApi {
     private final Map<String, PlotWorld> worlds = new HashMap<>();
     private final Map<String, GeneratorProperties> generators = new HashMap<>();
     private final Plots plugin;
-    private final Executor executor;
 
     private OperationDispatcher dispatcher;
 
     PlotsApi(Plots plots) {
         this.plugin = plots;
-        this.executor = new Executor(plots);
     }
 
     public Path configDir() {
@@ -38,10 +36,6 @@ public class PlotsApi {
 
     public Path generatorsDir() {
         return plugin.configDir.resolve("generators");
-    }
-
-    public Executor executor() {
-        return executor;
     }
 
     public void loadWorldGenerators() {

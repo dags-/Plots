@@ -5,6 +5,7 @@ import com.mongodb.MongoClient;
 import me.dags.commandbus.CommandBus;
 import me.dags.plots.generator.PlotGenerator;
 import me.dags.plots.plot.PlotWorld;
+import me.dags.plots.util.Executor;
 import me.dags.plots.util.IO;
 import me.dags.plots.util.Support;
 import org.slf4j.Logger;
@@ -35,6 +36,7 @@ public class Plots {
     private static Plots instance;
 
     private final PlotsApi plots = new PlotsApi(this);
+    private final Executor executor = new Executor(this);
     private final MongoClient client = new MongoClient("127.0.0.1", 4567);
     final Path configDir;
 
@@ -94,6 +96,10 @@ public class Plots {
 
     public static PlotsApi API() {
         return instance.plots;
+    }
+
+    public static Executor executor() {
+        return instance.executor;
     }
 
     public static Config getConfig() {
