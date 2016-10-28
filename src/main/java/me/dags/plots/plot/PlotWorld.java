@@ -93,8 +93,8 @@ public class PlotWorld {
     }
 
     public void deletePlot(PlotId plotId, Runnable callback) {
-        Plots.API().executor().async(() -> PlotActions.removePlot(plotCollection(), plotId));
-        Plots.API().executor().async(() -> UserActions.removeAllPlot(userCollection(), plotId));
+        Plots.executor().async(() -> PlotActions.removePlot(plotCollection(), plotId));
+        Plots.executor().async(() -> UserActions.removeAllPlot(userCollection(), plotId));
         resetPlot(plotId, callback);
     }
 
