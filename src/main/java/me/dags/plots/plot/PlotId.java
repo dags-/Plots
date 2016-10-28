@@ -20,10 +20,10 @@ public class PlotId {
     public PlotId(int x, int z) {
         this.x = x;
         this.z = z;
-        this.hash = 31 * x + z;
+        this.hash = hash(x, z);
     }
 
-    public boolean isPresent() {
+    public boolean present() {
         return this != EMPTY;
     }
 
@@ -50,6 +50,14 @@ public class PlotId {
         return hash;
     }
 
+    static int hash(int x, int z) {
+        return 31 * x + z;
+    }
+
+    static int transform(int coord, int gridWidth) {
+        return (coord < 0 ? coord - gridWidth : coord) / gridWidth;
+    }
+
     public static String string(int x, int z) {
         return x + ":" + z;
     }
@@ -58,7 +66,7 @@ public class PlotId {
         return input.matches("-?\\d+:-?\\d+");
     }
 
-    public static PlotId valueOf(String input) {
+    public static PlotId parse(String input) {
         if (input != null && isValid(input)) {
             String[] split = input.split(":");
             int x = Integer.valueOf(split[0]);

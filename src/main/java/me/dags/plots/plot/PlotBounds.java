@@ -52,7 +52,7 @@ public class PlotBounds {
     }
 
     public boolean contains(int x, int z) {
-        return x > min.getX() && x < max.getX() && z > min.getY() && z < max.getY();
+        return present() && x > min.getX() && x < max.getX() && z > min.getY() && z < max.getY();
     }
 
     @Override

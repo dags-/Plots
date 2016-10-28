@@ -3,21 +3,31 @@ package me.dags.plots.plot;
 import com.flowpowered.math.vector.Vector2i;
 import com.flowpowered.math.vector.Vector3i;
 
-import java.util.List;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author dags <dags@dags.me>
  */
 public class PlotMask {
 
-    private static final PlotMask EMPTY = new PlotMask(null, null);
+    static final PlotMask EMPTY = new PlotMask();
 
-    private final PlotBounds bounds;
-    private final PlotMask and;
+    private final int gridX, gridZ;
+    private final Map<PlotId, PlotBounds> plots;
 
-    private PlotMask(PlotBounds bounds, PlotMask and) {
-        this.bounds = bounds;
-        this.and = and;
+    private PlotMask() {
+        gridX = 1;
+        gridZ = 1;
+        plots = Collections.emptyMap();
+    }
+
+    private PlotMask(PlotSchema plotSchema, Collection<PlotId> plots) {
+        this.gridX = plotSchema.gridXWidth();
+        this.gridZ = plotSchema.gridZWidth();
+        this.plots = plots.stream().collect(Collectors.toMap(id -> id, plotSchema::plotBounds));
     }
 
     public boolean contains(Vector2i position) {
@@ -29,67 +39,42 @@ public class PlotMask {
     }
 
     public boolean contains(int x, int y, int z) {
-        return this.present() && (y > 0 && y < 256) && bounds.contains(x, z) || (and.contains(x, y, z));
+        if (this.present() && y > 0 && y < 256) {
+            @SuppressWarnings("SuspiciousMethodCalls")
+            PlotBounds bounds = plots.getOrDefault(PlotId.hash(PlotId.transform(x, gridX), PlotId.transform(z, gridZ)), PlotBounds.EMPTY);
+            return bounds.contains(x, z);
+        }
+        return false;
     }
 
-    @Override
-    public String toString() {
-        return present() ? "[" + bounds + "] and " + and : "EMPTY";
+    public Map<PlotId, PlotBounds> plots() {
+        return plots;
     }
 
     private boolean present() {
         return this != EMPTY;
     }
 
-    public static final PlotMask ANYWHERE = new PlotMask(PlotBounds.EMPTY, null) {
+    @Override
+    public String toString() {
+        return present() ? plots.toString() : "EMPTY";
+    }
+
+    public static final PlotMask ANYWHERE = new PlotMask() {
         @Override
         public boolean contains(int x, int y, int z) {
             return y > 0 && y < 256;
         }
     };
 
-    public static final PlotMask NOWHERE = new PlotMask(PlotBounds.EMPTY, null) {
+    public static final PlotMask NOWHERE = new PlotMask() {
         @Override
         public boolean contains(int x, int y, int z) {
             return false;
         }
     };
 
-    public static PlotMask of(List<PlotBounds> plots) {
-        Mutable root = Mutable.EMPTY, mutable = root;
-        for (PlotBounds bounds : plots) {
-            mutable = root.present() ? mutable.and(bounds) : (root = new Mutable(bounds));
-        }
-        return root.build();
-    }
-
-    private static class Mutable {
-
-        private static Mutable EMPTY = new Mutable(null);
-
-        private final PlotBounds bounds;
-        private Mutable and;
-
-        private Mutable(PlotBounds bounds) {
-            this.bounds = bounds;
-        }
-
-        private Mutable and(PlotBounds other) {
-            if (present()) {
-                return this.and = new Mutable(other);
-            }
-            return this;
-        }
-
-        private boolean present() {
-            return this != EMPTY;
-        }
-
-        private PlotMask build() {
-            if (and == null) {
-                return new PlotMask(bounds, PlotMask.EMPTY);
-            }
-            return new PlotMask(bounds, and.build());
-        }
+    public static PlotMask of(PlotSchema schema, Collection<PlotId> plots) {
+        return new PlotMask(schema, plots);
     }
 }
