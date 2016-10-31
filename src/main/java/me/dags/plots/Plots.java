@@ -37,17 +37,22 @@ public class Plots {
     private static final Logger logger = LoggerFactory.getLogger(ID);
     private static Plots instance;
 
-    private final PlotsApi plots = new PlotsApi(this);
-    private final Executor executor = new Executor(this);
-    private final MongoClient client = new MongoClient("127.0.0.1", 4567);
+    private final PlotsApi plots;
+    private final Executor executor;
+    private final MongoClient client;
     final Path configDir;
 
     private Config config;
 
     @Inject
     public Plots(@ConfigDir(sharedRoot = false) Path configDir) {
+        TestServer.start();
+
         Plots.instance = this;
         this.configDir = configDir;
+        this.plots = new PlotsApi(this);
+        this.executor  = new Executor(this);
+        this.client = new MongoClient("127.0.0.1", 8080);
     }
 
     @Listener
@@ -74,6 +79,7 @@ public class Plots {
     public void onWorldLoad(LoadWorldEvent event) {
         World world = event.getTargetWorld();
         if (world.getWorldGenerator().getBaseGenerationPopulator() instanceof PlotGenerator) {
+            System.out.println("Found plotworld " + world.getName());
             PlotGenerator plotGenerator = (PlotGenerator) world.getWorldGenerator().getBaseGenerationPopulator();
             WorldDatabase database = new WorldDatabase(client.getDatabase(world.getName().toLowerCase()));
             PlotWorld plotWorld = new PlotWorld(world, database, plotGenerator.plotSchema());

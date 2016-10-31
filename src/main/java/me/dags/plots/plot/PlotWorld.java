@@ -81,8 +81,10 @@ public class PlotWorld {
     }
 
     public void refreshUser(UUID uuid) {
-        users.invalidate(uuid);
-        users.getUnchecked(uuid);
+        if (users.getIfPresent(uuid) != null) {
+            users.invalidate(uuid);
+            users.getUnchecked(uuid);
+        }
     }
 
     public void resetPlot(PlotId plotId, Runnable callback) {

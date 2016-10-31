@@ -27,7 +27,7 @@ import java.util.function.Consumer;
  */
 public class Likes {
 
-    @Command(aliases = "likes", parent = "plots", desc = "List the likers of the plot", perm = @Permission(id = Permissions.PLOT_LIKES, description = ""))
+    @Command(aliases = "likes", parent = "plot", desc = "List the likers of a plot", perm = @Permission(id = Permissions.PLOT_LIKES, description = ""))
     public void likes(@Caller Player player) {
         Pair<PlotWorld, PlotId> plot = Cmd.getContainingPlot(player);
         if (plot.present()) {
@@ -40,7 +40,7 @@ public class Likes {
     static Consumer<Optional<List<UUID>>> likes(Player player, PlotId plotId) {
         return optional -> {
             if (optional.isPresent() && !optional.get().isEmpty()) {
-                Format.MessageBuilder builder = Cmd.FMT.info("Likes: ");
+                Format.MessageBuilder builder = Cmd.FMT.info("Plot ").stress(plotId).info("'s likes:");
                 optional.get().stream()
                         .map(Sponge.getServiceManager().provideUnchecked(UserStorageService.class)::get)
                         .forEach(user -> user

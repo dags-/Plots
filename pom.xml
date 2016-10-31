@@ -41,6 +41,14 @@
                                     <pattern>com.mongodb</pattern>
                                     <shadedPattern>me.dags.plots.libs.mongodb</shadedPattern>
                                 </relocation>
+                                <relocation>
+                                    <pattern>de.bwaldvogel</pattern>
+                                    <shadedPattern>me.dags.plots.libs.bwaldvogel</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>de.schlichtherle</pattern>
+                                    <shadedPattern>me.dags.plots.libs.schlichtherle</shadedPattern>
+                                </relocation>
                             </relocations>
                         </configuration>
                     </execution>
@@ -73,6 +81,11 @@
     </repositories>
 
     <dependencies>
+        <dependency>
+            <groupId>de.bwaldvogel</groupId>
+            <artifactId>mongo-java-server</artifactId>
+            <version>1.6.0</version>
+        </dependency>
         <dependency>
             <groupId>org.spongepowered</groupId>
             <artifactId>spongeapi</artifactId>

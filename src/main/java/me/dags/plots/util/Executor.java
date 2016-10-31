@@ -12,40 +12,54 @@ import java.util.function.Supplier;
  */
 public class Executor {
 
-    private final SpongeExecutorService syncExecutor;
-    private final SpongeExecutorService asyncExecutor;
+    private final Object plugin;
+    private SpongeExecutorService syncExecutor;
+    private SpongeExecutorService asyncExecutor;
 
     public Executor(Object plugin) {
-        syncExecutor = Sponge.getScheduler().createSyncExecutor(plugin);
-        asyncExecutor = Sponge.getScheduler().createAsyncExecutor(plugin);
+        this.plugin = plugin;
+    }
+
+    private SpongeExecutorService sync() {
+        if (syncExecutor == null) {
+            syncExecutor = Sponge.getScheduler().createSyncExecutor(plugin);
+        }
+        return syncExecutor;
+    }
+
+    private SpongeExecutorService async() {
+        if (asyncExecutor == null) {
+            asyncExecutor = Sponge.getScheduler().createAsyncExecutor(plugin);
+        }
+        return asyncExecutor;
     }
 
     public void close() {
         try {
-            asyncExecutor.shutdown();
-            asyncExecutor.awaitTermination(2, TimeUnit.SECONDS);
+            async().shutdown();
+            async().awaitTermination(2, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
 
     public void sync(Runnable runnable) {
-        syncExecutor.execute(runnable);
+        sync().execute(runnable);
     }
 
     public void async(Runnable runnable) {
-        asyncExecutor.execute(runnable);
+        async().execute(runnable);
     }
 
     public void async(Runnable runnable, Runnable callback) {
-        asyncExecutor.execute(() -> {
+        async(() -> {
             runnable.run();
             sync(callback);
         });
     }
 
     public <T> void async(Supplier<T> asyncTask, Consumer<T> syncCallback) {
-        asyncExecutor.execute(() -> {
+        async(() -> {
             T t = asyncTask.get();
             sync(() -> syncCallback.accept(t));
         });

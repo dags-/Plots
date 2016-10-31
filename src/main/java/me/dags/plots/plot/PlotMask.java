@@ -40,9 +40,9 @@ public class PlotMask {
 
     public boolean contains(int x, int y, int z) {
         if (this.present() && y > 0 && y < 256) {
-            @SuppressWarnings("SuspiciousMethodCalls")
-            PlotBounds bounds = plots.getOrDefault(PlotId.hash(PlotId.transform(x, gridX), PlotId.transform(z, gridZ)), PlotBounds.EMPTY);
-            return bounds.contains(x, z);
+            int xx = PlotId.transform(x, gridX);
+            int zz = PlotId.transform(z, gridZ);
+            return plots.getOrDefault(PlotId.of(xx, zz), PlotBounds.EMPTY).contains(x, z);
         }
         return false;
     }

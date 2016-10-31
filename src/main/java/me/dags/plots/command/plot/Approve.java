@@ -59,6 +59,7 @@ public class Approve {
             if (user.isPresent()) {
                 Cmd.FMT.info("Approved ").stress(user.get().getName()).tell(player);
                 user.get().getPlayer().ifPresent(Cmd.FMT.info("Your plot ").stress(plotId).info(" has been approved")::tell);
+                plotWorld.refreshUser(uuid);
             }
         };
 

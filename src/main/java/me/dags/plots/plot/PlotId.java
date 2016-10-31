@@ -66,6 +66,10 @@ public class PlotId {
         return input.matches("-?\\d+:-?\\d+");
     }
 
+    public static PlotId of(int x, int z) {
+        return new PlotId(x, z);
+    }
+
     public static PlotId parse(String input) {
         if (input != null && isValid(input)) {
             String[] split = input.split(":");

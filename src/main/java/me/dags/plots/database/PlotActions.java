@@ -84,14 +84,14 @@ public class PlotActions {
 
     // PlotID: x:z (alias) | Owner: Name | Likes: #
     public static Text plotInfo(WorldDatabase database, PlotId plotId, Format format) {
-        Format.MessageBuilder builder = format.message().subdued("Plot: ").stress(plotId);
+        Format.MessageBuilder builder = format.message().info("Plot: ").stress(plotId);
         Document first = database.plotCollection().find(Filters.eq(Keys.PLOT_ID, plotId.toString())).first();
 
         if (first != null) {
             if (first.containsKey(Keys.PLOT_ALIAS)) {
                 String alias = first.getString(Keys.PLOT_ALIAS);
                 if (alias != null && !alias.isEmpty()) {
-                    builder.subdued(" (").stress(alias).subdued(")");
+                    builder.info(" (").stress(alias).subdued(")");
                 }
             }
             if (first.containsKey(Keys.PLOT_OWNER)) {
@@ -100,11 +100,11 @@ public class PlotActions {
                 Sponge.getServiceManager()
                         .provideUnchecked(UserStorageService.class)
                         .get(uuid)
-                        .ifPresent(user -> builder.subdued("| Owner: ").stress(user.getName()));
+                        .ifPresent(user -> builder.info(", Owner: ").stress(user.getName()));
             }
             if (first.containsKey(Keys.PLOT_LIKES)) {
                 List<?> list = first.get(Keys.PLOT_LIKES, List.class);
-                builder.subdued("| Likes: ").stress(list.size());
+                builder.info(", Likes: ").stress(list.size());
             }
         }
 
