@@ -42,6 +42,14 @@ public class PlotUser {
         return approved;
     }
 
+    public boolean hasPlot() {
+        return countPlots() > 0;
+    }
+
+    public int countPlots() {
+        return plotMask().plots().size();
+    }
+
     public Builder edit() {
         Builder builder = new Builder();
         builder.uuid = uuid;

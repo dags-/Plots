@@ -4,16 +4,14 @@ import com.flowpowered.math.vector.Vector3d;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
 import me.dags.plots.Plots;
 import me.dags.plots.database.PlotActions;
 import me.dags.plots.database.UserActions;
+import me.dags.plots.database.WorldDatabase;
 import me.dags.plots.operation.CopyBiomeOperation;
 import me.dags.plots.operation.CopyBlockOperation;
 import me.dags.plots.operation.FillBiomeOperation;
 import me.dags.plots.operation.ResetOperation;
-import org.bson.Document;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.world.Location;
@@ -33,11 +31,11 @@ public class PlotWorld {
     private final String world;
     private final UUID worldId;
     private final PlotSchema plotSchema;
-    private final MongoDatabase database;
+    private final WorldDatabase database;
     private final LoadingCache<UUID, PlotUser> users;
     private final PlotWorldListener plotListener = new PlotWorldListener(this);
 
-    public PlotWorld(World world, MongoDatabase database, PlotSchema plotSchema) {
+    public PlotWorld(World world, WorldDatabase database, PlotSchema plotSchema) {
         this.world = world.getName();
         this.worldId = world.getUniqueId();
         this.database = database;
@@ -51,14 +49,6 @@ public class PlotWorld {
         return world;
     }
 
-    public MongoCollection<Document> userCollection() {
-        return database.getCollection("users");
-    }
-
-    public MongoCollection<Document> plotCollection() {
-        return database.getCollection("plots");
-    }
-
     public PlotSchema plotSchema() {
         return plotSchema;
     }
@@ -68,7 +58,11 @@ public class PlotWorld {
     }
 
     public PlotUser loadUser(UUID uuid) {
-        return UserActions.loadPlotUser(userCollection(), plotSchema(), uuid);
+        return UserActions.loadPlotUser(database, plotSchema(), uuid);
+    }
+
+    public WorldDatabase database() {
+        return database;
     }
 
     public boolean equalsWorld(World world) {
@@ -90,12 +84,6 @@ public class PlotWorld {
     public void refreshUser(UUID uuid) {
         users.invalidate(uuid);
         users.getUnchecked(uuid);
-    }
-
-    public void deletePlot(PlotId plotId, Runnable callback) {
-        Plots.executor().async(() -> PlotActions.removePlot(plotCollection(), plotId));
-        Plots.executor().async(() -> UserActions.removeAllPlot(userCollection(), plotId));
-        resetPlot(plotId, callback);
     }
 
     public void resetPlot(PlotId plotId, Runnable callback) {

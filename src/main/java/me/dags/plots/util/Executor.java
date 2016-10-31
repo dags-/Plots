@@ -27,6 +27,13 @@ public class Executor {
         asyncExecutor.execute(runnable);
     }
 
+    public void async(Runnable runnable, Runnable callback) {
+        asyncExecutor.execute(() -> {
+            runnable.run();
+            sync(callback);
+        });
+    }
+
     public <T> void async(Supplier<T> asyncTask, Consumer<T> syncCallback) {
         asyncExecutor.execute(() -> {
             T t = asyncTask.get();

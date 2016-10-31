@@ -19,8 +19,8 @@ public class UserActions {
 
     private static final UpdateOptions UPSERT = new UpdateOptions().upsert(true);
 
-    public static PlotUser loadPlotUser(MongoCollection<Document> collection, PlotSchema plotSchema, UUID userId) {
-        Document first = collection.find(Filters.eq(Keys.USER_ID, userId.toString())).first();
+    public static PlotUser loadPlotUser(WorldDatabase database, PlotSchema plotSchema, UUID userId) {
+        Document first = database.userCollection().find(Filters.eq(Keys.USER_ID, userId.toString())).first();
         PlotUser.Builder builder = PlotUser.builder();
 
         builder.uuid = userId;
@@ -38,7 +38,7 @@ public class UserActions {
         return builder.build();
     }
 
-    public static void savePlotUser(MongoCollection<Document> collection, PlotUser plotUser) {
+    public static void savePlotUser(WorldDatabase database, PlotUser plotUser) {
         String id = plotUser.uuid().toString();
 
         Document plots = new Document();
@@ -49,27 +49,27 @@ public class UserActions {
         user.put(Keys.USER_APPROVED, plotUser.approved());
         user.put(Keys.USER_PLOTS, plots);
 
-        collection.replaceOne(Filters.eq(Keys.USER_ID, id), user, UPSERT);
+        database.userCollection().replaceOne(Filters.eq(Keys.USER_ID, id), user, UPSERT);
     }
 
-    public static void setApproved(MongoCollection<Document> collection, UUID uuid, boolean approved) {
+    public static void setApproved(WorldDatabase database, UUID uuid, boolean approved) {
         Document update = new Document("$set", new Document(Keys.USER_APPROVED, approved));
-        collection.updateOne(Filters.eq(Keys.USER_ID, uuid.toString()), update, UPSERT);
+        database.userCollection().updateOne(Filters.eq(Keys.USER_ID, uuid.toString()), update, UPSERT);
     }
 
-    public static void addPlot(MongoCollection<Document> collection, UUID uuid, PlotId plotId) {
+    public static void addPlot(WorldDatabase database, UUID uuid, PlotId plotId) {
         Document update = new Document("$addToSet", new Document(Keys.USER_PLOTS, plotId.toString()));
-        collection.updateOne(Filters.eq(Keys.USER_ID, uuid.toString()), update, UPSERT);
+        database.userCollection().updateOne(Filters.eq(Keys.USER_ID, uuid.toString()), update, UPSERT);
     }
 
-    public static void removePlot(MongoCollection<Document> collection, UUID uuid, PlotId plotId) {
+    public static void removePlot(WorldDatabase database, UUID uuid, PlotId plotId) {
         Document update = new Document("$pull", new Document(Keys.USER_PLOTS, plotId.toString()));
-        collection.updateOne(Filters.eq(Keys.USER_ID, uuid.toString()), update, UPSERT);
+        database.userCollection().updateOne(Filters.eq(Keys.USER_ID, uuid.toString()), update, UPSERT);
     }
 
-    public static void removeAllPlot(MongoCollection<Document> collection, PlotId plotId) {
+    public static void removeAllPlot(WorldDatabase database, PlotId plotId) {
         String id = plotId.toString();
         Document update = new Document("$pull", new Document(Keys.USER_PLOTS, id));
-        collection.updateMany(Filters.in(Keys.USER_PLOTS, id), update);
+        database.userCollection().updateMany(Filters.in(Keys.USER_PLOTS, id), update);
     }
 }

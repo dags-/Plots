@@ -1,6 +1,5 @@
 package me.dags.plots;
 
-import me.dags.plots.util.Executor;
 import me.dags.plots.generator.GeneratorProperties;
 import me.dags.plots.generator.PlotGenerator;
 import me.dags.plots.operation.OperationDispatcher;
@@ -54,7 +53,7 @@ public class PlotsApi {
 
     public OperationDispatcher dispatcher() {
         if (dispatcher == null) {
-            int bpt = Plots.getConfig().blocksPerTick();
+            int bpt = Plots.config().blocksPerTick();
 
             Plots.log("Initializing OperationDispatcher. BPT={}", bpt);
             dispatcher = new OperationDispatcher(Plots.ID, bpt);

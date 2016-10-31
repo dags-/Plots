@@ -3,6 +3,11 @@ package me.dags.plots;
 import com.google.inject.Inject;
 import com.mongodb.MongoClient;
 import me.dags.commandbus.CommandBus;
+import me.dags.plots.command.plot.Approve;
+import me.dags.plots.command.plot.Auto;
+import me.dags.plots.command.plot.Claim;
+import me.dags.plots.command.plot.Unclaim;
+import me.dags.plots.database.WorldDatabase;
 import me.dags.plots.generator.PlotGenerator;
 import me.dags.plots.plot.PlotWorld;
 import me.dags.plots.util.Executor;
@@ -56,9 +61,7 @@ public class Plots {
         API().loadWorldGenerators();
 
         CommandBus.builder().logger(logger).build()
-        //        .register(GenCommands.class)
-        //        .register(PlotCommands.class)
-        //        .register(WorldCommands.class)
+                .register(Approve.class, Auto.class, Claim.class, Unclaim.class)
                 .submit(this);
 
         Sponge.getScheduler().createTaskBuilder()
@@ -75,7 +78,8 @@ public class Plots {
         World world = event.getTargetWorld();
         if (world.getWorldGenerator().getBaseGenerationPopulator() instanceof PlotGenerator) {
             PlotGenerator plotGenerator = (PlotGenerator) world.getWorldGenerator().getBaseGenerationPopulator();
-            PlotWorld plotWorld = new PlotWorld(world, client.getDatabase(world.getName()), plotGenerator.plotSchema());
+            WorldDatabase database = new WorldDatabase(client.getDatabase(world.getName().toLowerCase()));
+            PlotWorld plotWorld = new PlotWorld(world, database, plotGenerator.plotSchema());
             Plots.API().registerPlotWorld(plotWorld);
         }
     }
@@ -102,7 +106,7 @@ public class Plots {
         return instance.executor;
     }
 
-    public static Config getConfig() {
+    public static Config config() {
         return instance.config;
     }
 

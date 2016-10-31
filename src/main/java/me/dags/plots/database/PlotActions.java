@@ -10,6 +10,7 @@ import org.bson.Document;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -19,35 +20,35 @@ public class PlotActions {
 
     private static final UpdateOptions UPSERT = new UpdateOptions().upsert(true);
 
-    public static void setPlotOwner(MongoCollection<Document> collection, PlotId plotId, UUID owner) {
+    public static void setPlotOwner(WorldDatabase database, PlotId plotId, UUID owner) {
         Document update = new Document("$set", new Document(Keys.PLOT_OWNER, owner.toString()));
-        collection.updateOne(Filters.eq(Keys.PLOT_ID, plotId.toString()), update, UPSERT);
+        database.userCollection().updateOne(Filters.eq(Keys.PLOT_ID, plotId.toString()), update, UPSERT);
     }
 
-    public static void setPlotAlias(MongoCollection<Document> collection, PlotId plotId, String alias) {
+    public static void setPlotAlias(WorldDatabase database, PlotId plotId, String alias) {
         Document update = new Document("$set", new Document(Keys.PLOT_ALIAS, alias.toLowerCase()));
-        collection.updateOne(Filters.eq(Keys.PLOT_ID, plotId.toString()), update, UPSERT);
+        database.userCollection().updateOne(Filters.eq(Keys.PLOT_ID, plotId.toString()), update, UPSERT);
     }
 
-    public static void addComment(MongoCollection<Document> collection, PlotId plotId, String comment) {
+    public static void addComment(WorldDatabase database, PlotId plotId, String comment) {
         Document update = new Document("$push", new Document(Keys.PLOT_COMMENTS, comment));
-        collection.updateOne(Filters.eq(Keys.PLOT_ID, plotId.toString()), update, UPSERT);
+        database.userCollection().updateOne(Filters.eq(Keys.PLOT_ID, plotId.toString()), update, UPSERT);
     }
 
-    public static void removePlot(MongoCollection<Document> collection, PlotId plotId) {
-        collection.findOneAndDelete(Filters.eq(Keys.PLOT_ID, plotId.toString()));
+    public static void removePlot(WorldDatabase database, PlotId plotId) {
+        database.userCollection().findOneAndDelete(Filters.eq(Keys.PLOT_ID, plotId.toString()));
     }
 
-    public static PlotId plotFromAlias(MongoCollection<Document> collection, String alias) {
-        Document first = collection.find(Filters.eq(Keys.PLOT_ALIAS, alias.toLowerCase())).first();
+    public static PlotId plotFromAlias(WorldDatabase database, String alias) {
+        Document first = database.userCollection().find(Filters.eq(Keys.PLOT_ALIAS, alias.toLowerCase())).first();
         if (first != null) {
             return PlotId.parse(first.getString(Keys.PLOT_ID));
         }
         return PlotId.EMPTY;
     }
 
-    public static Optional<UUID> findPlotOwner(MongoCollection<Document> collection, PlotId plotId) {
-        Document first = collection.find(Filters.eq(Keys.PLOT_ID, plotId.toString())).first();
+    public static Optional<UUID> findPlotOwner(WorldDatabase database, PlotId plotId) {
+        Document first = database.userCollection().find(Filters.eq(Keys.PLOT_ID, plotId.toString())).first();
         if (first != null && first.containsKey(Keys.PLOT_OWNER)) {
             UUID uuid = UUID.fromString(first.getString(Keys.PLOT_OWNER));
             return Optional.of(uuid);
@@ -55,16 +56,16 @@ public class PlotActions {
         return Optional.empty();
     }
 
-    public static Optional<String> findPlotAlias(MongoCollection<Document> collection, PlotId plotId) {
-        Document first = collection.find(Filters.eq(Keys.PLOT_ID, plotId.toString())).first();
+    public static Optional<String> findPlotAlias(WorldDatabase database, PlotId plotId) {
+        Document first = database.userCollection().find(Filters.eq(Keys.PLOT_ID, plotId.toString())).first();
         if (first != null && first.containsKey(Keys.PLOT_ALIAS)) {
             return Optional.ofNullable(first.getString(Keys.PLOT_ALIAS));
         }
         return Optional.empty();
     }
 
-    public static Optional<List<String>> findPlotComments(MongoCollection<Document> collection, PlotId plotId) {
-        Document first = collection.find(Filters.eq(Keys.PLOT_ID, plotId.toString())).first();
+    public static Optional<List<String>> findPlotComments(WorldDatabase database, PlotId plotId) {
+        Document first = database.userCollection().find(Filters.eq(Keys.PLOT_ID, plotId.toString())).first();
         if (first != null && first.containsKey(Keys.PLOT_COMMENTS)) {
             List<?> list = first.get(Keys.PLOT_COMMENTS, List.class);
             return Optional.of(list.stream().map(Object::toString).collect(Collectors.toList()));
@@ -72,11 +73,11 @@ public class PlotActions {
         return Optional.empty();
     }
 
-    public static PlotInfo plotInfo(MongoCollection<Document> collection, PlotId plotId) {
+    public static PlotInfo plotInfo(WorldDatabase database, PlotId plotId) {
         PlotInfo.Builder builder = PlotInfo.builder();
         builder.plotId = plotId;
 
-        Document first = collection.find(Filters.eq(Keys.PLOT_ID, plotId.toString())).first();
+        Document first = database.userCollection().find(Filters.eq(Keys.PLOT_ID, plotId.toString())).first();
         if (first != null) {
             if (first.containsKey(Keys.PLOT_OWNER)) {
                 builder.ownerId = UUID.fromString(first.getString(Keys.PLOT_OWNER));
@@ -89,7 +90,8 @@ public class PlotActions {
         return builder.build();
     }
 
-    public static PlotId findNextFreePlot(MongoCollection collection, PlotId closest) {
+    public static PlotId findNextFreePlot(WorldDatabase database, PlotId closest) {
+        MongoCollection collection = database.userCollection();
         int x = closest.plotX(), z = closest.plotZ(), xMax = x, xMin = x, zMax = z, zMin = z;
         int timeout = 10000;
         for (int d = 1; d < timeout; d++) {
