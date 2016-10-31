@@ -3,10 +3,7 @@ package me.dags.plots;
 import com.google.inject.Inject;
 import com.mongodb.MongoClient;
 import me.dags.commandbus.CommandBus;
-import me.dags.plots.command.plot.Approve;
-import me.dags.plots.command.plot.Auto;
-import me.dags.plots.command.plot.Claim;
-import me.dags.plots.command.plot.Unclaim;
+import me.dags.plots.command.plot.*;
 import me.dags.plots.database.WorldDatabase;
 import me.dags.plots.generator.PlotGenerator;
 import me.dags.plots.plot.PlotWorld;
@@ -61,7 +58,7 @@ public class Plots {
         API().loadWorldGenerators();
 
         CommandBus.builder().logger(logger).build()
-                .register(Approve.class, Auto.class, Claim.class, Unclaim.class)
+                .register(Approve.class, Auto.class, Claim.class, Like.class, Likes.class, Unclaim.class, Unlike.class)
                 .submit(this);
 
         Sponge.getScheduler().createTaskBuilder()
@@ -95,6 +92,7 @@ public class Plots {
     @Listener (order = Order.EARLY)
     public void onShutDown(GameStoppingServerEvent event) {
         client.close();
+        executor().close();
         API().dispatcher().finishAll();
     }
 

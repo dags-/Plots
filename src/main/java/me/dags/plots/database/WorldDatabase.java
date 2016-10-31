@@ -15,6 +15,10 @@ public class WorldDatabase {
         this.database = database;
     }
 
+    public String getWorld() {
+        return database.getName();
+    }
+
     public MongoCollection<Document> userCollection() {
         return database.getCollection("users");
     }

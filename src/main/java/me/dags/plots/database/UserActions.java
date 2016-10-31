@@ -1,7 +1,6 @@
 package me.dags.plots.database;
 
 import com.mongodb.BasicDBObject;
-import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.UpdateOptions;
 import me.dags.plots.plot.PlotId;

@@ -3,6 +3,7 @@ package me.dags.plots.util;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.scheduler.SpongeExecutorService;
 
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -17,6 +18,15 @@ public class Executor {
     public Executor(Object plugin) {
         syncExecutor = Sponge.getScheduler().createSyncExecutor(plugin);
         asyncExecutor = Sponge.getScheduler().createAsyncExecutor(plugin);
+    }
+
+    public void close() {
+        try {
+            asyncExecutor.shutdown();
+            asyncExecutor.awaitTermination(2, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     public void sync(Runnable runnable) {

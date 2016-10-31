@@ -3,6 +3,7 @@ package me.dags.plots.plot;
 import com.flowpowered.math.vector.Vector3i;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
+import me.dags.plots.command.Cmd;
 import me.dags.plots.database.PlotActions;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.EntitySnapshot;
@@ -26,6 +27,7 @@ import org.spongepowered.api.event.filter.cause.First;
 import org.spongepowered.api.event.item.inventory.DropItemEvent;
 import org.spongepowered.api.event.item.inventory.UseItemStackEvent;
 import org.spongepowered.api.event.world.ExplosionEvent;
+import org.spongepowered.api.text.chat.ChatTypes;
 import org.spongepowered.api.util.Tristate;
 
 /**
@@ -218,8 +220,8 @@ public class PlotWorldListener {
         PlotId toId = plotWorld.plotSchema().plotId(to);
         if (plotWorld.plotSchema().plotBounds(toId).contains(to)) {
             // player entered the bounds of a new plot
-            Plots.executor().async(() -> PlotActions.plotInfo(plotWorld.userCollection(), toId), plotInfo -> {
-                // TODO PRINT PLOT INFO MESSAGE TO ACTION BAR
+            Plots.executor().async(() -> PlotActions.plotInfo(plotWorld.database(), toId, Cmd.FMT), plotInfo -> {
+                player.sendMessage(ChatTypes.ACTION_BAR, plotInfo);
             });
         }
     }

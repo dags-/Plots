@@ -5,7 +5,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import me.dags.plots.Plots;
-import me.dags.plots.database.PlotActions;
 import me.dags.plots.database.UserActions;
 import me.dags.plots.database.WorldDatabase;
 import me.dags.plots.operation.CopyBiomeOperation;

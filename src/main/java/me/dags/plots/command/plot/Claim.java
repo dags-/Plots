@@ -6,12 +6,12 @@ import me.dags.commandbus.annotation.Permission;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
 import me.dags.plots.command.Cmd;
-import me.dags.plots.util.Pair;
 import me.dags.plots.database.PlotActions;
 import me.dags.plots.database.UserActions;
 import me.dags.plots.plot.PlotId;
 import me.dags.plots.plot.PlotUser;
 import me.dags.plots.plot.PlotWorld;
+import me.dags.plots.util.Pair;
 import org.spongepowered.api.entity.living.player.Player;
 
 import java.util.function.Consumer;

@@ -3,14 +3,17 @@ package me.dags.plots.database;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.UpdateOptions;
+import me.dags.commandbus.utils.Format;
 import me.dags.plots.plot.PlotId;
-import me.dags.plots.plot.PlotInfo;
 import org.bson.Document;
+import org.spongepowered.api.Sponge;
+import org.spongepowered.api.service.user.UserStorageService;
+import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.action.TextActions;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -18,29 +21,35 @@ import java.util.stream.Collectors;
  */
 public class PlotActions {
 
+    private static final UpdateOptions IGNORE = new UpdateOptions().upsert(false);
     private static final UpdateOptions UPSERT = new UpdateOptions().upsert(true);
 
     public static void setPlotOwner(WorldDatabase database, PlotId plotId, UUID owner) {
         Document update = new Document("$set", new Document(Keys.PLOT_OWNER, owner.toString()));
-        database.userCollection().updateOne(Filters.eq(Keys.PLOT_ID, plotId.toString()), update, UPSERT);
+        database.plotCollection().updateOne(Filters.eq(Keys.PLOT_ID, plotId.toString()), update, UPSERT);
     }
 
     public static void setPlotAlias(WorldDatabase database, PlotId plotId, String alias) {
         Document update = new Document("$set", new Document(Keys.PLOT_ALIAS, alias.toLowerCase()));
-        database.userCollection().updateOne(Filters.eq(Keys.PLOT_ID, plotId.toString()), update, UPSERT);
+        database.plotCollection().updateOne(Filters.eq(Keys.PLOT_ID, plotId.toString()), update, UPSERT);
     }
 
-    public static void addComment(WorldDatabase database, PlotId plotId, String comment) {
-        Document update = new Document("$push", new Document(Keys.PLOT_COMMENTS, comment));
-        database.userCollection().updateOne(Filters.eq(Keys.PLOT_ID, plotId.toString()), update, UPSERT);
+    public static void addLike(WorldDatabase database, PlotId plotId, UUID liker) {
+        Document update = new Document("$addToSet", new Document(Keys.PLOT_LIKES, liker.toString()));
+        database.plotCollection().updateOne(Filters.eq(Keys.PLOT_ID, plotId.toString()), update, IGNORE);
+    }
+
+    public static void removeLike(WorldDatabase database, PlotId plotId, UUID liker) {
+        Document update = new Document("$pull", new Document(Keys.PLOT_LIKES, liker.toString()));
+        database.plotCollection().updateOne(Filters.eq(Keys.PLOT_ID, plotId.toString()), update, IGNORE);
     }
 
     public static void removePlot(WorldDatabase database, PlotId plotId) {
-        database.userCollection().findOneAndDelete(Filters.eq(Keys.PLOT_ID, plotId.toString()));
+        database.plotCollection().findOneAndDelete(Filters.eq(Keys.PLOT_ID, plotId.toString()));
     }
 
     public static PlotId plotFromAlias(WorldDatabase database, String alias) {
-        Document first = database.userCollection().find(Filters.eq(Keys.PLOT_ALIAS, alias.toLowerCase())).first();
+        Document first = database.plotCollection().find(Filters.eq(Keys.PLOT_ALIAS, alias.toLowerCase())).first();
         if (first != null) {
             return PlotId.parse(first.getString(Keys.PLOT_ID));
         }
@@ -48,7 +57,7 @@ public class PlotActions {
     }
 
     public static Optional<UUID> findPlotOwner(WorldDatabase database, PlotId plotId) {
-        Document first = database.userCollection().find(Filters.eq(Keys.PLOT_ID, plotId.toString())).first();
+        Document first = database.plotCollection().find(Filters.eq(Keys.PLOT_ID, plotId.toString())).first();
         if (first != null && first.containsKey(Keys.PLOT_OWNER)) {
             UUID uuid = UUID.fromString(first.getString(Keys.PLOT_OWNER));
             return Optional.of(uuid);
@@ -57,41 +66,54 @@ public class PlotActions {
     }
 
     public static Optional<String> findPlotAlias(WorldDatabase database, PlotId plotId) {
-        Document first = database.userCollection().find(Filters.eq(Keys.PLOT_ID, plotId.toString())).first();
+        Document first = database.plotCollection().find(Filters.eq(Keys.PLOT_ID, plotId.toString())).first();
         if (first != null && first.containsKey(Keys.PLOT_ALIAS)) {
             return Optional.ofNullable(first.getString(Keys.PLOT_ALIAS));
         }
         return Optional.empty();
     }
 
-    public static Optional<List<String>> findPlotComments(WorldDatabase database, PlotId plotId) {
-        Document first = database.userCollection().find(Filters.eq(Keys.PLOT_ID, plotId.toString())).first();
-        if (first != null && first.containsKey(Keys.PLOT_COMMENTS)) {
-            List<?> list = first.get(Keys.PLOT_COMMENTS, List.class);
-            return Optional.of(list.stream().map(Object::toString).collect(Collectors.toList()));
+    public static Optional<List<UUID>> findPlotLikes(WorldDatabase database, PlotId plotId) {
+        Document first = database.plotCollection().find(Filters.eq(Keys.PLOT_ID, plotId.toString())).first();
+        if (first != null && first.containsKey(Keys.PLOT_LIKES)) {
+            List<?> list = first.get(Keys.PLOT_LIKES, List.class);
+            return Optional.of(list.stream().map(Object::toString).map(UUID::fromString).collect(Collectors.toList()));
         }
         return Optional.empty();
     }
 
-    public static PlotInfo plotInfo(WorldDatabase database, PlotId plotId) {
-        PlotInfo.Builder builder = PlotInfo.builder();
-        builder.plotId = plotId;
+    // PlotID: x:z (alias) | Owner: Name | Likes: #
+    public static Text plotInfo(WorldDatabase database, PlotId plotId, Format format) {
+        Format.MessageBuilder builder = format.message().subdued("Plot: ").stress(plotId);
+        Document first = database.plotCollection().find(Filters.eq(Keys.PLOT_ID, plotId.toString())).first();
 
-        Document first = database.userCollection().find(Filters.eq(Keys.PLOT_ID, plotId.toString())).first();
         if (first != null) {
-            if (first.containsKey(Keys.PLOT_OWNER)) {
-                builder.ownerId = UUID.fromString(first.getString(Keys.PLOT_OWNER));
-            }
             if (first.containsKey(Keys.PLOT_ALIAS)) {
-                builder.alias = first.getString(Keys.PLOT_ALIAS);
+                String alias = first.getString(Keys.PLOT_ALIAS);
+                if (alias != null && !alias.isEmpty()) {
+                    builder.subdued(" (").stress(alias).subdued(")");
+                }
+            }
+            if (first.containsKey(Keys.PLOT_OWNER)) {
+                String id = first.getString(Keys.PLOT_OWNER);
+                UUID uuid = UUID.fromString(id);
+                Sponge.getServiceManager()
+                        .provideUnchecked(UserStorageService.class)
+                        .get(uuid)
+                        .ifPresent(user -> builder.subdued("| Owner: ").stress(user.getName()));
+            }
+            if (first.containsKey(Keys.PLOT_LIKES)) {
+                List<?> list = first.get(Keys.PLOT_LIKES, List.class);
+                builder.subdued("| Likes: ").stress(list.size());
             }
         }
 
-        return builder.build();
+        String command = "/plot tp " + database.getWorld() + " " + plotId.toString();
+        return builder.build().toBuilder().onClick(TextActions.runCommand(command)).build();
     }
 
     public static PlotId findNextFreePlot(WorldDatabase database, PlotId closest) {
-        MongoCollection collection = database.userCollection();
+        MongoCollection collection = database.plotCollection();
         int x = closest.plotX(), z = closest.plotZ(), xMax = x, xMin = x, zMax = z, zMin = z;
         int timeout = 10000;
         for (int d = 1; d < timeout; d++) {
