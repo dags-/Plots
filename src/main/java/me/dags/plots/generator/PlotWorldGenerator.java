@@ -56,7 +56,7 @@ public class PlotWorldGenerator implements PlotGenerator {
 
     @Override
     public String getId() {
-        return Plots.toGeneratorId(getName());
+        return toGeneratorId(getName());
     }
 
     @Override
@@ -97,5 +97,9 @@ public class PlotWorldGenerator implements PlotGenerator {
 
     private static void clearBiomePopulators(WorldGenerator generator) {
         Sponge.getRegistry().getAllOf(BiomeType.class).stream().map(generator::getBiomeSettings).forEach(settings -> settings.getPopulators().clear());
+    }
+
+    public static String toGeneratorId(String name) {
+        return String.format("%s:%s", Plots.ID, name.toLowerCase());
     }
 }

@@ -26,7 +26,7 @@ import java.util.function.Supplier;
  */
 public class Unclaim {
 
-    @Command(aliases = "unclaim", parent = "plot", desc = "Unclaim a plot and reset it", perm = @Permission(id = Permissions.PLOT_UNCLAIM, description = ""))
+    @Command(aliases = "unclaim", parent = "plot", desc = "Unclaim a plot and reset it", perm = @Permission(Permissions.PLOT_UNCLAIM))
     public void unclaim(@Caller Player player) {
         Pair<PlotWorld, PlotId> plot = Cmd.getContainingPlot(player);
         if (plot.present()) {
@@ -38,7 +38,7 @@ public class Unclaim {
         }
     }
 
-    @Command(aliases = "unclaim", parent = "plot", desc = "Un-claim a plot", perm = @Permission(id = Permissions.PLOT_UNCLAIM, description = ""))
+    @Command(aliases = "unclaim", parent = "plot", desc = "Un-claim a plot", perm = @Permission(Permissions.PLOT_UNCLAIM))
     public void unclaim(@Caller Player player, @One("reset") boolean reset) {
         Pair<PlotWorld, PlotId> plot = Cmd.getContainingPlot(player);
         if (plot.present()) {
@@ -54,7 +54,9 @@ public class Unclaim {
                 return;
             }
 
-            Plots.executor().async(owner(world, plotId), unclaimIfOwned(player, world, plotId, reset));
+            Supplier<Optional<UUID>> owner = () -> PlotActions.findPlotOwner(world.database(), plotId);
+            Consumer<Optional<UUID>> unclaim = unclaimIfOwned(player, world, plotId, reset);
+            Plots.executor().async(owner, unclaim);
         }
     }
 

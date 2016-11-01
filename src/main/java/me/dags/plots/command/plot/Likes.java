@@ -21,19 +21,22 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * @author dags <dags@dags.me>
  */
 public class Likes {
 
-    @Command(aliases = "likes", parent = "plot", desc = "List the likers of a plot", perm = @Permission(id = Permissions.PLOT_LIKES, description = ""))
+    @Command(aliases = "likes", parent = "plot", desc = "List the likers of a plot", perm = @Permission(Permissions.PLOT_LIKES))
     public void likes(@Caller Player player) {
         Pair<PlotWorld, PlotId> plot = Cmd.getContainingPlot(player);
         if (plot.present()) {
             PlotWorld world = plot.first();
             PlotId plotId = plot.second();
-            Plots.executor().async(() -> PlotActions.findPlotLikes(world.database(), plotId), likes(player, plotId));
+            Supplier<Optional<List<UUID>>> find = () -> PlotActions.findPlotLikes(world.database(), plotId);
+            Consumer<Optional<List<UUID>>> likes = likes(player, plotId);
+            Plots.executor().async(find, likes);
         }
     }
 

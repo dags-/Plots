@@ -22,18 +22,16 @@ import java.util.function.Supplier;
  */
 public class Claim {
 
-    @Command(aliases = "claim", parent = "plot", desc = "Claim a plot", perm = @Permission(id = Permissions.PLOT_CLAIM, description = ""))
+    @Command(aliases = "claim", parent = "plot", desc = "Claim a plot", perm = @Permission(Permissions.PLOT_CLAIM))
     public void claim(@Caller Player player) {
         Pair<PlotWorld, PlotId> plot = Cmd.getContainingPlot(player);
         if (plot.present()) {
             PlotWorld world = plot.first();
             PlotId plotId = plot.second();
-            Plots.executor().async(isOwned(world, plotId), claimIfFree(player, world, plotId));
+            Supplier<Boolean> owned = () -> PlotActions.findPlotOwner(world.database(), plotId).isPresent();
+            Consumer<Boolean> claim = claimIfFree(player, world, plotId);
+            Plots.executor().async(owned, claim);
         }
-    }
-
-    static Supplier<Boolean> isOwned(PlotWorld world, PlotId plotId) {
-        return () -> PlotActions.findPlotOwner(world.database(), plotId).isPresent();
     }
 
     static Consumer<Boolean> claimIfFree(Player player, PlotWorld world, PlotId plotId) {

@@ -20,18 +20,16 @@ import java.util.function.Supplier;
  */
 public class Like {
 
-    @Command(aliases = "like", parent = "plot", desc = "Like a plot", perm = @Permission(id = Permissions.PLOT_LIKE, description = ""))
+    @Command(aliases = "like", parent = "plot", desc = "Like a plot", perm = @Permission(Permissions.PLOT_LIKE))
     public void like(@Caller Player player) {
         Pair<PlotWorld, PlotId> plot = Cmd.getContainingPlot(player);
         if (plot.present()) {
             PlotWorld world = plot.first();
             PlotId plotId = plot.second();
-            Plots.executor().async(isOwned(world, plotId), like(player, world, plotId));
+            Supplier<Boolean> owned = () -> PlotActions.findPlotOwner(world.database(), plotId).isPresent();
+            Consumer<Boolean> like = like(player, world, plotId);
+            Plots.executor().async(owned, like);
         }
-    }
-
-    static Supplier<Boolean> isOwned(PlotWorld world, PlotId plotId) {
-        return () -> PlotActions.findPlotOwner(world.database(), plotId).isPresent();
     }
 
     static Consumer<Boolean> like(Player player, PlotWorld world, PlotId plotId) {

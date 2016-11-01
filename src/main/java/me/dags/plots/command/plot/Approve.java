@@ -26,18 +26,16 @@ import java.util.function.Supplier;
  */
 public class Approve {
 
-    @Command(aliases = "approve", parent = "plot", desc = "Approve a user's plot", perm = @Permission(id = Permissions.PLOT_APPROVE, description = ""))
+    @Command(aliases = "approve", parent = "plot", desc = "Approve a user's plot", perm = @Permission(Permissions.PLOT_APPROVE))
     public void approve(@Caller Player player) {
         Pair<PlotWorld, PlotId> plot = Cmd.getContainingPlot(player);
         if (plot.present()) {
             PlotWorld world = plot.first();
             PlotId plotId = plot.second();
-            Plots.executor().async(owner(world, plotId), approve(player, world, plotId));
+            Supplier<Optional<UUID>> owner = () -> PlotActions.findPlotOwner(world.database(), plotId);
+            Consumer<Optional<UUID>> approve = approve(player, world, plotId);
+            Plots.executor().async(owner, approve);
         }
-    }
-
-    static Supplier<Optional<UUID>> owner(PlotWorld world, PlotId plotId) {
-        return () -> PlotActions.findPlotOwner(world.database(), plotId);
     }
 
     static Consumer<Optional<UUID>> approve(Player player, PlotWorld plotWorld, PlotId plotId) {

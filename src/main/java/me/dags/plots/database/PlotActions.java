@@ -82,7 +82,6 @@ public class PlotActions {
         return Optional.empty();
     }
 
-    // PlotID: x:z (alias) | Owner: Name | Likes: #
     public static Text plotInfo(WorldDatabase database, PlotId plotId, Format format) {
         Format.MessageBuilder builder = format.message().info("Plot: ").stress(plotId);
         Document first = database.plotCollection().find(Filters.eq(Keys.PLOT_ID, plotId.toString())).first();
@@ -109,7 +108,7 @@ public class PlotActions {
         }
 
         String command = "/plot tp " + database.getWorld() + " " + plotId.toString();
-        return builder.build().toBuilder().onClick(TextActions.runCommand(command)).build();
+        return builder.action(TextActions.runCommand(command)).build();
     }
 
     public static PlotId findNextFreePlot(WorldDatabase database, PlotId closest) {

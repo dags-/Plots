@@ -20,18 +20,16 @@ import java.util.function.Supplier;
  */
 public class Unlike {
 
-    @Command(aliases = "unlike", parent = "plot", desc = "Un-like a plot", perm = @Permission(id = Permissions.PLOT_LIKE, description = ""))
+    @Command(aliases = "unlike", parent = "plot", desc = "Un-like a plot", perm = @Permission(Permissions.PLOT_LIKE))
     public void unlike(@Caller Player player) {
         Pair<PlotWorld, PlotId> plot = Cmd.getContainingPlot(player);
         if (plot.present()) {
             PlotWorld world = plot.first();
             PlotId plotId = plot.second();
-            Plots.executor().async(isOwned(world, plotId), unlike(player, world, plotId));
+            Supplier<Boolean> owned = () -> PlotActions.findPlotOwner(world.database(), plotId).isPresent();
+            Consumer<Boolean> unlike = unlike(player, world, plotId);
+            Plots.executor().async(owned, unlike);
         }
-    }
-
-    static Supplier<Boolean> isOwned(PlotWorld world, PlotId plotId) {
-        return () -> PlotActions.findPlotOwner(world.database(), plotId).isPresent();
     }
 
     static Consumer<Boolean> unlike(Player player, PlotWorld world, PlotId plotId) {

@@ -12,7 +12,6 @@ import me.dags.plots.util.IO;
 import me.dags.plots.util.Support;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongepowered.api.Sponge;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
@@ -21,7 +20,6 @@ import org.spongepowered.api.event.game.state.GameStoppingServerEvent;
 import org.spongepowered.api.event.world.LoadWorldEvent;
 import org.spongepowered.api.event.world.UnloadWorldEvent;
 import org.spongepowered.api.plugin.Plugin;
-import org.spongepowered.api.scheduler.Task;
 import org.spongepowered.api.world.World;
 
 import java.nio.file.Path;
@@ -46,6 +44,7 @@ public class Plots {
 
     @Inject
     public Plots(@ConfigDir(sharedRoot = false) Path configDir) {
+        // TODO: for testing purposes, to be removed!
         TestServer.start();
 
         Plots.instance = this;
@@ -63,16 +62,18 @@ public class Plots {
         API().loadWorldGenerators();
 
         CommandBus.builder().logger(logger).build()
-                .register(Approve.class, Auto.class, Claim.class, Like.class, Likes.class, Unclaim.class, Unlike.class)
+                .register(Approve.class)
+                .register(Auto.class)
+                .register(Claim.class)
+                .register(Like.class)
+                .register(Likes.class)
+                .register(Reset.class)
+                .register(Unclaim.class)
+                .register(Unlike.class)
                 .submit(this);
 
-        Sponge.getScheduler().createTaskBuilder()
-                .execute(Support.of("WorldEdit", "com.sk89q.worldedit.WorldEdit", "me.dags.plots.worldedit.WESessionListener"))
-                .submit(this);
-
-        Sponge.getScheduler().createTaskBuilder()
-                .execute(Support.of("VoxelSniper", "com.thevoxelbox.voxelsniper.brush.mask.Mask", "me.dags.plots.voxelsniper.SniperListener"))
-                .submit(this);
+        executor().sync(Support.of("WorldEdit", "com.sk89q.worldedit.WorldEdit", "me.dags.plots.worldedit.WESessionListener"));
+        executor().sync(Support.of("VoxelSniper", "com.thevoxelbox.voxelsniper.brush.mask.Mask", "me.dags.plots.voxelsniper.SniperListener"));
     }
 
     @Listener (order = Order.POST)
@@ -114,15 +115,7 @@ public class Plots {
         return instance.config;
     }
 
-    public static String toGeneratorId(String name) {
-        return String.format("%s:%s", ID, name.toLowerCase());
-    }
-
     public static void log(String message, Object... args) {
         logger.info(message, args);
-    }
-
-    public static void submitTask(Task.Builder builder) {
-        builder.submit(instance);
     }
 }

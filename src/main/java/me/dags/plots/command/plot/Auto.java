@@ -20,18 +20,16 @@ import java.util.function.Supplier;
  */
 public class Auto {
 
-    @Command(aliases = "auto", parent = "plot", desc = "Auto-claim a plot", perm = @Permission(id = Permissions.PLOT_AUTO, description = ""))
+    @Command(aliases = "auto", parent = "plot", desc = "Auto-claim a plot", perm = @Permission(Permissions.PLOT_AUTO))
     public void auto(@Caller Player player) {
         Pair<PlotWorld, PlotId> plot = Cmd.getPlot(player);
         if (plot.present()) {
             PlotWorld world = plot.first();
             PlotId plotId = plot.second();
-            Plots.executor().async(findPlot(world, plotId), claim(player, world));
+            Supplier<PlotId> find = () -> PlotActions.findNextFreePlot(world.database(), plotId);
+            Consumer<PlotId> claim = claim(player, world);
+            Plots.executor().async(find, claim);
         }
-    }
-
-    static Supplier<PlotId> findPlot(PlotWorld world, PlotId plotId) {
-        return () -> PlotActions.findNextFreePlot(world.database(), plotId);
     }
 
     static Consumer<PlotId> claim(Player player, PlotWorld world) {
