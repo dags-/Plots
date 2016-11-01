@@ -4,6 +4,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.UpdateOptions;
 import me.dags.commandbus.utils.Format;
+import me.dags.commandbus.utils.StringUtils;
 import me.dags.plots.plot.PlotId;
 import org.bson.Document;
 import org.spongepowered.api.Sponge;
@@ -107,7 +108,7 @@ public class PlotActions {
             }
         }
 
-        String command = "/plot tp " + database.getWorld() + " " + plotId.toString();
+        String command = StringUtils.format("/plot tp {} {}", database.getWorld(), plotId);
         return builder.action(TextActions.runCommand(command)).build();
     }
 

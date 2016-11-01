@@ -21,13 +21,13 @@ public final class Permissions {
     public static final String PLOT_BIOME = "plots.command.biome";
     public static final String PLOT_COPY = "plots.command.copy";
     public static final String PLOT_MASKALL = "plots.command.maskall";
-    public static final String PLOT_ADD = "plots.command.add";
+    public static final String PLOT_ADD = "plots.command.add.other";
+    public static final String PLOT_ADD_ANY = "plots.command.add.any";
     public static final String PLOT_REMOVE = "plots.command.remove.other";
     public static final String PLOT_REMOVE_ANY = "plots.command.remove.any";
     public static final String PLOT_RESET = "plots.command.reset.self";
     public static final String PLOT_RESET_OTHER = "plots.command.reset.other";
     public static final String WHITELIST_RECIPIENT = "plots.command.whitelist.recipient";
-    public static final String WHITELIST_ANY = "plots.command.whitelist.any";
 
     public static final String GEN_EDIT = "plots.command.gen";
 

@@ -5,6 +5,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import me.dags.plots.Plots;
+import me.dags.plots.command.Cmd;
 import me.dags.plots.database.UserActions;
 import me.dags.plots.database.WorldDatabase;
 import me.dags.plots.operation.CopyBiomeOperation;
@@ -13,6 +14,8 @@ import me.dags.plots.operation.FillBiomeOperation;
 import me.dags.plots.operation.ResetOperation;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.entity.living.player.User;
+import org.spongepowered.api.service.user.UserStorageService;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 import org.spongepowered.api.world.biome.BiomeType;
@@ -84,7 +87,15 @@ public class PlotWorld {
         if (users.getIfPresent(uuid) != null) {
             users.invalidate(uuid);
             users.getUnchecked(uuid);
+            Sponge.getServiceManager().provideUnchecked(UserStorageService.class)
+                    .get(uuid)
+                    .flatMap(User::getPlayer)
+                    .ifPresent(Cmd.FMT.info("Your plot data has been refreshed")::tell);
         }
+    }
+
+    public void setUser(PlotUser plotUser) {
+        users.put(plotUser.uuid(), plotUser);
     }
 
     public void resetPlot(PlotId plotId, Runnable callback) {

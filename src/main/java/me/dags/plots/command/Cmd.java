@@ -37,6 +37,10 @@ public class Cmd {
         return Pair.empty();
     }
 
+    public static Optional<PlotWorld> getWorld(Player source) {
+        return getWorld(source, source.getWorld().getName());
+    }
+
     // Get a PlotWorld by name, alerts the source if it is not a PlotWorld
     public static Optional<PlotWorld> getWorld(CommandSource source, String world) {
         Optional<PlotWorld> optional = Plots.API().plotWorld(world);

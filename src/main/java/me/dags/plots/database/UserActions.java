@@ -1,15 +1,20 @@
 package me.dags.plots.database;
 
-import com.mongodb.BasicDBObject;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.UpdateOptions;
+import me.dags.commandbus.utils.Format;
+import me.dags.commandbus.utils.StringUtils;
 import me.dags.plots.plot.PlotId;
 import me.dags.plots.plot.PlotSchema;
 import me.dags.plots.plot.PlotUser;
 import org.bson.Document;
+import org.spongepowered.api.service.pagination.PaginationList;
+import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.action.TextActions;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * @author dags <dags@dags.me>
@@ -37,18 +42,37 @@ public class UserActions {
         return builder.build();
     }
 
-    public static void savePlotUser(WorldDatabase database, PlotUser plotUser) {
-        String id = plotUser.uuid().toString();
+    public static PaginationList listPlots(WorldDatabase database, String title, UUID uuid, Format format) {
+        PaginationList.Builder builder = PaginationList.builder();
+        builder.title(format.stress(title).build());
+        builder.linesPerPage(9);
 
-        Document plots = new Document();
-        plotUser.plotMask().plots().keySet().forEach(plotId -> plots.put(plotId.toString(), new BasicDBObject()));
+        Document first = database.userCollection().find(Filters.eq(Keys.USER_ID, uuid.toString())).first();
+        if (first != null) {
+            if (first.containsKey(Keys.USER_PLOTS)) {
+                List<?> list = first.get(Keys.USER_PLOTS, List.class);
 
-        Document user = new Document();
-        user.put(Keys.USER_ID, id);
-        user.put(Keys.USER_APPROVED, plotUser.approved());
-        user.put(Keys.USER_PLOTS, plots);
+                List<Text> lines = list.stream().map(plot -> {
+                    Format.MessageBuilder line = format.info(" - ").stress(plot);
+                    PlotActions.findPlotAlias(database, PlotId.parse(plot.toString())).ifPresent(alias -> line.stress(" ({})", alias));
+                    line.action(TextActions.runCommand(StringUtils.format("/plot tp {} {}", database.getWorld(), plot)));
+                    return line.build();
+                }).collect(Collectors.toList());
 
-        database.userCollection().replaceOne(Filters.eq(Keys.USER_ID, id), user, UPSERT);
+                builder.contents(lines);
+            }
+        }
+
+        return builder.build();
+    }
+
+    public static boolean hasPlot(WorldDatabase database, UUID uuid, PlotId plotId) {
+        Document first = database.userCollection().find(Filters.eq(Keys.USER_ID, uuid.toString())).first();
+        if (first != null && first.containsKey(Keys.USER_PLOTS)) {
+            List<?> list = first.get(Keys.USER_PLOTS, List.class);
+            return list.stream().anyMatch(o -> o.toString().equals(plotId.toString()));
+        }
+        return false;
     }
 
     public static void setApproved(WorldDatabase database, UUID uuid, boolean approved) {

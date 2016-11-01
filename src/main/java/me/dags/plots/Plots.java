@@ -62,12 +62,21 @@ public class Plots {
         API().loadWorldGenerators();
 
         CommandBus.builder().logger(logger).build()
+                .register(Add.class)
+                .register(Alias.class)
                 .register(Approve.class)
                 .register(Auto.class)
+                .register(Biome.class)
                 .register(Claim.class)
+                .register(Copy.class)
+                .register(Info.class)
                 .register(Like.class)
                 .register(Likes.class)
+                .register(List.class)
+                .register(Maskall.class)
+                .register(Remove.class)
                 .register(Reset.class)
+                .register(Teleport.class)
                 .register(Unclaim.class)
                 .register(Unlike.class)
                 .submit(this);

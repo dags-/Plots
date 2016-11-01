@@ -2,6 +2,7 @@ package me.dags.plots.plot;
 
 import com.flowpowered.math.vector.Vector2i;
 import com.flowpowered.math.vector.Vector3i;
+import com.google.common.collect.ImmutableMap;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -27,7 +28,7 @@ public class PlotMask {
     private PlotMask(PlotSchema plotSchema, Collection<PlotId> plots) {
         this.gridX = plotSchema.gridXWidth();
         this.gridZ = plotSchema.gridZWidth();
-        this.plots = plots.stream().collect(Collectors.toMap(id -> id, plotSchema::plotBounds));
+        this.plots = ImmutableMap.copyOf(plots.stream().collect(Collectors.toMap(id -> id, plotSchema::plotBounds)));
     }
 
     public boolean contains(Vector2i position) {
@@ -42,7 +43,8 @@ public class PlotMask {
         if (this.present() && y > 0 && y < 256) {
             int xx = PlotId.transform(x, gridX);
             int zz = PlotId.transform(z, gridZ);
-            return plots.getOrDefault(PlotId.of(xx, zz), PlotBounds.EMPTY).contains(x, z);
+            PlotBounds bounds = plots.get(PlotId.of(xx, zz));
+            return bounds != null && bounds.contains(x, z);
         }
         return false;
     }

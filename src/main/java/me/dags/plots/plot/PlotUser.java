@@ -75,8 +75,15 @@ public class PlotUser {
         public Set<PlotId> plots = new HashSet<>();
         private PlotMask mask = PlotMask.EMPTY;
 
+        public Builder mask(PlotMask mask) {
+            this.mask = mask;
+            return this;
+        }
+
         public PlotUser build() {
-            mask = plotSchema != null ? PlotMask.of(plotSchema, plots) : PlotMask.EMPTY;
+            if (mask == null) {
+                mask = plotSchema != null ? PlotMask.of(plotSchema, plots) : PlotMask.EMPTY;
+            }
             return new PlotUser(this);
         }
     }
