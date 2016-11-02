@@ -5,6 +5,8 @@ import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
 import me.dags.plots.command.Cmd;
 import me.dags.plots.database.PlotActions;
+import org.spongepowered.api.block.BlockSnapshot;
+import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.EntitySnapshot;
 import org.spongepowered.api.entity.EntityTypes;
@@ -48,9 +50,18 @@ public class PlotWorldListener {
 
     @Listener(order = Order.PRE)
     public void onBlockChange(ChangeBlockEvent event) {
-        if (plotWorld.equalsWorld(event.getTargetWorld())) {
+        Object root = event.getCause().root();
+        if (!(root instanceof Player) && plotWorld.equalsWorld(event.getTargetWorld())) {
             // prevent blocks 'leaking' outside of a plot (trees growing, water flowing etc)
             event.filter(loc -> plotWorld.plotSchema().containingPlot(loc.getBlockPosition()).present());
+
+            // remove block if it's outside of a plot to prevent repeat events
+            if (root instanceof BlockSnapshot) {
+                BlockSnapshot snapshot = (BlockSnapshot) root;
+                if (!plotWorld.plotSchema().containingPlot(snapshot.getPosition()).present()) {
+                    snapshot.getLocation().ifPresent(location -> location.setBlockType(BlockTypes.AIR));
+                }
+            }
         }
     }
 
@@ -71,7 +82,6 @@ public class PlotWorldListener {
 
             if (!player.hasPermission(Permissions.ACTION_MODIFY) || !canEdit(player, event.getTargetBlock().getPosition())) {
                 event.setCancelled(true);
-                return;
             }
         }
     }

@@ -26,6 +26,7 @@ public class Teleport {
         tp(player, player.getWorld().getName(), plot);
     }
 
+    @Command(aliases = "tp", parent = "plot", desc = "Teleport to a plot", perm = @Permission(Permissions.PLOT_TP))
     public void tp(@Caller Player player, @One("world") String world, @One("plotId | alias") String plot) {
         Optional<PlotWorld> plotWorld = Cmd.getWorld(player, world);
         if (plotWorld.isPresent()) {

@@ -79,6 +79,7 @@ public class Plots {
                 .register(Teleport.class)
                 .register(Unclaim.class)
                 .register(Unlike.class)
+                .register(Whitelist.class)
                 .submit(this);
 
         executor().sync(Support.of("WorldEdit", "com.sk89q.worldedit.WorldEdit", "me.dags.plots.worldedit.WESessionListener"));
@@ -89,7 +90,6 @@ public class Plots {
     public void onWorldLoad(LoadWorldEvent event) {
         World world = event.getTargetWorld();
         if (world.getWorldGenerator().getBaseGenerationPopulator() instanceof PlotGenerator) {
-            System.out.println("Found plotworld " + world.getName());
             PlotGenerator plotGenerator = (PlotGenerator) world.getWorldGenerator().getBaseGenerationPopulator();
             WorldDatabase database = new WorldDatabase(client.getDatabase(world.getName().toLowerCase()));
             PlotWorld plotWorld = new PlotWorld(world, database, plotGenerator.plotSchema());

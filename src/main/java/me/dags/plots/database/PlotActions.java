@@ -100,11 +100,11 @@ public class PlotActions {
                 Sponge.getServiceManager()
                         .provideUnchecked(UserStorageService.class)
                         .get(uuid)
-                        .ifPresent(user -> builder.info(", Owner: ").stress(user.getName()));
+                        .ifPresent(user -> builder.info(" Owner: ").stress(user.getName()));
             }
             if (first.containsKey(Keys.PLOT_LIKES)) {
                 List<?> list = first.get(Keys.PLOT_LIKES, List.class);
-                builder.info(", Likes: ").stress(list.size());
+                builder.info(" Likes: ").stress(list.size());
             }
         }
 

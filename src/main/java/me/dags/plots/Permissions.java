@@ -27,6 +27,7 @@ public final class Permissions {
     public static final String PLOT_REMOVE_ANY = "plots.command.remove.any";
     public static final String PLOT_RESET = "plots.command.reset.self";
     public static final String PLOT_RESET_OTHER = "plots.command.reset.other";
+    public static final String PLOT_WHITELIST = "plots.command.whitelist";
     public static final String WHITELIST_RECIPIENT = "plots.command.whitelist.recipient";
 
     public static final String GEN_EDIT = "plots.command.gen";

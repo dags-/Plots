@@ -1,5 +1,6 @@
 package me.dags.plots.database;
 
+import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.UpdateOptions;
 import me.dags.commandbus.utils.Format;
@@ -12,6 +13,7 @@ import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.action.TextActions;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -26,9 +28,9 @@ public class UserActions {
     public static PlotUser loadPlotUser(WorldDatabase database, PlotSchema plotSchema, UUID userId) {
         Document first = database.userCollection().find(Filters.eq(Keys.USER_ID, userId.toString())).first();
         PlotUser.Builder builder = PlotUser.builder();
-
         builder.uuid = userId;
         builder.plotSchema = plotSchema;
+
         if (first != null) {
             if (first.containsKey(Keys.USER_APPROVED)) {
                 builder.approved = first.getBoolean(Keys.USER_APPROVED);
@@ -73,6 +75,16 @@ public class UserActions {
             return list.stream().anyMatch(o -> o.toString().equals(plotId.toString()));
         }
         return false;
+    }
+
+    public static List<UUID> getWhitelisted(WorldDatabase database, PlotId plotId) {
+        FindIterable<Document> search = database.userCollection().find(Filters.in(Keys.USER_PLOTS, plotId.toString()));
+        List<UUID> list = new ArrayList<>();
+        for (Document document : search) {
+            String id = document.getString(Keys.USER_ID);
+            list.add(UUID.fromString(id));
+        }
+        return list;
     }
 
     public static void setApproved(WorldDatabase database, UUID uuid, boolean approved) {

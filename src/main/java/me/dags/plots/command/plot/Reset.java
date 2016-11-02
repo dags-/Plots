@@ -12,6 +12,7 @@ import me.dags.plots.plot.PlotId;
 import me.dags.plots.plot.PlotWorld;
 import me.dags.plots.util.Pair;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.text.Text;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -25,16 +26,17 @@ public class Reset {
 
     @Command(aliases = "reset", parent = "plot", desc = "Reset the plot", perm = @Permission(Permissions.PLOT_RESET))
     public void reset(@Caller Player player) {
-        Cmd.FMT.warn("Resetting a plot will delete everything inside it! Use ")
-                .stress("/plot reset true")
-                .warn(" if you want to proceed")
+        Cmd.FMT.warn("Resetting a plot will delete everything inside it!").append(Text.NEW_LINE)
+                .warn("Use ").stress("/plot reset true").warn(" if you want to proceed")
                 .tell(player);
     }
 
     @Command(aliases = "reset", parent = "plot", desc = "Reset the plot", perm = @Permission(Permissions.PLOT_RESET))
     public void reset(@Caller Player player, @One("confirm") boolean confirm) {
         if (!confirm) {
-            Cmd.FMT.error("You must confirm you want to delete the plot by using ").stress("/plot reset true").tell(player);
+            Cmd.FMT.error("You must confirm you want to delete the plot by using ").append(Text.NEW_LINE)
+                    .stress("/plot reset true")
+                    .tell(player);
             return;
         }
 

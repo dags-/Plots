@@ -51,6 +51,10 @@ public class PlotWorld {
         return world;
     }
 
+    public UUID worldId() {
+        return worldId;
+    }
+
     public PlotSchema plotSchema() {
         return plotSchema;
     }

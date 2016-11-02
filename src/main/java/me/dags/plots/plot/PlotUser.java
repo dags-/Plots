@@ -81,7 +81,7 @@ public class PlotUser {
         }
 
         public PlotUser build() {
-            if (mask == null) {
+            if (mask == PlotMask.EMPTY) {
                 mask = plotSchema != null ? PlotMask.of(plotSchema, plots) : PlotMask.EMPTY;
             }
             return new PlotUser(this);
