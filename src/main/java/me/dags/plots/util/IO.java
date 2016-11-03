@@ -5,8 +5,6 @@ import me.dags.data.node.Node;
 import me.dags.data.node.NodeTypeAdapter;
 import me.dags.plots.Config;
 import me.dags.plots.Plots;
-import me.dags.plots.adapters.ConfigAdapter;
-import me.dags.plots.adapters.GenPropAdapter;
 import me.dags.plots.generator.GeneratorProperties;
 
 import java.nio.file.Path;

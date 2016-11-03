@@ -11,7 +11,7 @@ public class Config {
 
     private Database database = new Database();
     private int blocks_per_tick = 5000;
-    private boolean convert = true;
+    private boolean convert = false;
     private Format message_format = Format.DEFAULT;
 
     public Config(){}

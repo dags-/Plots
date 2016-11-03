@@ -1,4 +1,4 @@
-package me.dags.plots.adapters;
+package me.dags.plots.util;
 
 import me.dags.data.node.Node;
 import me.dags.data.node.NodeArray;

@@ -1,4 +1,4 @@
-package me.dags.plots.adapters;
+package me.dags.plots.util;
 
 import me.dags.commandbus.utils.Format;
 import me.dags.data.node.Node;
@@ -41,7 +41,7 @@ public class ConfigAdapter implements NodeTypeAdapter<Config> {
                 config.database().setPort(db.asNodeObject().map("port", n -> n.asNumber().intValue(), 27017));
             }
         });
-        config.setConvert(!object.contains("convert_old_db") || object.map("convert_old_db", Node::asBoolean, true));
+        config.setConvert(!object.contains("convert_old_db") || object.map("convert_old_db", Node::asBoolean, false));
         config.setBlocksPerTick(object.map("blocks_per_tick", n -> n.asNumber().intValue(), 10000));
         config.setMessageFormat(object.map("message_format", n -> Format.fromMap(ConfigAdapter.toMap(n)), Format.DEFAULT));
         return config;
