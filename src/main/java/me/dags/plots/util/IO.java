@@ -5,6 +5,8 @@ import me.dags.data.node.Node;
 import me.dags.data.node.NodeTypeAdapter;
 import me.dags.plots.Config;
 import me.dags.plots.Plots;
+import me.dags.plots.adapters.ConfigAdapter;
+import me.dags.plots.adapters.GenPropAdapter;
 import me.dags.plots.generator.GeneratorProperties;
 
 import java.nio.file.Path;
@@ -16,7 +18,7 @@ import java.util.stream.Stream;
 public class IO {
 
     private static final NodeAdapter HOCON = NodeAdapter.hocon();
-    private static final NodeTypeAdapter<GeneratorProperties> GENERATOR_PROPERTIES = new GeneratorPropertiesAdapter();
+    private static final NodeTypeAdapter<GeneratorProperties> GENERATOR_PROPERTIES = new GenPropAdapter();
     private static final NodeTypeAdapter<Config> CONFIG_ADAPTER = new ConfigAdapter();
 
     public static void saveProperties(GeneratorProperties properties, Path dir) {

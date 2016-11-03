@@ -1,4 +1,4 @@
-package me.dags.plots.util;
+package me.dags.plots.adapters;
 
 import me.dags.data.node.Node;
 import me.dags.data.node.NodeArray;
@@ -18,7 +18,7 @@ import java.util.function.Function;
 /**
  * @author dags <dags@dags.me>
  */
-public class GeneratorPropertiesAdapter implements NodeTypeAdapter<GeneratorProperties> {
+public class GenPropAdapter implements NodeTypeAdapter<GeneratorProperties> {
 
     @Override
     public Node toNode(GeneratorProperties properties) {

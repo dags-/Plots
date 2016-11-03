@@ -9,8 +9,8 @@ import org.spongepowered.api.text.format.TextStyles;
  */
 public class Config {
 
-    private int blocks_per_tick = 500;
-    private boolean database_logger = true;
+    private Database database = new Database();
+    private int blocks_per_tick = 5000;
     private Format message_format = Format.DEFAULT;
 
     public Config(){}
@@ -27,23 +27,41 @@ public class Config {
         this.blocks_per_tick = count;
     }
 
-    public void setDatabaseLogging(boolean enable) {
-        this.database_logger = enable;
-    }
-
     public void setMessageFormat(Format format) {
         this.message_format = format;
+    }
+
+    public Database database() {
+        return database;
     }
 
     public int blocksPerTick() {
         return blocks_per_tick;
     }
 
-    public boolean logDatabase() {
-        return database_logger;
+    public Format messageFormat() {
+        return message_format;
     }
 
-    public Format getMessageFormat() {
-        return message_format;
+    public static class Database {
+
+        private String address = "127.0.0.1";
+        private int port = 27017;
+
+        public String address() {
+            return address;
+        }
+
+        public int port() {
+            return port;
+        }
+
+        public void setAddress(String address) {
+            this.address = address;
+        }
+
+        public void setPort(int port) {
+            this.port = port;
+        }
     }
 }

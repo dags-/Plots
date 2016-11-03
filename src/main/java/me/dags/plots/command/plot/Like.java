@@ -35,10 +35,10 @@ public class Like {
     static Consumer<Boolean> like(Player player, PlotWorld world, PlotId plotId) {
         return owned -> {
             if (owned) {
-                Cmd.FMT.info("You liked plot ").stress(plotId).tell(player);
+                Cmd.FMT().info("You liked plot ").stress(plotId).tell(player);
                 Plots.executor().async(() -> PlotActions.addLike(world.database(), plotId, player.getUniqueId()));
             } else {
-                Cmd.FMT.error("Plot ").stress(plotId).error(" is not owned").tell(player);
+                Cmd.FMT().error("Plot ").stress(plotId).error(" is not owned").tell(player);
             }
         };
     }

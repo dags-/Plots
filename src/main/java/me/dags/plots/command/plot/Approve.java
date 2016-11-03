@@ -41,7 +41,7 @@ public class Approve {
     static Consumer<Optional<UUID>> approve(Player player, PlotWorld plotWorld, PlotId plotId) {
         return uuid -> {
             if (!uuid.isPresent()) {
-                Cmd.FMT.error("Plot ").stress(plotId).error(" is not owned").tell(player);
+                Cmd.FMT().error("Plot ").stress(plotId).error(" is not owned").tell(player);
             } else {
                 approve(player, plotWorld, plotId, uuid.get());
             }
@@ -49,14 +49,14 @@ public class Approve {
     }
 
     static void approve(Player player, PlotWorld plotWorld, PlotId plotId, UUID uuid) {
-        Cmd.FMT.info("Approving plot ").stress(plotId).info("...").tell(player);
+        Cmd.FMT().info("Approving plot ").stress(plotId).info("...").tell(player);
 
         Runnable async = () -> UserActions.setApproved(plotWorld.database(), uuid, true);
         Runnable callback = () -> {
             Optional<User> user = Sponge.getServiceManager().provideUnchecked(UserStorageService.class).get(uuid);
             if (user.isPresent()) {
-                Cmd.FMT.info("Approved ").stress(user.get().getName()).tell(player);
-                user.get().getPlayer().ifPresent(Cmd.FMT.info("Your plot ").stress(plotId).info(" has been approved")::tell);
+                Cmd.FMT().info("Approved ").stress(user.get().getName()).tell(player);
+                user.get().getPlayer().ifPresent(Cmd.FMT().info("Your plot ").stress(plotId).info(" has been approved")::tell);
                 plotWorld.refreshUser(uuid);
             }
         };

@@ -8,11 +8,11 @@ import de.bwaldvogel.mongo.backend.memory.MemoryBackend;
  */
 public class TestServer {
 
-    public static void start() {
+    public static void start(int port) {
         new Thread() {
             public void run() {
                 MongoServer server = new MongoServer(new MemoryBackend());
-                server.bind("127.0.0.1", 8080);
+                server.bind("127.0.0.1", port);
             }
         }.start();
     }

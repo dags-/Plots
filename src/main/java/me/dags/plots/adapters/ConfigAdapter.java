@@ -1,4 +1,4 @@
-package me.dags.plots.util;
+package me.dags.plots.adapters;
 
 import me.dags.commandbus.utils.Format;
 import me.dags.data.node.Node;
@@ -19,10 +19,14 @@ public class ConfigAdapter implements NodeTypeAdapter<Config> {
 
     @Override
     public Node toNode(Config config) {
+        NodeObject database = new NodeObject();
+        database.put("address", config.database().address());
+        database.put("port", config.database().port());
+
         NodeObject configNode = new NodeObject();
+        configNode.put("database", database);
         configNode.put("blocks_per_tick", config.blocksPerTick());
-        configNode.put("database_logger", config.logDatabase());
-        configNode.put("message_format", NodeTypeAdapters.serialize(config.getMessageFormat().toMap()));
+        configNode.put("message_format", NodeTypeAdapters.serialize(config.messageFormat().toMap()));
         return configNode;
     }
 
@@ -30,8 +34,13 @@ public class ConfigAdapter implements NodeTypeAdapter<Config> {
     public Config fromNode(Node node) {
         NodeObject object = node.asNodeObject();
         Config config = new Config();
+        object.ifPresent("database", db -> {
+            if (db.isNodeObject()) {
+                config.database().setAddress(db.asNodeObject().map("address", Node::asString, "127.0.0.1"));
+                config.database().setPort(db.asNodeObject().map("port", n -> n.asNumber().intValue(), 27017));
+            }
+        });
         config.setBlocksPerTick(object.map("blocks_per_tick", n -> n.asNumber().intValue(), 10000));
-        config.setDatabaseLogging(object.map("database_logger", Node::asBoolean, true));
         config.setMessageFormat(object.map("message_format", n -> Format.fromMap(ConfigAdapter.toMap(n)), Format.DEFAULT));
         return config;
     }

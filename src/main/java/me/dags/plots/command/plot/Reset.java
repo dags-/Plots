@@ -26,7 +26,7 @@ public class Reset {
 
     @Command(aliases = "reset", parent = "plot", desc = "Reset the plot", perm = @Permission(Permissions.PLOT_RESET))
     public void reset(@Caller Player player) {
-        Cmd.FMT.warn("Resetting a plot will delete everything inside it!").append(Text.NEW_LINE)
+        Cmd.FMT().warn("Resetting a plot will delete everything inside it!").append(Text.NEW_LINE)
                 .warn("Use ").stress("/plot reset true").warn(" if you want to proceed")
                 .tell(player);
     }
@@ -34,7 +34,7 @@ public class Reset {
     @Command(aliases = "reset", parent = "plot", desc = "Reset the plot", perm = @Permission(Permissions.PLOT_RESET))
     public void reset(@Caller Player player, @One("confirm") boolean confirm) {
         if (!confirm) {
-            Cmd.FMT.error("You must confirm you want to delete the plot by using ").append(Text.NEW_LINE)
+            Cmd.FMT().error("You must confirm you want to delete the plot by using ").append(Text.NEW_LINE)
                     .stress("/plot reset true")
                     .tell(player);
             return;
@@ -53,10 +53,10 @@ public class Reset {
     static Consumer<Optional<UUID>> reset(Player player, PlotWorld world, PlotId plotId) {
         return uuid -> {
             if ((uuid.isPresent() && player.getUniqueId().equals(uuid.get())) || player.hasPermission(Permissions.PLOT_RESET_OTHER)) {
-                Cmd.FMT.info("Resetting plot ").stress(plotId).info("...").tell(player);
-                world.resetPlot(plotId, () -> Cmd.FMT.info("Reset complete for plot ").stress(plotId).tell(player));
+                Cmd.FMT().info("Resetting plot ").stress(plotId).info("...").tell(player);
+                world.resetPlot(plotId, () -> Cmd.FMT().info("Reset complete for plot ").stress(plotId).tell(player));
             } else {
-                Cmd.FMT.error("You do not own plot ").stress(plotId).tell(player);
+                Cmd.FMT().error("You do not own plot ").stress(plotId).tell(player);
             }
         };
     }

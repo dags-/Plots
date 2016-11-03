@@ -94,7 +94,7 @@ public class PlotWorld {
             Sponge.getServiceManager().provideUnchecked(UserStorageService.class)
                     .get(uuid)
                     .flatMap(User::getPlayer)
-                    .ifPresent(Cmd.FMT.info("Your plot data has been refreshed")::tell);
+                    .ifPresent(Cmd.FMT().info("Your plot data has been refreshed")::tell);
         }
     }
 

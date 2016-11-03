@@ -24,11 +24,11 @@ public class Maskall {
             PlotUser user = world.get().user(player.getUniqueId());
             if (user.plotMask() == PlotMask.ANYWHERE) {
                 world.get().refreshUser(user.uuid());
-                Cmd.FMT.info("Plot mask reset").tell(player);
+                Cmd.FMT().info("Plot mask reset").tell(player);
             } else {
                 user = user.edit().mask(PlotMask.ANYWHERE).build();
                 world.get().setUser(user);
-                Cmd.FMT.info("Plot mask set to Anywhere").tell(player);
+                Cmd.FMT().info("Plot mask set to Anywhere").tell(player);
             }
         }
     }

@@ -230,7 +230,7 @@ public class PlotWorldListener {
         PlotId toId = plotWorld.plotSchema().plotId(to);
         if (plotWorld.plotSchema().plotBounds(toId).contains(to)) {
             // player entered the bounds of a new plot
-            Plots.executor().async(() -> PlotActions.plotInfo(plotWorld.database(), toId, Cmd.FMT), plotInfo -> {
+            Plots.executor().async(() -> PlotActions.plotInfo(plotWorld.database(), toId, Cmd.FMT()), plotInfo -> {
                 player.sendMessage(ChatTypes.ACTION_BAR, plotInfo);
             });
         }

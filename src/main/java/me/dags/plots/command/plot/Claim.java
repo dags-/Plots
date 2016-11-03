@@ -37,7 +37,7 @@ public class Claim {
     static Consumer<Boolean> claimIfFree(Player player, PlotWorld world, PlotId plotId) {
         return owned -> {
             if (owned) {
-                Cmd.FMT.error("Plot ").stress(plotId).error(" is already owned").tell(player);
+                Cmd.FMT().error("Plot ").stress(plotId).error(" is already owned").tell(player);
             } else {
                 claim(player, world, plotId);
             }
@@ -46,11 +46,11 @@ public class Claim {
 
     static void claim(Player player, PlotWorld world, PlotId plotId) {
         if (!plotId.present()) {
-            Cmd.FMT.error("Plot ").stress(plotId).error(" is not present").tell(player);
+            Cmd.FMT().error("Plot ").stress(plotId).error(" is not present").tell(player);
         } else {
             PlotUser user = world.user(player.getUniqueId());
             if (user.hasPlot() && !user.approved() && !player.hasPermission(Permissions.PLOT_APPROVAL_BYPASS)) {
-                Cmd.FMT.error("You must have one of your plots approved before claiming a new one").tell(player);
+                Cmd.FMT().error("You must have one of your plots approved before claiming a new one").tell(player);
                 return;
             }
 
@@ -61,7 +61,7 @@ public class Claim {
 
             Runnable callback = () -> {
                 world.refreshUser(player.getUniqueId());
-                Cmd.FMT.info("Claimed plot ").stress(plotId).tell(player);
+                Cmd.FMT().info("Claimed plot ").stress(plotId).tell(player);
             };
 
             Plots.executor().async(async, callback);

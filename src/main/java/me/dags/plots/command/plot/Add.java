@@ -33,13 +33,13 @@ public class Add {
             PlotId plotId = plot.second();
             boolean whitelistAny = player.hasPermission(Permissions.PLOT_ADD_ANY);
 
-            if (!user.hasPermission(Permissions.WHITELIST_RECIPIENT) && !whitelistAny) {
-                Cmd.FMT.error("User ").stress(user.getName()).error(" does not hav permission to be added to a plot").tell(player);
+            if (!user.hasPermission(Permissions.PLOT_WHITELIST_RECIPIENT) && !whitelistAny) {
+                Cmd.FMT().error("User ").stress(user.getName()).error(" does not hav permission to be added to a plot").tell(player);
                 return;
             }
 
             if (player.getUniqueId().equals(user.getUniqueId()) && !whitelistAny) {
-                Cmd.FMT.error("You cannot add yourself to a plot").tell(player);
+                Cmd.FMT().error("You cannot add yourself to a plot").tell(player);
                 return;
             }
 
@@ -56,15 +56,15 @@ public class Add {
                     Runnable async = () -> UserActions.addPlot(world.database(), target.getUniqueId(), plotId);
                     Runnable sync = () -> {
                         world.refreshUser(target.getUniqueId());
-                        Cmd.FMT.info("Added ").stress(target.getName()).info(" to plot ").stress(plotId).tell(player);
-                        target.getPlayer().ifPresent(Cmd.FMT.stress(player.getName()).info(" added you to plot ").stress(plotId)::tell);
+                        Cmd.FMT().info("Added ").stress(target.getName()).info(" to plot ").stress(plotId).tell(player);
+                        target.getPlayer().ifPresent(Cmd.FMT().stress(player.getName()).info(" added you to plot ").stress(plotId)::tell);
                     };
                     Plots.executor().async(async, sync);
                 } else {
-                    Cmd.FMT.error("You do not have permission to add people to plot ").stress(plotId).tell(player);
+                    Cmd.FMT().error("You do not have permission to add people to plot ").stress(plotId).tell(player);
                 }
             } else {
-                Cmd.FMT.error("Nobody owns plot ").stress(plotId).tell(player);
+                Cmd.FMT().error("Nobody owns plot ").stress(plotId).tell(player);
             }
         };
     }

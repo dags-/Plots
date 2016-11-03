@@ -32,7 +32,7 @@ public class Teleport {
         if (plotWorld.isPresent()) {
             if (PlotId.isValid(plot)) {
                 PlotId plotId = PlotId.parse(plot);
-                Cmd.FMT.info("Teleporting to ").stress(plotId).tell(player);
+                Cmd.FMT().info("Teleporting to ").stress(plotId).tell(player);
                 plotWorld.get().teleport(player, plotId);
             } else {
                 Supplier<PlotId> findPlot = () -> PlotActions.plotFromAlias(plotWorld.get().database(), plot);
@@ -45,10 +45,10 @@ public class Teleport {
     static Consumer<PlotId> teleport(Player player, PlotWorld world, String alias) {
         return plotId -> {
             if (plotId.present()) {
-                Cmd.FMT.info("Teleporting to ").stress(alias).tell(player);
+                Cmd.FMT().info("Teleporting to ").stress(alias).tell(player);
                 world.teleport(player, plotId);
             } else {
-                Cmd.FMT.info("Could not find a plot with the alias ").stress(alias).info(" in this world").tell(player);
+                Cmd.FMT().info("Could not find a plot with the alias ").stress(alias).info(" in this world").tell(player);
             }
         };
     }

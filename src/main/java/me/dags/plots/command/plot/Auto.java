@@ -36,7 +36,7 @@ public class Auto {
         return plotId -> {
             Claim.claim(player, world, plotId);
             world.teleport(player, plotId);
-            Cmd.FMT.info("Teleported to plot ").stress(plotId).tell(player);
+            Cmd.FMT().info("Teleported to plot ").stress(plotId).tell(player);
         };
     }
 }

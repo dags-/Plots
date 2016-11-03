@@ -1,6 +1,5 @@
 package me.dags.plots.generator;
 
-import me.dags.plots.util.Defaults;
 import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.world.biome.BiomeType;
 import org.spongepowered.api.world.biome.BiomeTypes;

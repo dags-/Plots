@@ -36,7 +36,7 @@ public class Whitelist {
             PlotId plotId = plot.second();
             WorldDatabase database = plot.first().database();
             Supplier<java.util.List<UUID>> search = () -> UserActions.getWhitelisted(database, plotId);
-            Consumer<java.util.List<UUID>> whitelist = list(player, plotId, Cmd.FMT);
+            Consumer<java.util.List<UUID>> whitelist = list(player, plotId, Cmd.FMT());
             Plots.executor().async(search, whitelist);
         }
     }

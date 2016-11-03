@@ -25,7 +25,7 @@ public class Info {
     public void info(@Caller Player player) {
         Pair<PlotWorld, PlotId> plot = Cmd.getContainingPlot(player);
         if (plot.present()) {
-            Supplier<Text> find = () -> PlotActions.plotInfo(plot.first().database(), plot.second(), Cmd.FMT);
+            Supplier<Text> find = () -> PlotActions.plotInfo(plot.first().database(), plot.second(), Cmd.FMT());
             Consumer<Text> info = player::sendMessage;
             Plots.executor().async(find, info);
         }

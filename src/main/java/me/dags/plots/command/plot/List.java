@@ -35,7 +35,7 @@ public class List {
             PlotWorld plotWorld = world.get();
             String title = user.getName() + "'s Plots";
             UUID uuid = user.getUniqueId();
-            Supplier<PaginationList> fetch = () -> UserActions.listPlots(plotWorld.database(), title, uuid, Cmd.FMT);
+            Supplier<PaginationList> fetch = () -> UserActions.listPlots(plotWorld.database(), title, uuid, Cmd.FMT());
             Consumer<PaginationList> send = list -> list.sendTo(player);
             Plots.executor().async(fetch, send);
         }

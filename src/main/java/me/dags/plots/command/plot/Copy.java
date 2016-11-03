@@ -74,11 +74,11 @@ public class Copy {
             if (plots.present()) {
                 PlotId from = plots.first();
                 PlotId to = plots.second();
-                Cmd.FMT.info("Copying plot ").stress(from).info(" to ").stress(to).info("...").tell(player);
-                Runnable callback = () -> Cmd.FMT.info("Finished copying plot ").stress(from).info(" to ").stress(to).tell(player);
+                Cmd.FMT().info("Copying plot ").stress(from).info(" to ").stress(to).info("...").tell(player);
+                Runnable callback = () -> Cmd.FMT().info("Finished copying plot ").stress(from).info(" to ").stress(to).tell(player);
                 world.copyPlot(from, to, callback);
             } else {
-                Cmd.FMT.error("You must be owner or added to the 'from' plot, and owner of the 'to' plot").tell(player);
+                Cmd.FMT().error("You must be owner or added to the 'from' plot, and owner of the 'to' plot").tell(player);
             }
         };
     }

@@ -42,7 +42,7 @@ public class Alias {
                 Consumer<Boolean> setAlias = setAlias(player, world, plotId, alias);
                 Plots.executor().async(exists, setAlias);
             } else {
-                Cmd.FMT.error("You do not own plot ").stress(plotId).tell(player);
+                Cmd.FMT().error("You do not own plot ").stress(plotId).tell(player);
             }
         };
     }
@@ -50,10 +50,10 @@ public class Alias {
     static Consumer<Boolean> setAlias(Player player, PlotWorld world, PlotId plotId, String alias) {
         return exists -> {
             if (exists) {
-                Cmd.FMT.error("The alias ").stress(alias).error(" has already been taken by another plot").tell(player);
+                Cmd.FMT().error("The alias ").stress(alias).error(" has already been taken by another plot").tell(player);
             } else {
                 Runnable async = () -> PlotActions.setPlotAlias(world.database(), plotId, alias);
-                Runnable sync = () -> Cmd.FMT.info("Set plot ").stress(plotId).info("'s alias to ").stress(alias).tell(player);
+                Runnable sync = () -> Cmd.FMT().info("Set plot ").stress(plotId).info("'s alias to ").stress(alias).tell(player);
                 Plots.executor().async(async, sync);
             }
         };

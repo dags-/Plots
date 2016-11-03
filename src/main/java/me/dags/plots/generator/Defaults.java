@@ -1,6 +1,5 @@
-package me.dags.plots.util;
+package me.dags.plots.generator;
 
-import me.dags.plots.generator.LayerProperties;
 import org.spongepowered.api.block.BlockTypes;
 
 import java.util.ArrayList;

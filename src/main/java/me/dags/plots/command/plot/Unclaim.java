@@ -30,7 +30,7 @@ public class Unclaim {
     public void unclaim(@Caller Player player) {
         Pair<PlotWorld, PlotId> plot = Cmd.getContainingPlot(player);
         if (plot.present()) {
-            Cmd.FMT.warn("Unclaiming a plot will remove all whitelisted users including the owner!").append(Text.NEW_LINE)
+            Cmd.FMT().warn("Unclaiming a plot will remove all whitelisted users including the owner!").append(Text.NEW_LINE)
                     .warn("To confirm, use either:").append(Text.NEW_LINE)
                     .stress(" /plot unclaim true").warn(" - to unclaim and reset the plot").append(Text.NEW_LINE)
                     .stress(" /plot unclaim false").warn(" - to unclaim and not reset the plot")
@@ -47,7 +47,7 @@ public class Unclaim {
             PlotUser user = world.user(player.getUniqueId());
 
             if (!reset && !user.approved() && !player.hasPermission(Permissions.PLOT_APPROVAL_BYPASS)) {
-                Cmd.FMT.warn("Your plot must be reset if you want to unclaim it, use ")
+                Cmd.FMT().warn("Your plot must be reset if you want to unclaim it, use ")
                         .stress("/plot unclaim true")
                         .error(" to proceed")
                         .tell(player);
@@ -67,17 +67,17 @@ public class Unclaim {
     static Consumer<Optional<UUID>> unclaimIfOwned(Player player, PlotWorld plotWorld, PlotId plotId, boolean reset) {
         return owner -> {
             if (!owner.isPresent()) {
-                Cmd.FMT.error("Plot ").stress(plotId).error(" is not owned by anyone").tell(player);
+                Cmd.FMT().error("Plot ").stress(plotId).error(" is not owned by anyone").tell(player);
             } else if (player.hasPermission(Permissions.PLOT_UNCLAIM_OTHER) || owner.get().equals(player.getUniqueId())) {
                 unclaim(player, plotWorld, plotId, reset);
             } else {
-                Cmd.FMT.error("You do not own plot ").stress(plotId).tell(player);
+                Cmd.FMT().error("You do not own plot ").stress(plotId).tell(player);
             }
         };
     }
 
     static void unclaim(Player player, PlotWorld plotWorld, PlotId plotId, boolean reset) {
-        Cmd.FMT.info("Unclaiming plot ").stress(plotId).tell(player);
+        Cmd.FMT().info("Unclaiming plot ").stress(plotId).tell(player);
 
         Runnable async = () -> {
             PlotActions.removePlot(plotWorld.database(), plotId);
@@ -89,7 +89,7 @@ public class Unclaim {
         Plots.executor().async(async, callback);
 
         if (reset) {
-            plotWorld.resetPlot(plotId, () -> Cmd.FMT.info("Plot ").stress(plotId).info(" has been reset").tell(player));
+            plotWorld.resetPlot(plotId, () -> Cmd.FMT().info("Plot ").stress(plotId).info(" has been reset").tell(player));
         }
     }
 }
