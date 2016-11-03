@@ -50,6 +50,7 @@ public class Cmd {
             if (plotId.present()) {
                 return Pair.of(world.get(), plotId);
             }
+            FMT().error("You are not inside a plot").tell(player);
         }
         return Pair.empty();
     }
@@ -59,7 +60,10 @@ public class Cmd {
         Optional<PlotWorld> world = getWorld(player, player.getWorld().getName());
         if (world.isPresent()) {
             PlotId plotId = world.get().plotSchema().plotId(player.getLocation().getBlockPosition());
-            return Pair.of(world.get(), plotId);
+            if (plotId.present()) {
+                return Pair.of(world.get(), plotId);
+            }
+            FMT().error("Could not find the nearest plot :[").tell(player);
         }
         return Pair.empty();
     }
