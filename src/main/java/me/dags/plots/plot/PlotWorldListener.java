@@ -31,11 +31,16 @@ import org.spongepowered.api.event.filter.cause.First;
 import org.spongepowered.api.event.filter.cause.Root;
 import org.spongepowered.api.event.item.inventory.DropItemEvent;
 import org.spongepowered.api.event.item.inventory.UseItemStackEvent;
+import org.spongepowered.api.event.network.ClientConnectionEvent;
 import org.spongepowered.api.event.world.ChangeWorldWeatherEvent;
 import org.spongepowered.api.event.world.ExplosionEvent;
+import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.chat.ChatTypes;
 import org.spongepowered.api.util.Tristate;
 import org.spongepowered.api.world.weather.Weathers;
+
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * @author dags <dags@dags.me>
@@ -53,7 +58,7 @@ public class PlotWorldListener {
         return user.plotMask().contains(position);
     }
 
-    @Listener
+    @Listener(order = Order.PRE)
     public void onWeatherChange(ChangeWorldWeatherEvent event) {
         if (event.getCause().root() instanceof Player) {
             return;
@@ -64,7 +69,7 @@ public class PlotWorldListener {
         }
     }
 
-    @Listener
+    @Listener(order = Order.PRE)
     public void onNotify(NotifyNeighborBlockEvent event, @Root BlockSnapshot root) {
         if (plotWorld.equalsWorld(root.getWorldUniqueId())) {
             if (root.supports(Keys.EXTENDED)) {
@@ -225,6 +230,30 @@ public class PlotWorldListener {
             });
         }
     }
+
+    @Listener
+    public void onJoin(ClientConnectionEvent.Join event, @Root Player player) {
+        if (plotWorld.equalsWorld(player.getWorld())) {
+            PlotId plotId = plotWorld.plotSchema().containingPlot(player.getLocation().getBlockPosition());
+            if (plotId.present()) {
+                Supplier<Text> async = () -> PlotActions.plotInfo(plotWorld.database(), plotId, Cmd.FMT());
+                Consumer<Text> sync = text -> player.sendMessage(ChatTypes.ACTION_BAR, text);
+                Plots.executor().async(async, sync);
+            }
+        }
+    }
+
+    @Listener (order = Order.POST)
+    public void onTeleport(DisplaceEntityEvent.Teleport event, @Root Player player) {
+        if (plotWorld.equalsWorld(event.getToTransform().getExtent())) {
+            PlotId plotId = plotWorld.plotSchema().containingPlot(event.getToTransform().getPosition().toInt());
+            if (plotId.present()) {
+                Supplier<Text> async = () -> PlotActions.plotInfo(plotWorld.database(), plotId, Cmd.FMT());
+                Consumer<Text> sync = text -> player.sendMessage(ChatTypes.ACTION_BAR, text);
+                Plots.executor().async(async, sync);
+            }
+        }
+    } 
 
     @Listener
     public void onEntityMove(DisplaceEntityEvent.Move event) {
