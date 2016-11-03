@@ -15,6 +15,7 @@ import me.dags.plots.plot.PlotWorld;
 import me.dags.plots.util.Executor;
 import me.dags.plots.util.IO;
 import me.dags.plots.util.Support;
+import me.dags.plotsconv.Converter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongepowered.api.Sponge;
@@ -82,6 +83,12 @@ public class Plots {
 
     @Listener
     public void init(GameInitializationEvent event) {
+        // TODO: remove
+        log("Converting h2 data base...");
+        new Converter(client, "jdbc:h2:" + configDir.resolve("plots_data").toAbsolutePath()).convert();
+        log("Conversion finished!");
+
+
         config = IO.getConfig(configDir.resolve("config.conf"));
         Cmd.setFormat(config.messageFormat());
 
