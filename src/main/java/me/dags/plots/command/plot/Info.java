@@ -7,6 +7,7 @@ import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
 import me.dags.plots.command.Cmd;
 import me.dags.plots.database.PlotActions;
+import me.dags.plots.database.WorldDatabase;
 import me.dags.plots.plot.PlotId;
 import me.dags.plots.plot.PlotWorld;
 import me.dags.plots.util.Pair;
@@ -25,7 +26,9 @@ public class Info {
     public void info(@Caller Player player) {
         Pair<PlotWorld, PlotId> plot = Cmd.getContainingPlot(player);
         if (plot.present()) {
-            Supplier<Text> find = () -> PlotActions.plotInfo(plot.first().database(), plot.second(), Cmd.FMT());
+            WorldDatabase database = plot.first().database();
+            PlotId plotId = plot.second();
+            Supplier<Text> find = () -> PlotActions.plotInfo(database, plotId, Cmd.FMT());
             Consumer<Text> info = player::sendMessage;
             Plots.executor().async(find, info);
         }

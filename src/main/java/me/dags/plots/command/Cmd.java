@@ -47,7 +47,9 @@ public class Cmd {
         Optional<PlotWorld> world = getWorld(player, player.getWorld().getName());
         if (world.isPresent()) {
             PlotId plotId = world.get().plotSchema().containingPlot(player.getLocation().getBlockPosition());
-            return Pair.of(world.get(), plotId);
+            if (plotId.present()) {
+                return Pair.of(world.get(), plotId);
+            }
         }
         return Pair.empty();
     }
