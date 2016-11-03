@@ -7,6 +7,7 @@ import me.dags.plots.command.Cmd;
 import me.dags.plots.database.PlotActions;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.block.BlockTypes;
+import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.EntitySnapshot;
 import org.spongepowered.api.entity.EntityTypes;
@@ -18,6 +19,7 @@ import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
 import org.spongepowered.api.event.block.ChangeBlockEvent;
 import org.spongepowered.api.event.block.InteractBlockEvent;
+import org.spongepowered.api.event.block.NotifyNeighborBlockEvent;
 import org.spongepowered.api.event.cause.entity.damage.source.EntityDamageSource;
 import org.spongepowered.api.event.cause.entity.damage.source.IndirectEntityDamageSource;
 import org.spongepowered.api.event.cause.entity.spawn.EntitySpawnCause;
@@ -26,11 +28,14 @@ import org.spongepowered.api.event.entity.DisplaceEntityEvent;
 import org.spongepowered.api.event.entity.InteractEntityEvent;
 import org.spongepowered.api.event.entity.SpawnEntityEvent;
 import org.spongepowered.api.event.filter.cause.First;
+import org.spongepowered.api.event.filter.cause.Root;
 import org.spongepowered.api.event.item.inventory.DropItemEvent;
 import org.spongepowered.api.event.item.inventory.UseItemStackEvent;
+import org.spongepowered.api.event.world.ChangeWorldWeatherEvent;
 import org.spongepowered.api.event.world.ExplosionEvent;
 import org.spongepowered.api.text.chat.ChatTypes;
 import org.spongepowered.api.util.Tristate;
+import org.spongepowered.api.world.weather.Weathers;
 
 /**
  * @author dags <dags@dags.me>
@@ -46,6 +51,36 @@ public class PlotWorldListener {
     private boolean canEdit(Player player, Vector3i position) {
         PlotUser user = plotWorld.user(player.getUniqueId());
         return user.plotMask().contains(position);
+    }
+
+    @Listener
+    public void onWeatherChange(ChangeWorldWeatherEvent event) {
+        if (event.getCause().root() instanceof Player) {
+            return;
+        }
+        if (plotWorld.equalsWorld(event.getTargetWorld()) && event.getWeather() != Weathers.CLEAR) {
+            event.getTargetWorld().setWeather(Weathers.CLEAR);
+            event.setCancelled(true);
+        }
+    }
+
+    @Listener
+    public void onNotify(NotifyNeighborBlockEvent event, @Root BlockSnapshot root) {
+        if (plotWorld.equalsWorld(root.getWorldUniqueId())) {
+            if (root.supports(Keys.EXTENDED)) {
+                Vector3i position = root.getPosition();
+                boolean cancel = event.getNeighbors().keySet().stream()
+                        .map(direction -> position.add(direction.asBlockOffset()))
+                        .anyMatch(pos -> !plotWorld.plotSchema().containingPlot(pos).present());
+
+                if (cancel) {
+                    event.setCancelled(true);
+                    root.getLocation().ifPresent(location -> location.setBlockType(BlockTypes.AIR));
+                }
+            } else if (root.supports(Keys.POWER) || root.supports(Keys.POWERED)) {
+                event.setCancelled(true);
+            }
+        }
     }
 
     @Listener(order = Order.PRE)

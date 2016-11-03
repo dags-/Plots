@@ -9,6 +9,7 @@ import me.dags.plots.command.plot.*;
 import me.dags.plots.command.world.WorldCreate;
 import me.dags.plots.command.world.WorldSpawn;
 import me.dags.plots.command.world.WorldTP;
+import me.dags.plots.command.world.WorldWeather;
 import me.dags.plots.database.WorldDatabase;
 import me.dags.plots.generator.PlotGenerator;
 import me.dags.plots.plot.PlotWorld;
@@ -28,6 +29,7 @@ import org.spongepowered.api.event.world.LoadWorldEvent;
 import org.spongepowered.api.event.world.UnloadWorldEvent;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.world.World;
+import org.spongepowered.api.world.weather.Weathers;
 
 import java.nio.file.Path;
 
@@ -39,7 +41,7 @@ public class Plots {
 
     public static final String ID = "plots";
 
-    private static final Logger logger = LoggerFactory.getLogger(ID);
+    private static final Logger logger = LoggerFactory.getLogger("PLOTS");
     private static Plots instance;
 
     private final boolean enabled;
@@ -58,9 +60,6 @@ public class Plots {
     public Plots(@ConfigDir(sharedRoot = false) Path configDir) {
         final Config.Database database = IO.getConfig(configDir.resolve("config.conf")).database();
 
-        // TODO: for testing purposes, to be removed!
-        TestServer.start(database.port());
-
         boolean enabled = false;
         MongoClient client = null;
         try {
@@ -70,7 +69,7 @@ public class Plots {
         } catch (Exception e) {
             client = null;
             enabled = false;
-            critical("MONGO DATABASE NOT AVAILABLE ON {}:{} - PLOTS SET TO SAFE MODE", database.address(), database.port());
+            critical("MONGO DATABASE NOT AVAILABLE ON {}:{} - PLOTS SET TO SAFE-MODE", database.address(), database.port());
         } finally {
             Plots.instance = this;
             this.configDir = configDir;
@@ -83,14 +82,16 @@ public class Plots {
 
     @Listener
     public void init(GameInitializationEvent event) {
-        // TODO: remove
-        log("Converting h2 data base...");
-        new Converter(client, "jdbc:h2:" + configDir.resolve("plots_data").toAbsolutePath()).convert();
-        log("Conversion finished!");
-
-
         config = IO.getConfig(configDir.resolve("config.conf"));
-        Cmd.setFormat(config.messageFormat());
+
+        if (!safeMode() && config.convert()) {
+            log("Converting h2 data base...");
+            new Converter(client, "jdbc:h2:" + configDir.resolve("plots_data").toAbsolutePath()).convert();
+            config.setConvert(false);
+            IO.writeConfig(config, configDir.resolve("config.conf"));
+        }
+
+        Cmd.setFormat(config.formatter());
 
         API().reloadGenerators();
         API().loadWorldGenerators();
@@ -124,7 +125,8 @@ public class Plots {
 
         commandBus.register(WorldCreate.class)
                 .register(WorldSpawn.class)
-                .register(WorldTP.class);
+                .register(WorldTP.class)
+                .register(WorldWeather.class);
 
         commandBus.register(GenCreate.class)
                 .register(GenEdit.class)
@@ -152,11 +154,11 @@ public class Plots {
         World world = event.getTargetWorld();
         if (world.getWorldGenerator().getBaseGenerationPopulator() instanceof PlotGenerator) {
             if (safeMode()) {
-                critical("PLOTS IS NOT ENABLED BUT THE SERVER ATTEMPTED TO LOAD A PLOTWORLD."
-                        + "THE PLOTWORLD WILL BE UNLOADED FOR SAFETY!");
+                critical("PLOTS IS IN SAFE-MODE. UNLOADING PLOTWORLD: {}", world.getName());
                 Sponge.getServer().unloadWorld(world);
                 return;
             }
+            world.setWeather(Weathers.CLEAR, Integer.MAX_VALUE);
             PlotGenerator plotGenerator = (PlotGenerator) world.getWorldGenerator().getBaseGenerationPopulator();
             WorldDatabase database = new WorldDatabase(client.getDatabase(world.getName().toLowerCase()));
             PlotWorld plotWorld = new PlotWorld(world, database, plotGenerator.plotSchema());

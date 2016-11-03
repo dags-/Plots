@@ -4,16 +4,15 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.UpdateOptions;
 import me.dags.commandbus.utils.Format;
-import me.dags.commandbus.utils.StringUtils;
 import me.dags.plots.plot.PlotId;
 import me.dags.plots.plot.PlotSchema;
 import me.dags.plots.plot.PlotUser;
 import org.bson.Document;
 import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.action.TextActions;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -54,15 +53,14 @@ public class UserActions {
             if (first.containsKey(Keys.USER_PLOTS)) {
                 List<?> list = first.get(Keys.USER_PLOTS, List.class);
 
-                List<Text> lines = list.stream().map(plot -> {
-                    Format.MessageBuilder line = format.info(" - ").stress(plot);
-                    PlotActions.findPlotAlias(database, PlotId.parse(plot.toString())).ifPresent(alias -> line.stress(" ({})", alias));
-                    line.action(TextActions.runCommand(StringUtils.format("/plot tp {} {}", database.getWorld(), plot)));
-                    return line.build();
-                }).collect(Collectors.toList());
+                List<Text> lines = list.stream()
+                        .map(plot -> PlotActions.plotInfo(database, PlotId.parse(plot.toString()), format))
+                        .collect(Collectors.toList());
 
                 builder.contents(lines);
             }
+        } else {
+            builder.contents(Collections.emptyList());
         }
 
         return builder.build();

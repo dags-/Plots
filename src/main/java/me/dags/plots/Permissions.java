@@ -36,6 +36,7 @@ public final class Permissions {
     public static final String WORLD_CREATE = "plots.command.world.create";
     public static final String WORLD_SPAWN = "plots.command.world.spawn";
     public static final String WORLD_TP = "plots.command.world.tp";
+    public static final String WORLD_WEATHER = "plots.command.world.weather";
 
     public static final String ACTION_BYPASS = "plots.action.bypass";
     public static final String ACTION_DAMAGE = "plots.action.damage";

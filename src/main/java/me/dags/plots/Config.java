@@ -11,6 +11,7 @@ public class Config {
 
     private Database database = new Database();
     private int blocks_per_tick = 5000;
+    private boolean convert = true;
     private Format message_format = Format.DEFAULT;
 
     public Config(){}
@@ -21,6 +22,10 @@ public class Config {
                 .stress(TextColors.GOLD)
                 .info(TextColors.GREEN)
                 .build();
+    }
+
+    public void setConvert(boolean convert) {
+        this.convert = convert;
     }
 
     public void setBlocksPerTick(int count) {
@@ -35,11 +40,15 @@ public class Config {
         return database;
     }
 
+    public boolean convert() {
+        return convert;
+    }
+
     public int blocksPerTick() {
         return blocks_per_tick;
     }
 
-    public Format messageFormat() {
+    public Format formatter() {
         return message_format;
     }
 

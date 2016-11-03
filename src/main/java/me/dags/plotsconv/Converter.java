@@ -60,6 +60,7 @@ public final class Converter {
     }
 
     private void convertTable(String name) throws SQLException {
+        name = name.toLowerCase();
         logger.info("Converting table: {}", name);
 
         WorldDatabase database = new WorldDatabase(client.getDatabase(name));
@@ -70,9 +71,10 @@ public final class Converter {
 
             ResultSet resultSet = connection.createStatement().executeQuery(select);
             while (resultSet.next()) {
+                logger.info("{}", resultSet.toString());
                 String userId = resultSet.getString(USER_ID);
                 String plotId = resultSet.getString(PLOT_ID);
-                String owner = resultSet.getString(META_OWNER);
+                boolean owner = resultSet.getBoolean(META_OWNER);
                 boolean approved = resultSet.getBoolean(META_APPROVED);
 
                 // Found a user id and a valid PlotId
@@ -83,9 +85,7 @@ public final class Converter {
                     // Add plot to user's plots
                     UserActions.addPlot(database, uuid, plot);
 
-                    boolean isOwner = false;
-                    // If user owns this plot...
-                    if (isOwner = (owner != null && owner.equalsIgnoreCase(userId))) {
+                    if (owner) {
                         // Set user as owner
                         PlotActions.setPlotOwner(database, plot, uuid);
 
@@ -96,7 +96,7 @@ public final class Converter {
                         }
                     }
 
-                    logger.info("Converted entry for user={} plot={} owner={} approved={}", uuid, plot, isOwner, approved);
+                    logger.info("Converted entry for user={} plot={} owner={} approved={}", uuid, plot, owner, approved);
                 }
             }
         }

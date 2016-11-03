@@ -46,10 +46,13 @@ public class IO {
             config = CONFIG_ADAPTER.fromNode(node);
         }
 
+        writeConfig(config, path);
+        return config;
+    }
+
+    public static void writeConfig(Config config, Path path) {
         Plots.log("Saving config to: {}", path);
         Node updated = CONFIG_ADAPTER.toNode(config);
         HOCON.to(updated, path);
-
-        return config;
     }
 }

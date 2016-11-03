@@ -60,10 +60,6 @@ public class Unclaim {
         }
     }
 
-    static Supplier<Optional<UUID>> owner(PlotWorld world, PlotId plotId) {
-        return () -> PlotActions.findPlotOwner(world.database(), plotId);
-    }
-
     static Consumer<Optional<UUID>> unclaimIfOwned(Player player, PlotWorld plotWorld, PlotId plotId, boolean reset) {
         return owner -> {
             if (!owner.isPresent()) {

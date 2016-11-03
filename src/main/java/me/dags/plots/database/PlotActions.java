@@ -122,7 +122,7 @@ public class PlotActions {
             if (document.containsKey(Keys.PLOT_ALIAS)) {
                 String alias = document.getString(Keys.PLOT_ALIAS);
                 if (alias != null && !alias.isEmpty()) {
-                    builder.info(" (").stress(alias).subdued(")");
+                    builder.info(" (").stress(alias).info(")");
                 }
             }
             if (document.containsKey(Keys.PLOT_OWNER)) {
@@ -131,11 +131,11 @@ public class PlotActions {
                 Sponge.getServiceManager()
                         .provideUnchecked(UserStorageService.class)
                         .get(uuid)
-                        .ifPresent(user -> builder.info(", Owner: ").stress(user.getName()));
+                        .ifPresent(user -> builder.info(" Owner: ").stress(user.getName()));
             }
             if (document.containsKey(Keys.PLOT_LIKES)) {
                 List<?> list = document.get(Keys.PLOT_LIKES, List.class);
-                builder.info(", Likes: ").stress(list.size());
+                builder.info(" Likes: ").stress(list.size());
             }
         }
 

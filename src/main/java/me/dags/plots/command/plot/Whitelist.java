@@ -52,7 +52,7 @@ public class Whitelist {
                     .collect(Collectors.toList());
 
             PaginationList.builder()
-                    .title(format.stress("Users whitelisted on {}", plotId).build())
+                    .title(format.stress("Users Whitelisted On {}", plotId).build())
                     .linesPerPage(9)
                     .contents(lines)
                     .build()
