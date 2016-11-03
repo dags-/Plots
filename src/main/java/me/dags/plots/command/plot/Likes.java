@@ -53,7 +53,7 @@ public class Likes {
                         .collect(Collectors.toList());
 
                 PaginationList.builder()
-                        .title(Cmd.FMT().stress("Plot {}'s Likes").build())
+                        .title(Cmd.FMT().stress("Plot {}'s Likes", plotId).build())
                         .linesPerPage(9)
                         .contents(list)
                         .build()

@@ -253,7 +253,7 @@ public class PlotWorldListener {
                 Plots.executor().async(async, sync);
             }
         }
-    } 
+    }
 
     @Listener
     public void onEntityMove(DisplaceEntityEvent.Move event) {
