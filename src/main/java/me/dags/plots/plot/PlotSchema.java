@@ -52,8 +52,10 @@ public class PlotSchema {
 
     public PlotId containingPlot(Vector3i position) {
         PlotId id = plotId(position);
-        PlotBounds bounds = plotBounds(id);
-        return bounds.contains(position) ? id : PlotId.EMPTY;
+        if (id.present() && plotBounds(id).contains(position)) {
+            return id;
+        }
+        return PlotId.EMPTY;
     }
 
     public PlotId plotId(Vector3d position) {
