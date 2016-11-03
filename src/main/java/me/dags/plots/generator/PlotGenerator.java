@@ -1,6 +1,6 @@
 package me.dags.plots.generator;
 
-import me.dags.plots.plot.PlotProvider;
+import me.dags.plots.plot.PlotSchema;
 import org.spongepowered.api.world.World;
 import org.spongepowered.api.world.gen.BiomeGenerator;
 import org.spongepowered.api.world.gen.GenerationPopulator;
@@ -11,7 +11,7 @@ import org.spongepowered.api.world.gen.WorldGeneratorModifier;
  */
 public interface PlotGenerator extends WorldGeneratorModifier, GenerationPopulator, BiomeGenerator {
 
-    PlotProvider plotProvider();
+    PlotSchema plotSchema();
 
     void onLoadWorld(World world);
 

@@ -1,106 +1,66 @@
 package me.dags.plots.plot;
 
-import me.dags.commandbus.Format;
-import me.dags.plots.Plots;
-import org.spongepowered.api.service.pagination.PaginationList;
-import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.action.TextActions;
+import org.spongepowered.api.Sponge;
+import org.spongepowered.api.entity.living.player.User;
+import org.spongepowered.api.service.user.UserStorageService;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * @author dags <dags@dags.me>
  */
 public class PlotUser {
 
-    private static final UUID DUMMY = UUID.fromString("00000000-0000-0000-0000-000000000000");
-    public static final PlotUser EMPTY = new PlotUser();
+    static final UUID DUMMY = UUID.fromString("00000000-0000-0000-0000-000000000000");
 
     private final UUID uuid;
-    private final String world;
-    private final Map<PlotId, PlotMeta> plotData;
-
-    private transient PlotMask mask = PlotMask.NOWHERE;
-
-    private PlotUser() {
-        this.uuid = PlotUser.DUMMY;
-        this.world = "";
-        this.plotData = Collections.emptyMap();
-    }
+    private final PlotMask mask;
+    private final boolean approved;
 
     private PlotUser(Builder builder) {
         this.uuid = builder.uuid;
-        this.world = builder.world;
-        this.plotData = Collections.unmodifiableMap(builder.plotData);
+        this.mask = builder.mask;
+        this.approved = builder.approved;
     }
 
-    public boolean isPresent() {
-        return this != EMPTY;
-    }
-
-    public String getWorld() {
-        return world;
-    }
-
-    public UUID getUUID() {
+    public UUID uuid() {
         return uuid;
     }
 
-    public Collection<Map.Entry<PlotId, PlotMeta>> getPlots() {
-        return plotData.entrySet();
+    public Optional<String> name() {
+        return userName(uuid());
     }
 
-    public PlotMask getMask() {
-        return mask == PlotMask.NOWHERE ? (mask = PlotMask.calculate(getWorld(), plotData.keySet())) : mask;
+    public PlotMask plotMask() {
+        return mask;
     }
 
-    public PlotMeta getMeta(PlotId plotId) {
-        PlotMeta meta = plotData.get(plotId);
-        return meta != null ? meta : PlotMeta.EMPTY;
+    public boolean approved() {
+        return approved;
     }
 
     public boolean hasPlot() {
-        return plotData.size() > 0;
+        return countPlots() > 0;
     }
 
-    public boolean isApproved() {
-        return plotData.values().stream().anyMatch(PlotMeta::isApproved);
+    public int countPlots() {
+        return plotMask().plots().size();
     }
 
-    public boolean toggleMaskAll() {
-        if (this.mask != PlotMask.ANYWHERE) {
-            this.mask = PlotMask.ANYWHERE;
-            return true;
-        } else {
-            this.mask = PlotMask.NOWHERE;
-            return false;
-        }
+    public Builder edit() {
+        Builder builder = new Builder();
+        builder.uuid = uuid;
+        builder.plots = new HashSet<>(mask.plots().keySet());
+        builder.approved = approved;
+        return builder;
     }
 
-    public boolean isWhitelisted(PlotId plotId) {
-        return isPresent() && plotData.containsKey(plotId);
-    }
-
-    public boolean isOwner(PlotId plotId) {
-        PlotMeta meta = plotData.get(plotId);
-        return meta != null && meta.isPresent() && meta.isOwner();
-    }
-
-    public PaginationList listPlots() {
-        List<Text> lines = new ArrayList<>();
-        Format format = Plots.getConfig().getMessageFormat();
-        for (Map.Entry<PlotId, PlotMeta> entry : plotData.entrySet()) {
-            PlotId plotId = entry.getKey();
-            PlotMeta meta = entry.getValue();
-            String line = "(" + plotId + ")" + (meta.isPresent() && meta.hasName() ? " " + meta.getName() : "");
-            Text text = format.stress(" - ").info(line).build().toBuilder().onClick(TextActions.runCommand("/plot tp " + plotId)).build();
-            lines.add(text);
-        }
-        return PaginationList.builder().title(format.stress("Plots").build()).contents(lines).build();
-    }
-
-    public Builder toBuilder() {
-        return isPresent() ? builder().uuid(uuid).world(world).plot(plotData) : builder();
+    @Override
+    public String toString() {
+        return "id=" + uuid + ",approved=" + approved + ",mask=" + mask;
     }
 
     public static Builder builder() {
@@ -109,49 +69,29 @@ public class PlotUser {
 
     public static class Builder {
 
-        private UUID uuid = DUMMY;
-        private String world = "";
-        private final Map<PlotId, PlotMeta> plotData = new HashMap<>(0);
+        public UUID uuid = DUMMY;
+        public boolean approved = false;
+        public PlotSchema plotSchema = null;
+        public Set<PlotId> plots = new HashSet<>();
+        private PlotMask mask = PlotMask.EMPTY;
 
-        public Builder uuid(UUID id) {
-            this.uuid = id != null ? id : DUMMY;
-            return this;
-        }
-
-        public Builder world(String world) {
-            this.world = world != null ? world : "";
-            return this;
-        }
-
-        public Builder plot(Map<PlotId, PlotMeta> plotData) {
-            if (plotData != null) {
-                this.plotData.putAll(plotData);
-            }
-            return this;
-        }
-
-        public Builder plot(PlotId plotId, PlotMeta data) {
-            if (plotId != null && data != null) {
-                plotData.put(plotId, data);
-            }
-            return this;
-        }
-
-        public Builder removePlot(PlotId plotId) {
-            if (plotId != null) {
-                plotData.remove(plotId);
-            }
+        public Builder mask(PlotMask mask) {
+            this.mask = mask;
             return this;
         }
 
         public PlotUser build() {
-            if (uuid == PlotUser.DUMMY) {
-                throw new UnsupportedOperationException("UUID not set!");
-            }
-            if (world.isEmpty()) {
-                throw new UnsupportedOperationException("World cannot be empty!");
+            if (mask == PlotMask.EMPTY) {
+                mask = plotSchema != null ? PlotMask.of(plotSchema, plots) : PlotMask.EMPTY;
             }
             return new PlotUser(this);
         }
+    }
+
+    static Optional<String> userName(UUID uuid) {
+        if (uuid == DUMMY) {
+            return Optional.empty();
+        }
+        return Sponge.getServiceManager().provideUnchecked(UserStorageService.class).get(uuid).map(User::getName);
     }
 }

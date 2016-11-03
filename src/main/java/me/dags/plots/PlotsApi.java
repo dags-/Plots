@@ -51,9 +51,9 @@ public class PlotsApi {
         IO.loadGeneratorProperties(generatorsDir()).forEach(this::registerBaseGenerator);
     }
 
-    public OperationDispatcher getDispatcher() {
+    public OperationDispatcher dispatcher() {
         if (dispatcher == null) {
-            int bpt = Plots.getConfig().blocksPerTick();
+            int bpt = Plots.config().blocksPerTick();
 
             Plots.log("Initializing OperationDispatcher. BPT={}", bpt);
             dispatcher = new OperationDispatcher(Plots.ID, bpt);
@@ -62,16 +62,16 @@ public class PlotsApi {
         return dispatcher;
     }
 
-    public Optional<GeneratorProperties> getBaseGenerator(String name) {
+    public Optional<GeneratorProperties> baseGenerator(String name) {
         return Optional.ofNullable(generators.get(name));
     }
 
-    public Optional<PlotWorld> getPlotWorld(String name) {
+    public Optional<PlotWorld> plotWorld(String name) {
         PlotWorld world = worlds.get(name);
         return world != null ? Optional.of(world) : matchPlotWorld(name);
     }
 
-    public Optional<PlotWorld> getPlotWorldExact(String name) {
+    public Optional<PlotWorld> plotWorldExact(String name) {
         return Optional.ofNullable(worlds.get(name));
     }
 
@@ -83,7 +83,7 @@ public class PlotsApi {
                 return Optional.of(entry.getValue());
             }
             if (entry.getKey().toLowerCase().startsWith(lowercaseName)) {
-                if (bestMatch == null || entry.getValue().getWorld().length() < bestMatch.getWorld().length()) {
+                if (bestMatch == null || entry.getValue().world().length() < bestMatch.world().length()) {
                     bestMatch = entry.getValue();
                 }
             }
@@ -92,15 +92,15 @@ public class PlotsApi {
     }
 
     public void removePlotWorld(String world) {
-        getPlotWorldExact(world).ifPresent(plotWorld -> {
+        plotWorldExact(world).ifPresent(plotWorld -> {
             plotWorld.unregister();
-            getDispatcher().finishAll(plotWorld.getWorld());
+            dispatcher().finishAll(plotWorld.world());
             worlds.remove(world);
         });
     }
 
     public void registerPlotWorld(PlotWorld plotWorld) {
-        worlds.put(plotWorld.getWorld(), plotWorld);
+        worlds.put(plotWorld.world(), plotWorld);
         plotWorld.register(plugin);
     }
 

@@ -20,10 +20,10 @@ public class ResetOperation implements Operation {
     private final PlotGenerator plotGenerator;
     private final MutableBlockVolume blockView;
     private final MutableBiomeArea biomeView;
-    private final int maxX, maxY, maxZ, layersHeight;
+    private final int maxX, maxZ, layersHeight;
     private final Vector3i min;
 
-    private int x = 0, y = 0, z = 0;
+    private int x = 0, y = 255, z = 0;
     private boolean complete = false;
     private Runnable callback = null;
 
@@ -35,9 +35,8 @@ public class ResetOperation implements Operation {
         this.plotGenerator = (PlotGenerator) populator;
         this.blockView = world.getBlockView(min, max);
         this.biomeView = world.getBiomeView(bounds.getMin(), bounds.getMax());
-        this.layersHeight = plotGenerator.plotProvider().getTop();
+        this.layersHeight = plotGenerator.plotSchema().surfaceHeight();
         this.maxX = max.getX() - min.getX();
-        this.maxY = max.getY() - min.getY();
         this.maxZ = max.getZ() - min.getZ();
         this.min = min;
     }
@@ -49,7 +48,7 @@ public class ResetOperation implements Operation {
 
     @Override
     public int process(int blocksToProcess) {
-        for (; y <= maxY; y++) {
+        for (; y > min.getY(); y--) {
             for (; x <= maxX; x++) {
                 for (; z <= maxZ; z++) {
                     processAt(x, y, z);
@@ -85,7 +84,6 @@ public class ResetOperation implements Operation {
 
         if (y < layersHeight) {
             Layer layer = plotGenerator.layerAtHeight(y);
-            layer.populate(blockView, y);
             blockType = layer.getBlockAt(x, z);
         }
 

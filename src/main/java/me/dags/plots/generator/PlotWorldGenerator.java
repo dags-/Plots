@@ -2,7 +2,7 @@ package me.dags.plots.generator;
 
 import com.flowpowered.math.vector.Vector3i;
 import me.dags.plots.Plots;
-import me.dags.plots.plot.PlotProvider;
+import me.dags.plots.plot.PlotSchema;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.world.World;
@@ -35,8 +35,8 @@ public class PlotWorldGenerator implements PlotGenerator {
     }
 
     @Override
-    public PlotProvider plotProvider() {
-        return new PlotProvider(properties);
+    public PlotSchema plotSchema() {
+        return new PlotSchema(properties);
     }
 
     @Override
@@ -56,7 +56,7 @@ public class PlotWorldGenerator implements PlotGenerator {
 
     @Override
     public String getId() {
-        return Plots.toGeneratorId(getName());
+        return toGeneratorId(getName());
     }
 
     @Override
@@ -97,5 +97,9 @@ public class PlotWorldGenerator implements PlotGenerator {
 
     private static void clearBiomePopulators(WorldGenerator generator) {
         Sponge.getRegistry().getAllOf(BiomeType.class).stream().map(generator::getBiomeSettings).forEach(settings -> settings.getPopulators().clear());
+    }
+
+    public static String toGeneratorId(String name) {
+        return String.format("%s:%s", Plots.ID, name.toLowerCase());
     }
 }

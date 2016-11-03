@@ -1,61 +1,82 @@
 package me.dags.plots.plot;
 
-import me.dags.plots.Plots;
+import com.flowpowered.math.vector.Vector2i;
+import com.flowpowered.math.vector.Vector3i;
+import com.google.common.collect.ImmutableMap;
 
 import java.util.Collection;
-import java.util.Optional;
+import java.util.Collections;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author dags <dags@dags.me>
  */
 public class PlotMask {
 
-    private final PlotBounds bounds;
-    private PlotMask and = null;
+    static final PlotMask EMPTY = new PlotMask();
 
-    private PlotMask(PlotBounds bounds) {
-        this.bounds = bounds;
+    private final int gridX, gridZ;
+    private final Map<PlotId, PlotBounds> plots;
+
+    private PlotMask() {
+        gridX = 1;
+        gridZ = 1;
+        plots = Collections.emptyMap();
+    }
+
+    private PlotMask(PlotSchema plotSchema, Collection<PlotId> plots) {
+        this.gridX = plotSchema.gridXWidth();
+        this.gridZ = plotSchema.gridZWidth();
+        this.plots = ImmutableMap.copyOf(plots.stream().collect(Collectors.toMap(id -> id, plotSchema::plotBounds)));
+    }
+
+    public boolean contains(Vector2i position) {
+        return contains(position.getX(), 1, position.getY());
+    }
+
+    public boolean contains(Vector3i position) {
+        return contains(position.getX(), position.getY(), position.getZ());
     }
 
     public boolean contains(int x, int y, int z) {
-        return (y > 0 && y < 256) && bounds.contains(x, z) || (and != null && and.contains(x, y, z));
+        if (this.present() && y > 0 && y < 256) {
+            int xx = PlotId.transform(x, gridX);
+            int zz = PlotId.transform(z, gridZ);
+            PlotBounds bounds = plots.get(PlotId.of(xx, zz));
+            return bounds != null && bounds.contains(x, z);
+        }
+        return false;
     }
 
-    private PlotMask and(PlotBounds other) {
-        if (present()) {
-            return this.and = new PlotMask(other);
-        }
-        return this;
+    public Map<PlotId, PlotBounds> plots() {
+        return plots;
     }
 
     private boolean present() {
-        return this != PlotMask.NOWHERE;
+        return this != EMPTY;
     }
 
-    public static final PlotMask ANYWHERE = new PlotMask(PlotBounds.EMPTY) {
+    @Override
+    public String toString() {
+        return present() ? plots.toString() : "EMPTY";
+    }
+
+    public static final PlotMask ANYWHERE = new PlotMask() {
         @Override
         public boolean contains(int x, int y, int z) {
             return y > 0 && y < 256;
         }
     };
 
-    static final PlotMask NOWHERE = new PlotMask(PlotBounds.EMPTY) {
+    public static final PlotMask NOWHERE = new PlotMask() {
         @Override
         public boolean contains(int x, int y, int z) {
             return false;
         }
     };
 
-    static PlotMask calculate(String worldName, Collection<PlotId> plotIds) {
-        Optional<PlotWorld> world = Plots.getApi().getPlotWorldExact(worldName);
-        if (world.isPresent()) {
-            PlotMask root = PlotMask.NOWHERE, mask = root;
-            for (PlotId id : plotIds) {
-                PlotBounds bounds = world.get().getPlotBounds(id);
-                mask = root.present() ? mask.and(bounds) : (root = new PlotMask(bounds));
-            }
-            return root;
-        }
-        return PlotMask.NOWHERE;
+    public static PlotMask of(PlotSchema schema, Collection<PlotId> plots) {
+        return new PlotMask(schema, plots);
     }
 }
