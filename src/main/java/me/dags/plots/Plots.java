@@ -113,6 +113,7 @@ public class Plots {
                 .register(Info.class)
                 .register(Like.class)
                 .register(Likes.class)
+                .register(Likers.class)
                 .register(List.class)
                 .register(Maskall.class)
                 .register(Remove.class)

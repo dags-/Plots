@@ -16,6 +16,7 @@ import org.spongepowered.api.service.user.UserStorageService;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.action.TextActions;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -109,6 +110,18 @@ public class PlotActions {
 
         return builder.build();
     }
+
+    public static List<Text> likedPlots(WorldDatabase database, UUID uuid, Format format) {
+        FindIterable<Document> results = database.plotCollection().find(Filters.in(Keys.PLOT_LIKES, uuid.toString()));
+        List<Text> info = new ArrayList<>();
+        for (Document document : results) {
+            if (document.containsKey(Keys.PLOT_ID)) {
+                PlotId plotId = PlotId.parse(document.getString(Keys.PLOT_ID));
+                info.add(plotInfo(plotId, database.getWorld(), document, format));
+            }
+        }
+        return info;
+     }
 
     public static Text plotInfo(WorldDatabase database, PlotId plotId, Format format) {
         Document first = database.plotCollection().find(Filters.eq(Keys.PLOT_ID, plotId.toString())).first();

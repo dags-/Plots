@@ -17,6 +17,7 @@ public final class Permissions {
     public static final String PLOT_INFO = "plots.command.info";
     public static final String PLOT_LIKE = "plots.command.like";
     public static final String PLOT_LIKES = "plots.command.likes";
+    public static final String PLOT_LIKERS = "plots.command.likers";
     public static final String PLOT_LIST = "plots.command.list.self";
     public static final String PLOT_LIST_OTHER = "plots.command.list.other";
     public static final String PLOT_MASKALL = "plots.command.maskall";

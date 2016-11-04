@@ -66,6 +66,14 @@ public class UserActions {
         return builder.build();
     }
 
+    public static PaginationList listLikes(WorldDatabase database, String name, UUID uuid, Format format) {
+        PaginationList.Builder builder = PaginationList.builder();
+        builder.title(format.stress("{}'s Liked Plots", name).build());
+        builder.linesPerPage(9);
+        builder.contents(PlotActions.likedPlots(database, uuid, format));
+        return builder.build();
+    }
+
     public static boolean hasPlot(WorldDatabase database, UUID uuid, PlotId plotId) {
         Document first = database.userCollection().find(Filters.eq(Keys.USER_ID, uuid.toString())).first();
         if (first != null && first.containsKey(Keys.USER_PLOTS)) {
