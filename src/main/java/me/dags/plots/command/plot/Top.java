@@ -31,6 +31,10 @@ public class Top {
     public void top(@Caller Player player, @One("size") int size) {
         Optional<PlotWorld> plotWorld = Cmd.getWorld(player);
         if (plotWorld.isPresent()) {
+            if (size > 0 && size <= 100) {
+                Cmd.FMT().error("Please specify a value between 1 & 100").tell(player);
+                return;
+            }
             WorldDatabase database = plotWorld.get().database();
             Supplier<PaginationList> get = () -> PlotActions.topPlots(database, size, Cmd.FMT());
             Consumer<PaginationList> top = list -> list.sendTo(player);
