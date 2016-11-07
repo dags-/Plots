@@ -31,7 +31,7 @@ public class Top {
     public void top(@Caller Player player, @One("size") int size) {
         Optional<PlotWorld> plotWorld = Cmd.getWorld(player);
         if (plotWorld.isPresent()) {
-            if (size > 0 && size <= 100) {
+            if (size < 1 || size > 100) {
                 Cmd.FMT().error("Please specify a value between 1 & 100").tell(player);
                 return;
             }
