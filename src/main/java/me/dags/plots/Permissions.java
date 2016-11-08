@@ -14,7 +14,8 @@ public final class Permissions {
     public static final String PLOT_BIOME = "plots.command.biome";
     public static final String PLOT_CLAIM = "plots.command.claim";
     public static final String PLOT_COPY = "plots.command.copy";
-    public static final String PLOT_HIGHLIGHT = "plots.command.highlight";
+    public static final String PLOT_HIGHLIGHT = "plots.command.highlight.self";
+    public static final String PLOT_HIGHLIGHT_OTHER = "plots.command.highlight.other";
     public static final String PLOT_INFO = "plots.command.info";
     public static final String PLOT_LIKE = "plots.command.like";
     public static final String PLOT_LIKES = "plots.command.likes";

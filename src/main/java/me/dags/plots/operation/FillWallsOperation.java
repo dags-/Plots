@@ -44,16 +44,17 @@ public class FillWallsOperation implements Operation {
             return blocksToProcess;
         }
         BlockState state = BlockTypes.GLOWSTONE.getDefaultState();
-        for (int x = 0; x < min.getX(); x++) {
+        for (int x = min.getX(); x <= max.getX(); x++) {
             viewer.sendBlockChange(x, level, min.getY() - 1, state);
             viewer.sendBlockChange(x, level, max.getY() + 1, state);
             blocksToProcess -= 2;
         }
-        for (int z = 0; z < min.getY(); z++) {
+        for (int z = min.getY(); z <= max.getY(); z++) {
             viewer.sendBlockChange(min.getX() - 1, level, z, state);
             viewer.sendBlockChange(max.getX() + 1, level, z, state);
             blocksToProcess -= 2;
         }
+        complete = true;
         if (viewer instanceof Player) {
             Cmd.FMT().info("Highlighted plot ").stress(plotId).tell((Player) viewer);
         }

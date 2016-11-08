@@ -2,6 +2,7 @@ package me.dags.plots.command.plot;
 
 import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
+import me.dags.commandbus.annotation.One;
 import me.dags.commandbus.annotation.Permission;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
@@ -15,6 +16,7 @@ import me.dags.plots.plot.PlotUser;
 import me.dags.plots.plot.PlotWorld;
 import me.dags.plots.util.Pair;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.entity.living.player.User;
 
 import java.util.List;
 import java.util.UUID;
@@ -28,27 +30,32 @@ public class Highlight {
 
     @Command(aliases = "highlight", parent = "plot", desc = "Highlight your nearby plots", perm = @Permission(Permissions.PLOT_HIGHLIGHT))
     public void highlight(@Caller Player player) {
+        highlight(player, player);
+    }
+
+    @Command(aliases = "highlight", parent = "plot", desc = "Highlight player's nearby plots", perm = @Permission(Permissions.PLOT_HIGHLIGHT_OTHER))
+    public void highlight(@Caller Player player, @One("player") User user) {
         Pair<PlotWorld, PlotId> pair = Cmd.getPlot(player);
         if (pair.present()) {
             WorldDatabase database = pair.first().database();
-            UUID uuid = player.getUniqueId();
-            Supplier<List<PlotId>> search = () -> PlotActions.findOwnedPlots(database, uuid, pair.second(), 10);
+            UUID uuid = user.getUniqueId();
+            Supplier<List<PlotId>> search = () -> PlotActions.findOwnedPlots(database, uuid, pair.second(), 3);
             Consumer<List<PlotId>> highlight = highlight(pair.first(), player);
             Plots.executor().async(search, highlight);
             Cmd.FMT().info("Highlighting your nearby plots...").tell(player);
         }
     }
 
-    private static Consumer<List<PlotId>> highlight(PlotWorld plotWorld, Player player) {
+    private static Consumer<List<PlotId>> highlight(PlotWorld plotWorld, Player viewer) {
         return plotIds -> {
-            if (plotWorld.equalsWorld(player.getWorld())) {
-                PlotUser plotUser = plotWorld.user(player.getUniqueId());
+            if (plotWorld.equalsWorld(viewer.getWorld())) {
+                PlotUser plotUser = plotWorld.user(viewer.getUniqueId());
                 for (PlotId plotId : plotIds) {
                     PlotBounds bounds = plotUser.plotMask().plots().get(plotId);
                     if (bounds == null) {
                         continue;
                     }
-                    FillWallsOperation operation = new FillWallsOperation(player, plotWorld, plotId);
+                    FillWallsOperation operation = new FillWallsOperation(viewer, plotWorld, plotId);
                     Plots.API().dispatcher().queueOperation(operation);
                 }
             }
