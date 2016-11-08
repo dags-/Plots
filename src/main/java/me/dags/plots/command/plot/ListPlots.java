@@ -21,7 +21,7 @@ import java.util.function.Supplier;
 /**
  * @author dags <dags@dags.me>
  */
-public class List {
+public class ListPlots {
 
     @Command(aliases = "list", parent = "plot", desc = "List your plots", perm = @Permission(Permissions.PLOT_LIST))
     public void list(@Caller Player player) {
