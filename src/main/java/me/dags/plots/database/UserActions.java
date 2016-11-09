@@ -8,6 +8,7 @@ import me.dags.plots.plot.PlotId;
 import me.dags.plots.plot.PlotSchema;
 import me.dags.plots.plot.PlotUser;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.text.Text;
 
@@ -15,7 +16,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author dags <dags@dags.me>
@@ -41,6 +44,26 @@ public class UserActions {
         }
 
         return builder.build();
+    }
+
+    public static Stream<PlotId> findNearbyPlots(WorldDatabase database, UUID uuid, PlotId centre, int radius) {
+        Document first = database.userCollection().find(Filters.eq(Keys.USER_ID, uuid.toString())).first();
+        if (first != null) {
+            if (first.containsKey(Keys.USER_PLOTS)) {
+                List<?> list = first.get(Keys.USER_PLOTS, List.class);
+                Predicate<PlotId> filter = id ->
+                        id.plotX() >= centre.plotX() - radius
+                                && id.plotX() <= centre.plotX() + radius
+                                && id.plotZ() >= centre.plotZ() - radius
+                                && id.plotZ() <= centre.plotZ() + radius;
+                return list.stream().map(o -> PlotId.parse(o.toString())).filter(filter);
+            }
+        }
+        return Stream.empty();
+    }
+
+    public static Stream<PlotId> findNearbySoloPlots(WorldDatabase database, UUID uuid, PlotId centre, int radius) {
+        return findNearbyPlots(database, uuid, centre, radius).filter(id -> countPlotUsers(database, id) == 1);
     }
 
     public static PaginationList listPlots(WorldDatabase database, String title, UUID uuid, Format format) {
@@ -75,12 +98,13 @@ public class UserActions {
     }
 
     public static boolean hasPlot(WorldDatabase database, UUID uuid, PlotId plotId) {
-        Document first = database.userCollection().find(Filters.eq(Keys.USER_ID, uuid.toString())).first();
-        if (first != null && first.containsKey(Keys.USER_PLOTS)) {
-            List<?> list = first.get(Keys.USER_PLOTS, List.class);
-            return list.stream().anyMatch(o -> o.toString().equals(plotId.toString()));
-        }
-        return false;
+        Bson user = Filters.eq(Keys.USER_ID, uuid.toString());
+        Bson plot = Filters.in(Keys.USER_PLOTS, plotId.toString());
+        return database.userCollection().count(Filters.and(user, plot)) > 0;
+    }
+
+    public static long countPlotUsers(WorldDatabase database, PlotId plotId) {
+        return database.userCollection().count(Filters.in(Keys.USER_PLOTS, plotId.toString()));
     }
 
     public static List<UUID> getWhitelisted(WorldDatabase database, PlotId plotId) {

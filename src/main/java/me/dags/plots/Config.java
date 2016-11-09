@@ -1,6 +1,8 @@
 package me.dags.plots;
 
 import me.dags.commandbus.utils.Format;
+import org.spongepowered.api.block.BlockType;
+import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.text.format.TextStyles;
 
@@ -9,9 +11,11 @@ import org.spongepowered.api.text.format.TextStyles;
  */
 public class Config {
 
-    private Database database = new Database();
+    private BlockType proof = BlockTypes.DIAMOND_BLOCK;
+    private BlockType highlight = BlockTypes.GLOWSTONE;
     private int blocks_per_tick = 5000;
     private boolean convert = false;
+    private Database database = new Database();
     private Format message_format = Format.DEFAULT;
 
     public Config(){}
@@ -38,6 +42,14 @@ public class Config {
 
     public Database database() {
         return database;
+    }
+
+    public BlockType proofBlock() {
+        return proof;
+    }
+
+    public BlockType highlightBlock() {
+        return highlight;
     }
 
     public boolean convert() {

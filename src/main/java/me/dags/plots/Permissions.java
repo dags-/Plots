@@ -23,6 +23,8 @@ public final class Permissions {
     public static final String PLOT_LIST = "plots.command.list.self";
     public static final String PLOT_LIST_OTHER = "plots.command.list.other";
     public static final String PLOT_MASKALL = "plots.command.maskall";
+    public static final String PLOT_PROOF = "plots.command.proof.self";
+    public static final String PLOT_PROOF_OTHER = "plots.command.proof.other";
     public static final String PLOT_REMOVE = "plots.command.remove.other";
     public static final String PLOT_REMOVE_ANY = "plots.command.remove.any";
     public static final String PLOT_RESET = "plots.command.reset.self";

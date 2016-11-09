@@ -117,6 +117,7 @@ public class Plots {
                 .register(Likers.class)
                 .register(ListPlots.class)
                 .register(Maskall.class)
+                .register(Proof.class)
                 .register(Remove.class)
                 .register(Reset.class)
                 .register(Teleport.class)

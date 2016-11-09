@@ -9,11 +9,9 @@ import me.dags.plots.Plots;
 import me.dags.plots.command.Cmd;
 import me.dags.plots.database.UserActions;
 import me.dags.plots.database.WorldDatabase;
-import me.dags.plots.operation.FillWallsOperation;
 import me.dags.plots.plot.PlotId;
 import me.dags.plots.plot.PlotWorld;
 import me.dags.plots.util.Pair;
-import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.living.player.User;
 
@@ -26,37 +24,23 @@ import java.util.stream.Collectors;
 /**
  * @author dags <dags@dags.me>
  */
-public class Highlight {
+public class Proof {
 
-    @Command(aliases = "highlight", parent = "plot", desc = "Highlight your nearby plots", perm = @Permission(Permissions.PLOT_HIGHLIGHT))
+    @Command(aliases = "proof", parent = "plot", desc = "Highlight your solo plots", perm = @Permission(Permissions.PLOT_PROOF))
     public void highlight(@Caller Player player) {
         highlight(player, player);
     }
 
-    @Command(aliases = "highlight", parent = "plot", desc = "Highlight a player's nearby plots", perm = @Permission(Permissions.PLOT_HIGHLIGHT_OTHER))
+    @Command(aliases = "proof", parent = "plot", desc = "Highlight a player's solo plots", perm = @Permission(Permissions.PLOT_PROOF_OTHER))
     public void highlight(@Caller Player player, @One("player") User user) {
         Pair<PlotWorld, PlotId> pair = Cmd.getPlot(player);
         if (pair.present()) {
             PlotId centre = pair.second();
             UUID uuid = user.getUniqueId();
             WorldDatabase database = pair.first().database();
-            Supplier<List<PlotId>> find = () -> UserActions.findNearbyPlots(database, uuid, centre, 3).collect(Collectors.toList());
-            Consumer<List<PlotId>> highlight = highlight(pair.first(), player, Plots.config().highlightBlock());
+            Supplier<List<PlotId>> find = () -> UserActions.findNearbySoloPlots(database, uuid, centre, 3).collect(Collectors.toList());
+            Consumer<List<PlotId>> highlight = Highlight.highlight(pair.first(), player, Plots.config().proofBlock());
             Plots.executor().async(find, highlight);
         }
-    }
-
-    static Consumer<List<PlotId>> highlight(PlotWorld world, Player player, BlockType blockType) {
-        return plotIds -> {
-            if (player.isOnline()) {
-                for (PlotId plotId : plotIds) {
-                    if (!plotId.present()) {
-                        continue;
-                    }
-                    FillWallsOperation operation = new FillWallsOperation(player, world, plotId, blockType);
-                    Plots.API().dispatcher().queueOperation(operation);
-                }
-            }
-        };
     }
 }

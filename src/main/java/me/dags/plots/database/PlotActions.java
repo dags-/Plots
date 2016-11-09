@@ -62,23 +62,6 @@ public class PlotActions {
         return PlotId.EMPTY;
     }
 
-    public static List<PlotId> findOwnedPlots(WorldDatabase database, UUID owner, PlotId from, int range) {
-        PlotId min = PlotId.of(from.plotX() - range, from.plotZ() - range);
-        PlotId max = PlotId.of(from.plotX() + range, from.plotZ() + range);
-        String uuid = owner.toString();
-        List<PlotId> matches = new ArrayList<>();
-        for (int x = min.plotX(); x < max.plotX(); x++) {
-            for (int z = min.plotZ(); z < max.plotZ(); z++) {
-                PlotId test = PlotId.of(x, z);
-                Document first = database.plotCollection().find(Filters.eq(Keys.PLOT_ID, test.toString())).first();
-                if (first != null && first.containsKey(Keys.PLOT_OWNER) && first.getString(Keys.PLOT_OWNER).equals(uuid)) {
-                    matches.add(test);
-                }
-            }
-        }
-        return matches;
-    }
-
     public static Optional<UUID> findPlotOwner(WorldDatabase database, PlotId plotId) {
         Document first = database.plotCollection().find(Filters.eq(Keys.PLOT_ID, plotId.toString())).first();
         if (first != null && first.containsKey(Keys.PLOT_OWNER)) {
