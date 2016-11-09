@@ -1,6 +1,7 @@
 package me.dags.plots;
 
 import me.dags.commandbus.utils.Format;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.text.format.TextColors;
@@ -26,6 +27,14 @@ public class Config {
                 .stress(TextColors.GOLD)
                 .info(TextColors.GREEN)
                 .build();
+    }
+
+    public void setHighlight(String highlight) {
+        this.highlight = Sponge.getRegistry().getType(BlockType.class, highlight).orElse(BlockTypes.GLOWSTONE);
+    }
+
+    public void setProof(String proof) {
+        this.proof = Sponge.getRegistry().getType(BlockType.class, proof).orElse(BlockTypes.DIAMOND_BLOCK);
     }
 
     public void setConvert(boolean convert) {

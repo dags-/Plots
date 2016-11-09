@@ -6,6 +6,7 @@ import me.dags.data.node.NodeObject;
 import me.dags.data.node.NodeTypeAdapter;
 import me.dags.data.node.NodeTypeAdapters;
 import me.dags.plots.Config;
+import org.spongepowered.api.block.BlockTypes;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,6 +26,8 @@ public class ConfigAdapter implements NodeTypeAdapter<Config> {
 
         NodeObject configNode = new NodeObject();
         configNode.put("database", database);
+        configNode.put("highlight_block", config.highlightBlock().getId());
+        configNode.put("proof_block", config.proofBlock().getId());
         configNode.put("convert_old_db", config.convert());
         configNode.put("blocks_per_tick", config.blocksPerTick());
         configNode.put("message_format", NodeTypeAdapters.serialize(config.formatter().toMap()));
@@ -41,6 +44,8 @@ public class ConfigAdapter implements NodeTypeAdapter<Config> {
                 config.database().setPort(db.asNodeObject().map("port", n -> n.asNumber().intValue(), 27017));
             }
         });
+        config.setHighlight(object.map("highlight_block", Node::asString, BlockTypes.GLOWSTONE.getId()));
+        config.setProof(object.map("proof_block", Node::asString, BlockTypes.DIAMOND_BLOCK.getId()));
         config.setConvert(!object.contains("convert_old_db") || object.map("convert_old_db", Node::asBoolean, false));
         config.setBlocksPerTick(object.map("blocks_per_tick", n -> n.asNumber().intValue(), 10000));
         config.setMessageFormat(object.map("message_format", n -> Format.fromMap(ConfigAdapter.toMap(n)), Format.DEFAULT));
