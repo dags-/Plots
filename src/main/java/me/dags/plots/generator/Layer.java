@@ -1,6 +1,7 @@
 package me.dags.plots.generator;
 
 import com.flowpowered.math.vector.Vector3i;
+import me.dags.plots.Plots;
 import me.dags.plots.util.GridMap;
 import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.block.BlockTypes;
@@ -36,7 +37,7 @@ public class Layer {
         for (int z = min.getZ(); z <= max.getZ(); z++) {
             for (int x = min.getX(); x <= max.getX(); x++) {
                 BlockType type = layer.get(x, z);
-                buffer.setBlockType(x, y, z, type);
+                buffer.setBlockType(x, y, z, type, Plots.PLOTS_GENERATOR);
             }
         }
     }
@@ -59,7 +60,7 @@ public class Layer {
             Vector3i min = buffer.getBlockMin(), max = buffer.getBlockMax();
             for (int z = min.getZ(); z <= max.getZ(); z++) {
                 for (int x = min.getX(); x <= max.getX(); x++) {
-                    buffer.setBlockType(x, y, z, base);
+                    buffer.setBlockType(x, y, z, base, Plots.PLOTS_GENERATOR);
                 }
             }
         }

@@ -16,13 +16,13 @@ import me.dags.plots.plot.PlotWorld;
 import me.dags.plots.util.Executor;
 import me.dags.plots.util.IO;
 import me.dags.plots.util.Support;
-import me.dags.plotsconv.Converter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
+import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStoppingServerEvent;
 import org.spongepowered.api.event.world.LoadWorldEvent;
@@ -36,16 +36,18 @@ import java.nio.file.Path;
 /**
  * @author dags <dags@dags.me>
  */
-@Plugin(id = Plots.ID, name = Plots.ID, version = "1.0")
+@Plugin(id = Plots.ID, name = Plots.ID, version = "1.0", description = "shh")
 public class Plots {
 
+    public static final Cause PLOTS_GENERATOR = null;
+    public static final Cause PLOT_PROTECTION = null;
     public static final String ID = "plots";
 
     private static final Logger logger = LoggerFactory.getLogger("PLOTS");
     private static Plots instance;
 
     private final boolean enabled;
-    private final PlotsApi plots;
+    private final PlotsCore plots;
     private final Executor executor;
     private final MongoClient client;
     final Path configDir;
@@ -73,7 +75,7 @@ public class Plots {
         } finally {
             Plots.instance = this;
             this.configDir = configDir;
-            this.plots = new PlotsApi(this);
+            this.plots = new PlotsCore(this);
             this.executor  = new Executor(this);
             this.client = client;
             this.enabled = client != null && enabled;
@@ -84,17 +86,14 @@ public class Plots {
     public void init(GameInitializationEvent event) {
         config = IO.getConfig(configDir.resolve("config.conf"));
 
-        if (!safeMode() && config.convert()) {
-            log("Converting h2 data base...");
-            new Converter(client, "jdbc:h2:" + configDir.resolve("plots_data").toAbsolutePath()).convert();
-            config.setConvert(false);
+        if (!safeMode()) {
             IO.writeConfig(config, configDir.resolve("config.conf"));
         }
 
         Cmd.setFormat(config.formatter());
 
-        API().reloadGenerators();
-        API().loadWorldGenerators();
+        core().reloadGenerators();
+        core().loadWorldGenerators();
 
         if (safeMode()) {
             log("Running in Safe Mode, commands will not be registered");
@@ -148,7 +147,7 @@ public class Plots {
         executor().sync(Support.of(
                 "VoxelSniper",
                 "com.thevoxelbox.voxelsniper.brush.mask.Mask",
-                "me.dags.plotssupport.voxelsniper.SniperListener")
+                "me.dags.plots.support.voxelsniper.SniperListener")
         );
     }
 
@@ -165,7 +164,7 @@ public class Plots {
             PlotGenerator plotGenerator = (PlotGenerator) world.getWorldGenerator().getBaseGenerationPopulator();
             WorldDatabase database = new WorldDatabase(client.getDatabase(world.getName().toLowerCase()));
             PlotWorld plotWorld = new PlotWorld(world, database, plotGenerator.plotSchema());
-            Plots.API().registerPlotWorld(plotWorld);
+            Plots.core().registerPlotWorld(plotWorld);
         }
     }
 
@@ -176,7 +175,7 @@ public class Plots {
         }
         World world = event.getTargetWorld();
         if (world.getWorldGenerator().getBaseGenerationPopulator() instanceof PlotGenerator) {
-            Plots.API().removePlotWorld(world.getName());
+            Plots.core().removePlotWorld(world.getName());
         }
     }
 
@@ -187,10 +186,10 @@ public class Plots {
         }
         client.close();
         executor().close();
-        API().dispatcher().finishAll();
+        core().dispatcher().finishAll();
     }
 
-    public static PlotsApi API() {
+    public static PlotsCore core() {
         return instance.plots;
     }
 

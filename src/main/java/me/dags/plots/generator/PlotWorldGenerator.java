@@ -6,12 +6,12 @@ import me.dags.plots.plot.PlotSchema;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.world.World;
-import org.spongepowered.api.world.WorldCreationSettings;
 import org.spongepowered.api.world.biome.BiomeType;
-import org.spongepowered.api.world.extent.ImmutableBiomeArea;
-import org.spongepowered.api.world.extent.MutableBiomeArea;
+import org.spongepowered.api.world.extent.ImmutableBiomeVolume;
+import org.spongepowered.api.world.extent.MutableBiomeVolume;
 import org.spongepowered.api.world.extent.MutableBlockVolume;
 import org.spongepowered.api.world.gen.WorldGenerator;
+import org.spongepowered.api.world.storage.WorldProperties;
 
 /**
  * @author dags <dags@dags.me>
@@ -47,7 +47,7 @@ public class PlotWorldGenerator implements PlotGenerator {
     }
 
     @Override
-    public void modifyWorldGenerator(WorldCreationSettings world, DataContainer settings, WorldGenerator worldGenerator) {
+    public void modifyWorldGenerator(WorldProperties world, DataContainer settings, WorldGenerator worldGenerator) {
         worldGenerator.getPopulators().clear();
         clearBiomePopulators(worldGenerator);
         worldGenerator.setBiomeGenerator(this);
@@ -65,7 +65,7 @@ public class PlotWorldGenerator implements PlotGenerator {
     }
 
     @Override
-    public void populate(World world, MutableBlockVolume buffer, ImmutableBiomeArea biomes) {
+    public void populate(World world, MutableBlockVolume buffer, ImmutableBiomeVolume biomes) {
         for (int y = buffer.getBlockMin().getY(); y < maxY; y++) {
             Layer layer = layerAtHeight(y);
             layer.populate(buffer, y);
@@ -73,10 +73,10 @@ public class PlotWorldGenerator implements PlotGenerator {
     }
 
     @Override
-    public void generateBiomes(MutableBiomeArea buffer) {
+    public void generateBiomes(MutableBiomeVolume buffer) {
         for (int x = buffer.getBiomeMin().getX(); x <= buffer.getBiomeMax().getX(); x++) {
             for (int z = buffer.getBiomeMin().getY(); z <= buffer.getBiomeMax().getY(); z++) {
-                buffer.setBiome(x, z, biomeType);
+                buffer.setBiome(x, 128, z, biomeType);
             }
         }
     }

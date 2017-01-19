@@ -54,7 +54,7 @@ public class Highlight {
                         continue;
                     }
                     FillWallsOperation operation = new FillWallsOperation(player, world, plotId, blockType);
-                    Plots.API().dispatcher().queueOperation(operation);
+                    Plots.core().dispatcher().queueOperation(operation);
                 }
             }
         };

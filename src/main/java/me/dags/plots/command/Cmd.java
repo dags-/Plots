@@ -74,7 +74,7 @@ public class Cmd {
 
     // Get a PlotWorld by name, alerts the source if it is not a PlotWorld
     public static Optional<PlotWorld> getWorld(CommandSource source, String world) {
-        Optional<PlotWorld> optional = Plots.API().plotWorld(world);
+        Optional<PlotWorld> optional = Plots.core().plotWorld(world);
         if (!optional.isPresent()) {
             FMT().error("World {} is not a PlotWorld", world).tell(source);
         }

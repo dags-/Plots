@@ -1,13 +1,14 @@
 package me.dags.plots.operation;
 
 import com.flowpowered.math.vector.Vector3i;
+import me.dags.plots.Plots;
 import me.dags.plots.generator.Layer;
 import me.dags.plots.generator.PlotGenerator;
 import me.dags.plots.plot.PlotBounds;
 import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.world.World;
-import org.spongepowered.api.world.extent.MutableBiomeArea;
+import org.spongepowered.api.world.extent.MutableBiomeVolume;
 import org.spongepowered.api.world.extent.MutableBlockVolume;
 import org.spongepowered.api.world.gen.GenerationPopulator;
 
@@ -19,7 +20,7 @@ public class ResetOperation implements Operation {
     private final String world;
     private final PlotGenerator plotGenerator;
     private final MutableBlockVolume blockView;
-    private final MutableBiomeArea biomeView;
+    private final MutableBiomeVolume biomeView;
     private final int maxX, maxZ, layersHeight;
     private final Vector3i min;
 
@@ -34,7 +35,7 @@ public class ResetOperation implements Operation {
         this.world = world.getName();
         this.plotGenerator = (PlotGenerator) populator;
         this.blockView = world.getBlockView(min, max);
-        this.biomeView = world.getBiomeView(bounds.getMin(), bounds.getMax());
+        this.biomeView = world.getBiomeView(bounds.getBlockMin(), bounds.getBlockMax());
         this.layersHeight = plotGenerator.plotSchema().surfaceHeight();
         this.maxX = max.getX() - min.getX();
         this.maxZ = max.getZ() - min.getZ();
@@ -87,6 +88,6 @@ public class ResetOperation implements Operation {
             blockType = layer.getBlockAt(x, z);
         }
 
-        blockView.setBlockType(min.getX() + x, min.getY() + y, min.getZ() + z, blockType);
+        blockView.setBlockType(min.getX() + x, min.getY() + y, min.getZ() + z, blockType, Plots.PLOTS_GENERATOR);
     }
 }

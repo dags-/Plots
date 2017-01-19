@@ -1,0 +1,62 @@
+plugins {
+    id 'com.github.johnrengelman.shadow' version '1.2.4'
+}
+
+group 'me.dags'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+
+    maven {
+        url 'http://repo.spongepowered.org/maven'
+    }
+
+    maven {
+        url 'http://maven.sk89q.com/repo/'
+    }
+
+    maven {
+        url 'https://jitpack.io'
+    }
+}
+
+dependencies {
+    apply plugin: 'java'
+    compile 'org.spongepowered:spongeapi:6.0.0-SNAPSHOT'
+    compile('org.spongepowered:mixin:0.5.11-SNAPSHOT') {
+        exclude module: 'launchwrapper'
+        exclude module: 'guava'
+    }
+    compile ('com.github.TVPT:VoxelSniper:sponge-1.10.2-SNAPSHOT') {
+        exclude module: 'spongeapi'
+    }
+    compile 'com.sk89q.worldedit:worldedit-core:6.0.0-SNAPSHOT'
+    compile 'org.mongodb:mongo-java-driver:3.2.0'
+    compile 'com.github.dags-:CommandBus:1.4.0-SNAPSHOT-1'
+    compile 'com.github.dags-:NodeData:1.3.0-SNAPSHOT-20'
+}
+
+jar {
+    manifest {
+        attributes(
+                'MixinConfigs': 'mixins.plots.voxelsniper.json',
+                'tweakClass': 'org.spongepowered.asm.launch.MixinTweaker',
+        )
+    }
+}
+
+shadowJar {
+    dependencies {
+        include dependency('com.github.dags-:CommandBus')
+        include dependency('com.github.dags-:NodeData')
+        include dependency('org.mongodb:mongo-java-driver')
+    }
+
+    relocate 'me.dags.commandbus', 'me.dags.plots.libs.commandbus'
+    relocate 'me.dags.data', 'me.dags.plots.libs.data'
+    relocate 'com.mongodb', 'me.dags.plots.libs.mongodb'
+    relocate 'org.bson', 'me.dags.plots.libs.bson'
+}
+
+build.dependsOn(shadowJar)

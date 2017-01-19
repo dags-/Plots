@@ -1,6 +1,6 @@
 package me.dags.plots.operation;
 
-import com.flowpowered.math.vector.Vector2i;
+import com.flowpowered.math.vector.Vector3i;
 
 /**
  * @author dags <dags@dags.me>
@@ -15,7 +15,7 @@ public abstract class AbstractBiomeOperation implements Operation {
     private boolean complete = false;
     private Runnable callback = null;
 
-    AbstractBiomeOperation(String world, Vector2i min, Vector2i max) {
+    AbstractBiomeOperation(String world, Vector3i min, Vector3i max) {
         this.world = world;
         this.maxX = max.getX() - min.getX();
         this.maxZ = max.getY() - min.getY();
@@ -30,7 +30,7 @@ public abstract class AbstractBiomeOperation implements Operation {
     public int process(int blocksToProcess) {
         for (; x <= maxX; x++) {
             for (; z <= maxZ; z++) {
-                processAt(x, z);
+                processAt(x, 0, z);
 
                 if (blocksToProcess-- <= 0) {
                     return 0;
@@ -55,5 +55,5 @@ public abstract class AbstractBiomeOperation implements Operation {
         return complete;
     }
 
-    abstract void processAt(int x, int z);
+    abstract void processAt(int x, int y, int z);
 }

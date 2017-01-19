@@ -15,7 +15,6 @@ public class Config {
     private BlockType proof = BlockTypes.DIAMOND_BLOCK;
     private BlockType highlight = BlockTypes.GLOWSTONE;
     private int blocks_per_tick = 5000;
-    private boolean convert = false;
     private Database database = new Database();
     private Format message_format = Format.DEFAULT;
 
@@ -37,10 +36,6 @@ public class Config {
         this.proof = Sponge.getRegistry().getType(BlockType.class, proof).orElse(BlockTypes.DIAMOND_BLOCK);
     }
 
-    public void setConvert(boolean convert) {
-        this.convert = convert;
-    }
-
     public void setBlocksPerTick(int count) {
         this.blocks_per_tick = count;
     }
@@ -59,10 +54,6 @@ public class Config {
 
     public BlockType highlightBlock() {
         return highlight;
-    }
-
-    public boolean convert() {
-        return convert;
     }
 
     public int blocksPerTick() {

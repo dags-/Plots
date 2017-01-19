@@ -9,7 +9,6 @@ import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.Entity;
-import org.spongepowered.api.entity.EntitySnapshot;
 import org.spongepowered.api.entity.EntityTypes;
 import org.spongepowered.api.entity.living.ArmorStand;
 import org.spongepowered.api.entity.living.Living;
@@ -24,8 +23,8 @@ import org.spongepowered.api.event.cause.entity.damage.source.EntityDamageSource
 import org.spongepowered.api.event.cause.entity.damage.source.IndirectEntityDamageSource;
 import org.spongepowered.api.event.cause.entity.spawn.EntitySpawnCause;
 import org.spongepowered.api.event.entity.DamageEntityEvent;
-import org.spongepowered.api.event.entity.DisplaceEntityEvent;
 import org.spongepowered.api.event.entity.InteractEntityEvent;
+import org.spongepowered.api.event.entity.MoveEntityEvent;
 import org.spongepowered.api.event.entity.SpawnEntityEvent;
 import org.spongepowered.api.event.filter.cause.First;
 import org.spongepowered.api.event.filter.cause.Root;
@@ -80,7 +79,7 @@ public class PlotWorldListener {
 
                 if (cancel) {
                     event.setCancelled(true);
-                    root.getLocation().ifPresent(location -> location.setBlockType(BlockTypes.AIR));
+                    root.getLocation().ifPresent(location -> location.setBlockType(BlockTypes.AIR, Plots.PLOT_PROTECTION));
                 }
             } else if (root.supports(Keys.POWER) || root.supports(Keys.POWERED)) {
                 event.setCancelled(true);
@@ -99,7 +98,7 @@ public class PlotWorldListener {
             if (root instanceof BlockSnapshot) {
                 BlockSnapshot snapshot = (BlockSnapshot) root;
                 if (!plotWorld.plotSchema().containingPlot(snapshot.getPosition()).present()) {
-                    snapshot.getLocation().ifPresent(location -> location.setBlockType(BlockTypes.AIR));
+                    snapshot.getLocation().ifPresent(location -> location.setBlockType(BlockTypes.AIR, Plots.PLOT_PROTECTION));
                 }
             }
         }
@@ -197,20 +196,21 @@ public class PlotWorldListener {
     // DropItemEvent is dumb
     @Listener(order = Order.PRE)
     public void drop(DropItemEvent event, @First EntitySpawnCause cause) {
-        EntitySnapshot snapshot = cause.getEntity();
-        if (plotWorld.equalsWorld(snapshot.getWorldUniqueId())) {
-            if (snapshot.getType() != EntityTypes.PLAYER) {
+        // No docs :/ assume getEntity returns the entity that has caused this event
+        // Hopefully isn't the entity that has been spawned!
+        Entity entity = cause.getEntity();
+
+        if (plotWorld.equalsWorld(entity.getWorld())) {
+            if (entity.getType() != EntityTypes.PLAYER) {
                 return;
             }
-            // wut
-            snapshot.restore().map(Player.class::cast).ifPresent(player -> {
-                if (player.hasPermission(Permissions.ACTION_BYPASS)) {
-                    return;
-                }
-                if (!player.hasPermission(Permissions.ACTION_DROP) || !canEdit(player, player.getLocation().getBlockPosition())) {
-                    event.setCancelled(true);
-                }
-            });
+            Player player = (Player) entity;
+            if (player.hasPermission(Permissions.ACTION_BYPASS)) {
+                return;
+            }
+            if (!player.hasPermission(Permissions.ACTION_DROP) || !canEdit(player, player.getLocation().getBlockPosition())) {
+                event.setCancelled(true);
+            }
         }
     }
 
@@ -244,7 +244,7 @@ public class PlotWorldListener {
     }
 
     @Listener (order = Order.POST)
-    public void onTeleport(DisplaceEntityEvent.Teleport event, @Root Player player) {
+    public void onTeleport(MoveEntityEvent.Teleport event, @Root Player player) {
         if (plotWorld.equalsWorld(event.getToTransform().getExtent())) {
             PlotId plotId = plotWorld.plotSchema().containingPlot(event.getToTransform().getPosition().toInt());
             if (plotId.present()) {
@@ -256,7 +256,7 @@ public class PlotWorldListener {
     }
 
     @Listener
-    public void onEntityMove(DisplaceEntityEvent.Move event) {
+    public void onEntityMove(MoveEntityEvent event) {
         if (plotWorld.equalsWorld(event.getToTransform().getExtent())) {
             Vector3i from = event.getFromTransform().getLocation().getBlockPosition();
             Vector3i to = event.getToTransform().getLocation().getBlockPosition();

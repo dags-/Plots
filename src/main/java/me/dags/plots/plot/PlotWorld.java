@@ -8,19 +8,18 @@ import me.dags.plots.Plots;
 import me.dags.plots.command.Cmd;
 import me.dags.plots.database.UserActions;
 import me.dags.plots.database.WorldDatabase;
-import me.dags.plots.operation.CopyBiomeOperation;
-import me.dags.plots.operation.CopyBlockOperation;
 import me.dags.plots.operation.FillBiomeOperation;
 import me.dags.plots.operation.ResetOperation;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.service.user.UserStorageService;
+import org.spongepowered.api.world.BlockChangeFlag;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 import org.spongepowered.api.world.biome.BiomeType;
-import org.spongepowered.api.world.extent.MutableBiomeArea;
-import org.spongepowered.api.world.extent.MutableBlockVolume;
+import org.spongepowered.api.world.extent.ArchetypeVolume;
+import org.spongepowered.api.world.extent.MutableBiomeVolume;
 
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -107,16 +106,16 @@ public class PlotWorld {
             PlotBounds bounds = plotSchema.plotBounds(plotId);
             ResetOperation reset = new ResetOperation(world, bounds);
             reset.onComplete(callback);
-            Plots.API().dispatcher().queueOperation(reset);
+            Plots.core().dispatcher().queueOperation(reset);
         });
     }
 
     public void setBiome(PlotId plotId, BiomeType type) {
         Sponge.getServer().getWorld(worldId).ifPresent(world -> {
             PlotBounds bounds = plotSchema.plotBounds(plotId);
-            MutableBiomeArea area = world.getBiomeView(bounds.getMin(), bounds.getMax());
-            FillBiomeOperation fill = new FillBiomeOperation(world.getName(), area, type);
-            Plots.API().dispatcher().queueOperation(fill);
+            MutableBiomeVolume volume = world.getBiomeView(bounds.getBlockMin(), bounds.getBlockMax());
+            FillBiomeOperation fill = new FillBiomeOperation(world.getName(), volume, type);
+            Plots.core().dispatcher().queueOperation(fill);
         });
     }
 
@@ -124,17 +123,11 @@ public class PlotWorld {
         Sponge.getServer().getWorld(worldId).ifPresent(world -> {
             PlotBounds from = plotSchema().plotBounds(fromId);
             PlotBounds to = plotSchema().plotBounds(toId);
-            MutableBlockVolume volFrom = world.getBlockView(from.getBlockMin(), from.getBlockMax());
-            MutableBlockVolume volTo = world.getBlockView(to.getBlockMin(), to.getBlockMax());
-            CopyBlockOperation copyBlocks = new CopyBlockOperation(world(), volFrom, volTo);
-            copyBlocks.onComplete(() -> {
-                MutableBiomeArea fromBiome = world.getBiomeView(from.getMin(), from.getMax());
-                MutableBiomeArea toBiome = world.getBiomeView(to.getMin(), to.getMax());
-                CopyBiomeOperation copyBiome = new CopyBiomeOperation(world(), fromBiome, toBiome);
-                copyBiome.onComplete(callback);
-                Plots.API().dispatcher().queueOperation(copyBiome);
-            });
-            Plots.API().dispatcher().queueOperation(copyBlocks);
+
+            Location<World> target = world.getLocation(to.getBlockMin());
+
+            ArchetypeVolume volume = world.createArchetypeVolume(from.getBlockMin(), from.getBlockMax(), from.getBlockMin());
+            volume.apply(target, BlockChangeFlag.NONE, Plots.PLOTS_GENERATOR);
         });
     }
 

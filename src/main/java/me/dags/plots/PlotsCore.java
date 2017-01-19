@@ -17,7 +17,7 @@ import java.util.Optional;
 /**
  * @author dags <dags@dags.me>
  */
-public class PlotsApi {
+public class PlotsCore {
 
     private final Map<String, PlotWorld> worlds = new HashMap<>();
     private final Map<String, GeneratorProperties> generators = new HashMap<>();
@@ -25,7 +25,7 @@ public class PlotsApi {
 
     private OperationDispatcher dispatcher;
 
-    PlotsApi(Plots plots) {
+    PlotsCore(Plots plots) {
         this.plugin = plots;
     }
 
