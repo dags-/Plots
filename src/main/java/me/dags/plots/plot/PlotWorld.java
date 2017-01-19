@@ -127,7 +127,7 @@ public class PlotWorld {
             Location<World> target = world.getLocation(to.getBlockMin());
 
             ArchetypeVolume volume = world.createArchetypeVolume(from.getBlockMin(), from.getBlockMax(), from.getBlockMin());
-            volume.apply(target, BlockChangeFlag.NONE, Plots.PLOTS_GENERATOR);
+            volume.apply(target, BlockChangeFlag.NONE, Plots.PLOTS_CAUSE());
         });
     }
 

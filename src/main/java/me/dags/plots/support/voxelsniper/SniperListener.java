@@ -2,6 +2,7 @@ package me.dags.plots.support.voxelsniper;
 
 import com.thevoxelbox.voxelsniper.Sniper;
 import com.thevoxelbox.voxelsniper.SniperManager;
+import com.thevoxelbox.voxelsniper.brush.Brush;
 import com.thevoxelbox.voxelsniper.brush.IBrush;
 import me.dags.plots.Plots;
 import me.dags.plots.plot.PlotUser;
@@ -13,8 +14,8 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
-import org.spongepowered.api.event.block.InteractBlockEvent;
 import org.spongepowered.api.event.filter.cause.Root;
+import org.spongepowered.api.event.item.inventory.InteractItemEvent;
 import org.spongepowered.api.plugin.PluginContainer;
 
 import java.util.Optional;
@@ -26,13 +27,16 @@ public class SniperListener implements Support.Hook {
 
     @Override
     public void init() {
+        BrushLoader.load();
+        Plots.log("IMaskable Brush loaded: {}", IMaskable.class.isAssignableFrom(Brush.class));
+
         Sponge.getPluginManager().getPlugin("plots").flatMap(PluginContainer::getInstance).ifPresent(plugin -> {
             Sponge.getEventManager().registerListeners(plugin, this);
         });
     }
 
     @Listener(order = Order.PRE)
-    public void interact(InteractBlockEvent.Secondary event, @Root Player player) {
+    public void interact(InteractItemEvent.Secondary.MainHand event, @Root Player player) {
         Sniper sniper = SniperManager.get().getSniperForPlayer(player);
         if (sniper != null) {
             Sniper.SniperTool tool = sniper.getSniperTool(sniper.getCurrentToolId());
@@ -41,7 +45,7 @@ public class SniperListener implements Support.Hook {
             }
 
             IBrush brush = tool.getCurrentBrush();
-            if (brush == null || IMaskable.class.isInstance(brush)) {
+            if (brush == null || !IMaskable.class.isInstance(brush)) {
                 return;
             }
 
@@ -55,5 +59,4 @@ public class SniperListener implements Support.Hook {
             IMaskable.class.cast(brush).setMask(mask);
         }
     }
-
 }

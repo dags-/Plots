@@ -22,6 +22,6 @@ public class FillBiomeOperation extends AbstractBiomeOperation {
 
     @Override
     void processAt(int x, int y, int z) {
-        biomeArea.setBiome(min.getX() + x, min.getY() + y, min.getZ() + z, biomeType);
+        biomeArea.setBiome(min.getX() + x, 0, min.getZ() + z, biomeType);
     }
 }

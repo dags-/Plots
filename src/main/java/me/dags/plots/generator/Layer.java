@@ -37,7 +37,7 @@ public class Layer {
         for (int z = min.getZ(); z <= max.getZ(); z++) {
             for (int x = min.getX(); x <= max.getX(); x++) {
                 BlockType type = layer.get(x, z);
-                buffer.setBlockType(x, y, z, type, Plots.PLOTS_GENERATOR);
+                buffer.setBlockType(x, y, z, type, Plots.PLOTS_CAUSE());
             }
         }
     }
@@ -60,7 +60,7 @@ public class Layer {
             Vector3i min = buffer.getBlockMin(), max = buffer.getBlockMax();
             for (int z = min.getZ(); z <= max.getZ(); z++) {
                 for (int x = min.getX(); x <= max.getX(); x++) {
-                    buffer.setBlockType(x, y, z, base, Plots.PLOTS_GENERATOR);
+                    buffer.setBlockType(x, y, z, base, Plots.PLOTS_CAUSE());
                 }
             }
         }

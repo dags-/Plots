@@ -75,8 +75,8 @@ public class PlotWorldGenerator implements PlotGenerator {
     @Override
     public void generateBiomes(MutableBiomeVolume buffer) {
         for (int x = buffer.getBiomeMin().getX(); x <= buffer.getBiomeMax().getX(); x++) {
-            for (int z = buffer.getBiomeMin().getY(); z <= buffer.getBiomeMax().getY(); z++) {
-                buffer.setBiome(x, 128, z, biomeType);
+            for (int z = buffer.getBiomeMin().getZ(); z <= buffer.getBiomeMax().getZ(); z++) {
+                buffer.setBiome(x, 0, z, biomeType);
             }
         }
     }

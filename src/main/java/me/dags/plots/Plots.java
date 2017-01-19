@@ -23,6 +23,7 @@ import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
 import org.spongepowered.api.event.cause.Cause;
+import org.spongepowered.api.event.cause.NamedCause;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStoppingServerEvent;
 import org.spongepowered.api.event.world.LoadWorldEvent;
@@ -39,13 +40,12 @@ import java.nio.file.Path;
 @Plugin(id = Plots.ID, name = Plots.ID, version = "1.0", description = "shh")
 public class Plots {
 
-    public static final Cause PLOTS_GENERATOR = null;
-    public static final Cause PLOT_PROTECTION = null;
     public static final String ID = "plots";
 
     private static final Logger logger = LoggerFactory.getLogger("PLOTS");
     private static Plots instance;
 
+    private final Cause plotsCause;
     private final boolean enabled;
     private final PlotsCore plots;
     private final Executor executor;
@@ -79,6 +79,7 @@ public class Plots {
             this.executor  = new Executor(this);
             this.client = client;
             this.enabled = client != null && enabled;
+            this.plotsCause = Cause.of(NamedCause.source(this));;
         }
     }
 
@@ -146,7 +147,7 @@ public class Plots {
 
         executor().sync(Support.of(
                 "VoxelSniper",
-                "com.thevoxelbox.voxelsniper.brush.mask.Mask",
+                "com.thevoxelbox.voxelsniper.VoxelSniper",
                 "me.dags.plots.support.voxelsniper.SniperListener")
         );
     }
@@ -187,6 +188,10 @@ public class Plots {
         client.close();
         executor().close();
         core().dispatcher().finishAll();
+    }
+
+    public static Cause PLOTS_CAUSE() {
+        return instance.plotsCause;
     }
 
     public static PlotsCore core() {

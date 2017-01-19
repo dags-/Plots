@@ -88,6 +88,6 @@ public class ResetOperation implements Operation {
             blockType = layer.getBlockAt(x, z);
         }
 
-        blockView.setBlockType(min.getX() + x, min.getY() + y, min.getZ() + z, blockType, Plots.PLOTS_GENERATOR);
+        blockView.setBlockType(min.getX() + x, min.getY() + y, min.getZ() + z, blockType, Plots.PLOTS_CAUSE());
     }
 }

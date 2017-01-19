@@ -79,7 +79,7 @@ public class PlotWorldListener {
 
                 if (cancel) {
                     event.setCancelled(true);
-                    root.getLocation().ifPresent(location -> location.setBlockType(BlockTypes.AIR, Plots.PLOT_PROTECTION));
+                    root.getLocation().ifPresent(location -> location.setBlockType(BlockTypes.AIR, Plots.PLOTS_CAUSE()));
                 }
             } else if (root.supports(Keys.POWER) || root.supports(Keys.POWERED)) {
                 event.setCancelled(true);
@@ -98,7 +98,7 @@ public class PlotWorldListener {
             if (root instanceof BlockSnapshot) {
                 BlockSnapshot snapshot = (BlockSnapshot) root;
                 if (!plotWorld.plotSchema().containingPlot(snapshot.getPosition()).present()) {
-                    snapshot.getLocation().ifPresent(location -> location.setBlockType(BlockTypes.AIR, Plots.PLOT_PROTECTION));
+                    snapshot.getLocation().ifPresent(location -> location.setBlockType(BlockTypes.AIR, Plots.PLOTS_CAUSE()));
                 }
             }
         }
