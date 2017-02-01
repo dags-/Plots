@@ -128,6 +128,7 @@ public class PlotWorld {
 
             ArchetypeVolume volume = world.createArchetypeVolume(from.getBlockMin(), from.getBlockMax(), from.getBlockMin());
             volume.apply(target, BlockChangeFlag.NONE, Plots.PLOTS_CAUSE());
+            callback.run();
         });
     }
 

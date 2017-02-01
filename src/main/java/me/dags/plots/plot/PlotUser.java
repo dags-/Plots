@@ -14,7 +14,7 @@ import java.util.UUID;
  */
 public class PlotUser {
 
-    static final UUID DUMMY = UUID.fromString("00000000-0000-0000-0000-000000000000");
+    private static final UUID DUMMY = UUID.fromString("00000000-0000-0000-0000-000000000000");
 
     private final UUID uuid;
     private final PlotMask mask;
@@ -51,11 +51,10 @@ public class PlotUser {
     }
 
     public Builder edit() {
-        Builder builder = new Builder();
-        builder.uuid = uuid;
-        builder.plots = new HashSet<>(mask.plots().keySet());
-        builder.approved = approved;
-        return builder;
+        return builder()
+                .uuid(uuid)
+                .plots(mask.plots().keySet())
+                .approved(approved);
     }
 
     @Override
@@ -69,14 +68,39 @@ public class PlotUser {
 
     public static class Builder {
 
-        public UUID uuid = DUMMY;
-        public boolean approved = false;
-        public PlotSchema plotSchema = null;
-        public Set<PlotId> plots = new HashSet<>();
+        private UUID uuid = DUMMY;
+        private boolean approved = false;
+        private PlotSchema plotSchema = null;
+        private Set<PlotId> plots = new HashSet<>();
         private PlotMask mask = PlotMask.EMPTY;
+
+        public Builder approved(boolean approved) {
+            this.approved = approved;
+            return this;
+        }
 
         public Builder mask(PlotMask mask) {
             this.mask = mask;
+            return this;
+        }
+
+        public Builder uuid(UUID uuid) {
+            this.uuid = uuid;
+            return this;
+        }
+
+        public Builder schema(PlotSchema schema) {
+            this.plotSchema = schema;
+            return this;
+        }
+
+        public Builder plot(PlotId plotId) {
+            this.plots.add(plotId);
+            return this;
+        }
+
+        public Builder plots(Iterable<PlotId> plots) {
+            plots.forEach(this.plots::add);
             return this;
         }
 

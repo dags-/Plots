@@ -30,16 +30,16 @@ public class UserActions {
     public static PlotUser loadPlotUser(WorldDatabase database, PlotSchema plotSchema, UUID userId) {
         Document first = database.userCollection().find(Filters.eq(Keys.USER_ID, userId.toString())).first();
         PlotUser.Builder builder = PlotUser.builder();
-        builder.uuid = userId;
-        builder.plotSchema = plotSchema;
+        builder.uuid(userId);
+        builder.schema(plotSchema);
 
         if (first != null) {
             if (first.containsKey(Keys.USER_APPROVED)) {
-                builder.approved = first.getBoolean(Keys.USER_APPROVED);
+                builder.approved(first.getBoolean(Keys.USER_APPROVED));
             }
             if (first.containsKey(Keys.USER_PLOTS)) {
                 List<?> list = first.get(Keys.USER_PLOTS, List.class);
-                list.forEach(o -> builder.plots.add(PlotId.parse(o.toString())));
+                list.forEach(o -> builder.plot(PlotId.parse(o.toString())));
             }
         }
 

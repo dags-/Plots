@@ -12,7 +12,7 @@ import org.spongepowered.api.world.weather.Weathers;
  */
 public class WorldWeather {
 
-    @Command(aliases = "sun", parent = "plotword", perm = @Permission(Permissions.WORLD_WEATHER))
+    @Command(aliases = "sun", parent = "plotworld", perm = @Permission(Permissions.WORLD_WEATHER))
     public void sun(@Caller Player player) {
         player.getWorld().setWeather(Weathers.CLEAR, Integer.MAX_VALUE);
     }
