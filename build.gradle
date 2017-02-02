@@ -22,20 +22,29 @@ repositories {
 
 dependencies {
     apply plugin: 'java'
+
     compile "org.spongepowered:spongeapi:${spongeAPI}-$spongeChannel"
+
+    compile ('com.github.dags-:PlotsWeb:master-SNAPSHOT') {
+        exclude module: 'spongeapi'
+    }
+
     compile ('com.github.TVPT:VoxelSniper:sponge-1.10.2-SNAPSHOT') {
         exclude module: 'spongeapi'
     }
+
     compile 'com.sk89q.worldedit:worldedit-core:6.0.0-SNAPSHOT'
+
+    // shaded dependencies:
     compile 'org.mongodb:mongo-java-driver:3.2.0'
-    compile 'com.github.dags-:CommandBus:1.4.0-SNAPSHOT-1'
     compile 'com.github.dags-:NodeData:1.3.0-SNAPSHOT-20'
+    compile 'com.github.dags-:CommandBus:1.4.0-SNAPSHOT-1'
 }
 
 shadowJar {
     dependencies {
-        include dependency('com.github.dags-:CommandBus')
         include dependency('com.github.dags-:NodeData')
+        include dependency('com.github.dags-:CommandBus')
         include dependency('org.mongodb:mongo-java-driver')
     }
 

@@ -110,6 +110,7 @@ public class Plots {
                 .register(Biome.class)
                 .register(Claim.class)
                 .register(Copy.class)
+                .register(Export.class)
                 .register(Highlight.class)
                 .register(Info.class)
                 .register(Like.class)
@@ -149,6 +150,12 @@ public class Plots {
                 "VoxelSniper",
                 "com.thevoxelbox.voxelsniper.VoxelSniper",
                 "me.dags.plots.support.voxelsniper.SniperListener")
+        );
+
+        executor().sync(Support.of(
+                "PlotsWeb",
+                "me.dags.exports.service.ExportService",
+                "me.dags.plots.support.plotsweb.PlotsWeb")
         );
     }
 
