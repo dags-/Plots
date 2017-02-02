@@ -7,7 +7,7 @@ import java.util.Optional;
 /**
  * @author dags <dags@dags.me>
  */
-class ExportsDummy implements ExportHelper {
+class ServiceDummy implements ExportHelper {
 
     @Override
     public boolean isEnabled() {

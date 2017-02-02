@@ -11,7 +11,7 @@ import me.dags.plots.database.PlotActions;
 import me.dags.plots.plot.PlotBounds;
 import me.dags.plots.plot.PlotId;
 import me.dags.plots.plot.PlotWorld;
-import me.dags.plots.support.plotsweb.PlotExports;
+import me.dags.plots.support.plotsweb.PlotsWeb;
 import me.dags.plots.util.Pair;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.persistence.DataFormats;
@@ -44,7 +44,7 @@ public class Export {
 
     @Command(aliases = "export", parent = "plot", desc = "Export the plot to a schematic that you can download", perm = @Permission(Permissions.PLOT_EXPORT))
     public void export(@Caller Player player) {
-        if (!PlotExports.getHelper().isEnabled()) {
+        if (!PlotsWeb.getHelper().isEnabled()) {
             Cmd.FMT().error("PlotsWeb service is not running!").tell(player);
             return;
         }
@@ -117,7 +117,7 @@ public class Export {
 
     private static Optional<Text> getExportLink(PlotWorld world, PlotId plotId) {
         Path path = getExportPath(world, plotId);
-        Optional<URL> url = PlotExports.getHelper().getExportLink(path);
+        Optional<URL> url = PlotsWeb.getHelper().getExportLink(path);
         if (url.isPresent()) {
             Text text = Text.builder(url.get().toString())
                     .format(TextFormat.of(TextColors.YELLOW, TextStyles.UNDERLINE))

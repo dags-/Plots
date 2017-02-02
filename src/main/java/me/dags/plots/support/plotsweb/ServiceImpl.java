@@ -1,6 +1,6 @@
 package me.dags.plots.support.plotsweb;
 
-import me.dags.exports.service.ExportService;
+import me.dags.plotsweb.service.ExportService;
 import org.spongepowered.api.Sponge;
 
 import java.net.URL;
@@ -10,10 +10,10 @@ import java.util.Optional;
 /**
  * @author dags <dags@dags.me>
  */
-class ExportsImpl implements ExportHelper {
+class ServiceImpl implements ExportHelper {
     @Override
     public boolean isEnabled() {
-        return true;
+        return Sponge.getServiceManager().provideUnchecked(ExportService.class).running();
     }
 
     @Override

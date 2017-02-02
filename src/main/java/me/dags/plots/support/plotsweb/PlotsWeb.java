@@ -5,13 +5,13 @@ import me.dags.plots.util.Support;
 /**
  * @author dags <dags@dags.me>
  */
-public class PlotExports implements Support.Hook {
+public class PlotsWeb implements Support.Hook {
 
-    private static ExportHelper helper = new ExportsDummy();
+    private static ExportHelper helper = new ServiceDummy();
 
     @Override
     public void init() {
-        helper = new ExportsImpl();
+        helper = new ServiceImpl();
     }
 
     public static ExportHelper getHelper() {

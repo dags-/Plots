@@ -23,15 +23,16 @@ import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
 import org.spongepowered.api.event.cause.Cause;
-import org.spongepowered.api.event.cause.NamedCause;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStoppingServerEvent;
 import org.spongepowered.api.event.world.LoadWorldEvent;
 import org.spongepowered.api.event.world.UnloadWorldEvent;
 import org.spongepowered.api.plugin.Plugin;
+import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.world.World;
 import org.spongepowered.api.world.weather.Weathers;
 
+import java.io.IOException;
 import java.nio.file.Path;
 
 /**
@@ -45,9 +46,9 @@ public class Plots {
     private static final Logger logger = LoggerFactory.getLogger("PLOTS");
     private static Plots instance;
 
-    private final Cause plotsCause;
     private final boolean enabled;
     private final PlotsCore plots;
+    private final Cause plotsCause;
     private final Executor executor;
     private final MongoClient client;
     final Path configDir;
@@ -59,7 +60,7 @@ public class Plots {
     }
 
     @Inject
-    public Plots(@ConfigDir(sharedRoot = false) Path configDir) {
+    public Plots(@ConfigDir(sharedRoot = false) Path configDir, PluginContainer container) {
         final Config.Database database = IO.getConfig(configDir.resolve("config.conf")).database();
 
         boolean enabled = false;
@@ -79,7 +80,9 @@ public class Plots {
             this.executor  = new Executor(this);
             this.client = client;
             this.enabled = client != null && enabled;
-            this.plotsCause = Cause.of(NamedCause.source(this));;
+            this.plotsCause = Cause.source(container).build();
+
+            System.out.println(plotsCause);
         }
     }
 
@@ -140,6 +143,14 @@ public class Plots {
 
         commandBus.submit(this);
 
+        executor().async(() -> {
+            try {
+                IO.delete(configDir.resolve("exports"));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+
         executor().sync(Support.of(
                 "WorldEdit",
                 "com.sk89q.worldedit.WorldEdit",
@@ -154,7 +165,7 @@ public class Plots {
 
         executor().sync(Support.of(
                 "PlotsWeb",
-                "me.dags.exports.service.ExportService",
+                "me.dags.plotsweb.service.ExportService",
                 "me.dags.plots.support.plotsweb.PlotsWeb")
         );
     }
