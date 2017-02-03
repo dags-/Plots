@@ -79,4 +79,12 @@ public class PlotSchema {
         Vector2i max = new Vector2i(gridX, gridZ).add(maxOffset());
         return new PlotBounds(min, max);
     }
+
+    public PlotBounds sectionBounds(PlotId id) {
+        int gridX = id.plotX() * gridXWidth();
+        int gridZ = id.plotZ() * gridZWidth();
+        Vector2i min = new Vector2i(gridX, gridZ);
+        Vector2i max = new Vector2i(gridX + gridXWidth(), gridZ + gridXWidth());
+        return new PlotBounds(min, max);
+    }
 }

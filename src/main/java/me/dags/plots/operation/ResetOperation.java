@@ -35,7 +35,7 @@ public class ResetOperation implements Operation {
         this.world = world.getName();
         this.plotGenerator = (PlotGenerator) populator;
         this.blockView = world.getBlockView(min, max);
-        this.biomeView = world.getBiomeView(bounds.getBlockMin(), bounds.getBlockMax());
+        this.biomeView = world.getBiomeView(bounds.getBlockMin().mul(1, 0, 1), bounds.getBlockMax().mul(1, 0, 1));
         this.layersHeight = plotGenerator.plotSchema().surfaceHeight();
         this.maxX = max.getX() - min.getX();
         this.maxZ = max.getZ() - min.getZ();

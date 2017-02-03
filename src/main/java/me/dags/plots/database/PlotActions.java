@@ -16,10 +16,7 @@ import org.spongepowered.api.service.user.UserStorageService;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.action.TextActions;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -71,6 +68,17 @@ public class PlotActions {
         return Optional.empty();
     }
 
+    public static Collection<PlotId> findOwnedPlots(WorldDatabase database, Collection<PlotId> lookup, UUID owner) {
+        Set<PlotId> owned = new HashSet<>();
+        for (PlotId plotId : lookup) {
+            Optional<UUID> plotOwner = findPlotOwner(database, plotId);
+            if (plotOwner.isPresent() && plotOwner.get().equals(owner)) {
+                owned.add(plotId);
+            }
+        }
+        return owned;
+    }
+
     public static Optional<String> findPlotAlias(WorldDatabase database, PlotId plotId) {
         Document first = database.plotCollection().find(Filters.eq(Keys.PLOT_ID, plotId.toString())).first();
         if (first != null && first.containsKey(Keys.PLOT_ALIAS)) {
@@ -86,6 +94,53 @@ public class PlotActions {
             return Optional.of(list.stream().map(Object::toString).map(UUID::fromString).collect(Collectors.toList()));
         }
         return Optional.empty();
+    }
+
+    public static Pair<Boolean, Text> mergePlots(WorldDatabase database, Format.MessageBuilder msg, UUID uuid, PlotId from, PlotId to) {
+        MongoCollection<Document> collection = database.plotCollection();
+        String owner = uuid.toString();
+
+        for (int x = from.plotX(); x <= to.plotX(); x++) {
+            for (int z = from.plotZ(); z <= to.plotZ(); z++) {
+                PlotId plotId = PlotId.of(x, z);
+                Document first = collection.find(Filters.eq(Keys.PLOT_ID, plotId.toString())).first();
+
+                // has owner and owner == uuid
+                if (first != null && first.containsKey(Keys.PLOT_OWNER) && first.getString(Keys.PLOT_OWNER).equals(owner)) {
+                    // is in existing merge
+                    if (first.containsKey(Keys.PLOT_MERGE_MIN) && first.containsKey(Keys.PLOT_MERGE_MAX)) {
+                        PlotId min = PlotId.parse(first.getString(Keys.PLOT_MERGE_MIN));
+                        PlotId max = PlotId.parse(first.getString(Keys.PLOT_MERGE_MAX));
+
+                        // existing merge is not contained by new merge
+                        if (min.plotX() < from.plotX() || min.plotX() > to.plotX() || min.plotZ() < from.plotZ() || max.plotZ() > to.plotZ()) {
+                            Text error = msg.stress(plotId)
+                                    .error(" has already been merged in range: ").stress("{} <> {}", min, max)
+                                    .error(". Your new merge must contain this range").build();
+                            return Pair.of(false, error);
+                        }
+                    }
+                } else {
+                    Text error = msg.error("You do not own the following plot: ").stress(plotId).build();
+                    return Pair.of(false, error);
+                }
+            }
+        }
+
+        Document updateFrom = new Document("$set", new Document(Keys.PLOT_MERGE_MIN, from.toString()));
+        Document updateTo = new Document("$set", new Document(Keys.PLOT_MERGE_MAX, to.toString()));
+        int count = 0;
+
+        for (int x = from.plotX(); x <= to.plotX(); x++) {
+            for (int z = from.plotZ(); z <= to.plotZ(); z++) {
+                count++;
+                PlotId plotId = PlotId.of(x, z);
+                collection.updateOne(Filters.eq(Keys.PLOT_ID, plotId.toString()), updateFrom, UPSERT);
+                collection.updateOne(Filters.eq(Keys.PLOT_ID, plotId.toString()), updateTo, UPSERT);
+            }
+        }
+
+        return Pair.of(true, msg.info("Merged ").stress(count).info(" plots").build());
     }
 
     public static void removeMerge(WorldDatabase database, PlotId plotId) {
@@ -108,10 +163,14 @@ public class PlotActions {
 
     public static Pair<PlotId, PlotId> findMergeRange(WorldDatabase database, PlotId plotId) {
         Document first = database.plotCollection().find(Filters.eq(Keys.PLOT_ID, plotId.toString())).first();
-        if (first != null && first.containsKey(Keys.PLOT_MERGE_MIN) && first.containsKey(Keys.PLOT_MERGE_MAX)) {
-            PlotId min = PlotId.parse(first.getString(first.getString(Keys.PLOT_MERGE_MIN)));
-            PlotId max = PlotId.parse(first.getString(first.getString(Keys.PLOT_MERGE_MAX)));
-            return Pair.of(min, max);
+        if (first != null) {
+            if (first.containsKey(Keys.PLOT_MERGE_MIN) && first.containsKey(Keys.PLOT_MERGE_MAX)) {
+                PlotId min = PlotId.parse(first.getString(Keys.PLOT_MERGE_MIN));
+                PlotId max = PlotId.parse(first.getString(Keys.PLOT_MERGE_MAX));
+                if (min.present() && max.present()) {
+                    return Pair.of(min, max);
+                }
+            }
         }
         return Pair.empty();
     }
@@ -149,7 +208,7 @@ public class PlotActions {
             }
         }
         return info;
-     }
+    }
 
     public static Text plotInfo(WorldDatabase database, PlotId plotId, Format format) {
         Document first = database.plotCollection().find(Filters.eq(Keys.PLOT_ID, plotId.toString())).first();
@@ -189,7 +248,10 @@ public class PlotActions {
         int x = closest.plotX(), z = closest.plotZ(), xMax = x, xMin = x, zMax = z, zMin = z;
         int timeout = 10000;
         for (int d = 1; d < timeout; d++) {
-            xMax += d; xMin -= d; zMax += d; zMin -= d;
+            xMax += d;
+            xMin -= d;
+            zMax += d;
+            zMin -= d;
             while (x < xMax) {
                 if (collection.count(Filters.eq(Keys.PLOT_ID, PlotId.string(x, z))) == 0) {
                     return new PlotId(x, z);

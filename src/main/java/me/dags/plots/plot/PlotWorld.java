@@ -103,7 +103,7 @@ public class PlotWorld {
 
     public void resetPlot(PlotId plotId, Runnable callback) {
         Sponge.getServer().getWorld(worldId).ifPresent(world -> {
-            PlotBounds bounds = plotSchema.plotBounds(plotId);
+            PlotBounds bounds = plotSchema.sectionBounds(plotId);
             ResetOperation reset = new ResetOperation(world, bounds);
             reset.onComplete(callback);
             Plots.core().dispatcher().queueOperation(reset);

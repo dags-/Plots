@@ -16,8 +16,6 @@ public final class Permissions {
     public static final String PLOT_COPY = "plots.command.copy";
     public static final String PLOT_EXPORT = "plots.command.export.self";
     public static final String PLOT_EXPORT_OTHER = "plots.command.export.other";
-    public static final String PLOT_HIGHLIGHT = "plots.command.highlight.self";
-    public static final String PLOT_HIGHLIGHT_OTHER = "plots.command.highlight.other";
     public static final String PLOT_INFO = "plots.command.info";
     public static final String PLOT_LIKE = "plots.command.like";
     public static final String PLOT_LIKES = "plots.command.likes";
@@ -25,8 +23,7 @@ public final class Permissions {
     public static final String PLOT_LIST = "plots.command.list.self";
     public static final String PLOT_LIST_OTHER = "plots.command.list.other";
     public static final String PLOT_MASKALL = "plots.command.maskall";
-    public static final String PLOT_PROOF = "plots.command.proof.self";
-    public static final String PLOT_PROOF_OTHER = "plots.command.proof.other";
+    public static final String PLOT_MERGE = "plots.command.merge";
     public static final String PLOT_REMOVE = "plots.command.remove.other";
     public static final String PLOT_REMOVE_ANY = "plots.command.remove.any";
     public static final String PLOT_RESET = "plots.command.reset.self";
@@ -35,6 +32,7 @@ public final class Permissions {
     public static final String PLOT_TP = "plots.command.tp";
     public static final String PLOT_UNCLAIM = "plots.command.unclaim.self";
     public static final String PLOT_UNCLAIM_OTHER = "plots.command.unclaim.other";
+    public static final String PLOT_WALLS = "plots.command.walls.self";
     public static final String PLOT_WHITELIST = "plots.command.whitelist";
     public static final String PLOT_WHITELIST_RECIPIENT = "plots.command.whitelistable";
 

@@ -81,8 +81,6 @@ public class Plots {
             this.client = client;
             this.enabled = client != null && enabled;
             this.plotsCause = Cause.source(container).build();
-
-            System.out.println(plotsCause);
         }
     }
 
@@ -114,20 +112,20 @@ public class Plots {
                 .register(Claim.class)
                 .register(Copy.class)
                 .register(Export.class)
-                .register(Highlight.class)
                 .register(Info.class)
                 .register(Like.class)
                 .register(Likes.class)
                 .register(Likers.class)
                 .register(ListPlots.class)
                 .register(Maskall.class)
-                .register(Proof.class)
+                .register(Merge.class)
                 .register(Remove.class)
                 .register(Reset.class)
                 .register(Teleport.class)
                 .register(Top.class)
                 .register(Unclaim.class)
                 .register(Unlike.class)
+                .register(Walls.class)
                 .register(Whitelist.class);
 
         commandBus.register(WorldCreate.class)

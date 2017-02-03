@@ -126,6 +126,22 @@ public class PlotWorldListener {
     }
 
     @Listener(order = Order.PRE)
+    public void onBlockPlace(ChangeBlockEvent.Place event, @First Player player) {
+        if (plotWorld.equalsWorld(player.getWorld())) {
+            if (player.hasPermission(Permissions.ACTION_BYPASS)) {
+                return;
+            }
+
+            if (!player.hasPermission(Permissions.ACTION_MODIFY)) {
+                event.filterAll();
+                return;
+            }
+
+            event.filter(location -> canEdit(player, location.getBlockPosition()));
+        }
+    }
+
+    @Listener(order = Order.PRE)
     public void onInteractSecondary(InteractBlockEvent.Secondary event, @First Player player) {
         if (plotWorld.equalsWorld(event.getTargetBlock().getWorldUniqueId())) {
             if (player.hasPermission(Permissions.ACTION_BYPASS)) {

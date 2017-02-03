@@ -23,10 +23,14 @@ public class PlotMask {
         plots = Collections.emptyMap();
     }
 
-    private PlotMask(PlotSchema plotSchema, Map<PlotId, PlotBounds> plots) {
+    PlotMask(PlotSchema plotSchema, Map<PlotId, PlotBounds> plots) {
         this.gridX = plotSchema.gridXWidth();
         this.gridZ = plotSchema.gridZWidth();
         this.plots = ImmutableMap.copyOf(plots);
+    }
+
+    public boolean contains(PlotId plotId) {
+        return plots.containsKey(plotId);
     }
 
     public boolean contains(Vector2i position) {

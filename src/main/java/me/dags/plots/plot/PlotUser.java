@@ -114,7 +114,7 @@ public class PlotUser {
                 Map<PlotId, PlotBounds> plots = singleBounds();
                 Map<PlotId, PlotBounds> merged = mergedBounds();
                 plots.putAll(merged);
-                mask = PlotMask.of(plotSchema, merged);
+                mask = new PlotMask(plotSchema, plots);
             }
             return new PlotUser(this);
         }
@@ -141,7 +141,7 @@ public class PlotUser {
                             if (!individualPlots.contains(plotId)) {
                                 continue outer;
                             }
-                            merged.put(PlotId.of(x, z), bounds);
+                            merged.put(plotId, bounds);
                         }
                     }
                     all.putAll(merged);

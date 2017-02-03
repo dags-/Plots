@@ -43,8 +43,10 @@ public class UserActions {
                 List<?> list = first.get(Keys.USER_PLOTS, List.class);
                 list.forEach(o -> {
                     PlotId plotId = PlotId.parse(o.toString());
-                    Pair<PlotId, PlotId> merge = PlotActions.findMergeRange(database, plotId);
                     builder.plot(plotId);
+
+                    Pair<PlotId, PlotId> merge = PlotActions.findMergeRange(database, plotId);
+
                     if (merge.present()) {
                         builder.merge(merge);
                     }
