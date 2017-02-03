@@ -4,10 +4,8 @@ import com.flowpowered.math.vector.Vector2i;
 import com.flowpowered.math.vector.Vector3i;
 import com.google.common.collect.ImmutableMap;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @author dags <dags@dags.me>
@@ -25,10 +23,10 @@ public class PlotMask {
         plots = Collections.emptyMap();
     }
 
-    private PlotMask(PlotSchema plotSchema, Collection<PlotId> plots) {
+    private PlotMask(PlotSchema plotSchema, Map<PlotId, PlotBounds> plots) {
         this.gridX = plotSchema.gridXWidth();
         this.gridZ = plotSchema.gridZWidth();
-        this.plots = ImmutableMap.copyOf(plots.stream().collect(Collectors.toMap(id -> id, plotSchema::plotBounds)));
+        this.plots = ImmutableMap.copyOf(plots);
     }
 
     public boolean contains(Vector2i position) {
@@ -76,7 +74,7 @@ public class PlotMask {
         }
     };
 
-    public static PlotMask of(PlotSchema schema, Collection<PlotId> plots) {
+    public static PlotMask of(PlotSchema schema, Map<PlotId, PlotBounds> plots) {
         return new PlotMask(schema, plots);
     }
 }

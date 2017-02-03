@@ -7,6 +7,7 @@ import me.dags.commandbus.utils.Format;
 import me.dags.plots.plot.PlotId;
 import me.dags.plots.plot.PlotSchema;
 import me.dags.plots.plot.PlotUser;
+import me.dags.plots.util.Pair;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.spongepowered.api.service.pagination.PaginationList;
@@ -37,9 +38,17 @@ public class UserActions {
             if (first.containsKey(Keys.USER_APPROVED)) {
                 builder.approved(first.getBoolean(Keys.USER_APPROVED));
             }
+
             if (first.containsKey(Keys.USER_PLOTS)) {
                 List<?> list = first.get(Keys.USER_PLOTS, List.class);
-                list.forEach(o -> builder.plot(PlotId.parse(o.toString())));
+                list.forEach(o -> {
+                    PlotId plotId = PlotId.parse(o.toString());
+                    Pair<PlotId, PlotId> merge = PlotActions.findMergeRange(database, plotId);
+                    builder.plot(plotId);
+                    if (merge.present()) {
+                        builder.merge(merge);
+                    }
+                });
             }
         }
 

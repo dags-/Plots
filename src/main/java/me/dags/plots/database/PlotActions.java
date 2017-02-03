@@ -88,6 +88,34 @@ public class PlotActions {
         return Optional.empty();
     }
 
+    public static void removeMerge(WorldDatabase database, PlotId plotId) {
+        Pair<PlotId, PlotId> range = findMergeRange(database, plotId);
+        if (range.present()) {
+            MongoCollection plots = database.plotCollection();
+
+            // TODO: test!
+            Document unset = new Document()
+                    .append("$unset", Keys.PLOT_MERGE_MIN)
+                    .append("$unset", Keys.PLOT_MERGE_MAX);
+
+            for (int x = range.first().plotX(); x <= range.second().plotX(); x++) {
+                for (int z = range.first().plotZ(); z <= range.second().plotZ(); z++) {
+                    plots.updateOne(Filters.eq(Keys.PLOT_ID, PlotId.string(x, z)), unset);
+                }
+            }
+        }
+    }
+
+    public static Pair<PlotId, PlotId> findMergeRange(WorldDatabase database, PlotId plotId) {
+        Document first = database.plotCollection().find(Filters.eq(Keys.PLOT_ID, plotId.toString())).first();
+        if (first != null && first.containsKey(Keys.PLOT_MERGE_MIN) && first.containsKey(Keys.PLOT_MERGE_MAX)) {
+            PlotId min = PlotId.parse(first.getString(first.getString(Keys.PLOT_MERGE_MIN)));
+            PlotId max = PlotId.parse(first.getString(first.getString(Keys.PLOT_MERGE_MAX)));
+            return Pair.of(min, max);
+        }
+        return Pair.empty();
+    }
+
     public static PaginationList topPlots(WorldDatabase database, int size, Format format) {
         FindIterable<Document> all = database.plotCollection().find();
         CountList<Integer, Pair<PlotId, Document>> topLikes = new CountList<>((i1, i2) -> i1 - i2, size);

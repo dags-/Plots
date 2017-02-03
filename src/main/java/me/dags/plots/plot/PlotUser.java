@@ -1,13 +1,12 @@
 package me.dags.plots.plot;
 
+import me.dags.plots.util.Pair;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.service.user.UserStorageService;
 
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author dags <dags@dags.me>
@@ -71,7 +70,8 @@ public class PlotUser {
         private UUID uuid = DUMMY;
         private boolean approved = false;
         private PlotSchema plotSchema = null;
-        private Set<PlotId> plots = new HashSet<>();
+        private Set<PlotId> individualPlots = new HashSet<>();
+        private Set<Pair<PlotId, PlotId>> mergedPlots = new HashSet<>();
         private PlotMask mask = PlotMask.EMPTY;
 
         public Builder approved(boolean approved) {
@@ -95,20 +95,60 @@ public class PlotUser {
         }
 
         public Builder plot(PlotId plotId) {
-            this.plots.add(plotId);
+            this.individualPlots.add(plotId);
             return this;
         }
 
         public Builder plots(Iterable<PlotId> plots) {
-            plots.forEach(this.plots::add);
+            plots.forEach(this.individualPlots::add);
+            return this;
+        }
+
+        public Builder merge(Pair<PlotId, PlotId> merge) {
+            mergedPlots.add(merge);
             return this;
         }
 
         public PlotUser build() {
-            if (mask == PlotMask.EMPTY) {
-                mask = plotSchema != null ? PlotMask.of(plotSchema, plots) : PlotMask.EMPTY;
+            if (mask == PlotMask.EMPTY && plotSchema != null) {
+                Map<PlotId, PlotBounds> plots = singleBounds();
+                Map<PlotId, PlotBounds> merged = mergedBounds();
+                plots.putAll(merged);
+                mask = PlotMask.of(plotSchema, merged);
             }
             return new PlotUser(this);
+        }
+
+        private Map<PlotId, PlotBounds> singleBounds() {
+            return individualPlots.stream().collect(Collectors.toMap(id -> id, plotSchema::plotBounds));
+        }
+
+        private Map<PlotId, PlotBounds> mergedBounds() {
+            Map<PlotId, PlotBounds> all = new HashMap<>();
+
+            outer:
+            for (Pair<PlotId, PlotId> pair : mergedPlots) {
+                PlotBounds min = plotSchema.plotBounds(pair.first());
+                PlotBounds max = plotSchema.plotBounds(pair.second());
+
+                if (min.present() && max.present()) {
+                    Map<PlotId, PlotBounds> merged = new HashMap<>();
+                    PlotBounds bounds = new PlotBounds(min.getMin(), max.getMax());
+
+                    for (int x = pair.first().plotX(); x <= pair.second().plotX(); x++) {
+                        for (int z = pair.first().plotZ(); z <= pair.second().plotZ(); z++) {
+                            PlotId plotId = PlotId.of(x, z);
+                            if (!individualPlots.contains(plotId)) {
+                                continue outer;
+                            }
+                            merged.put(PlotId.of(x, z), bounds);
+                        }
+                    }
+                    all.putAll(merged);
+                }
+            }
+
+            return all;
         }
     }
 
