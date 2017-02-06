@@ -26,11 +26,9 @@ import org.spongepowered.api.world.extent.ArchetypeVolume;
 import org.spongepowered.api.world.schematic.BlockPaletteTypes;
 import org.spongepowered.api.world.schematic.Schematic;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -68,8 +66,10 @@ public class Export {
                     return;
                 }
 
-                // If link hasn't expired, send to Player
-                if (sendExportUrl(player, world, plotId)) {
+                // Send existing link if it hasn't expired
+                Optional<Text> lookup = getExportLink(world, plotId);
+                if (lookup.isPresent()) {
+                    player.sendMessage(lookup.get());
                     return;
                 }
 
@@ -88,36 +88,30 @@ public class Export {
                         .volume(volume)
                         .build();
 
-                Path path = getExportPath(world, plotId);
-                Runnable export = writeToFile(schematic, path);
-                Runnable complete = () -> sendExportUrl(player, world, plotId);
+                DataContainer container = DataTranslators.SCHEMATIC.translate(schematic);
+                ByteArrayOutputStream bytesOut = new ByteArrayOutputStream(1024);
+                try (GZIPOutputStream gzipOut = new GZIPOutputStream(bytesOut)) {
+                    DataFormats.NBT.writeTo(gzipOut, container);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
-                // Write to disk async and then send message to player on completion
-                Plots.executor().async(export, complete);
+                Optional<Text> link = getExportLink(world, plotId);
+                if (link.isPresent()) {
+                    Cmd.FMT().info("Download: ").append(link.get()).tell(player);
+                    return;
+                }
+
+                Cmd.FMT().subdued("No existing export found for plot ").stress(plotId).tell(player);
             } else {
                 Cmd.FMT().error("Nobody owns plot ").stress(plotId).tell(player);
             }
         };
     }
 
-    private static boolean sendExportUrl(Player player, PlotWorld world, PlotId plotId) {
-        Optional<Text> link = getExportLink(world, plotId);
-        if (link.isPresent()) {
-            Cmd.FMT().info("Download: ").append(link.get()).tell(player);
-            return true;
-        }
-        Cmd.FMT().subdued("No existing export found for plot ").stress(plotId).tell(player);
-        return false;
-    }
-
-    private static Path getExportPath(PlotWorld plotWorld, PlotId plotId) {
-        String name = plotWorld.world() + "_" + plotId.plotX() + ";" + plotId.plotZ() + ".schem";
-        return Plots.core().configDir().resolve("exports").resolve(name);
-    }
-
-    private static Optional<Text> getExportLink(PlotWorld world, PlotId plotId) {
-        Path path = getExportPath(world, plotId);
-        Optional<URL> url = PlotsWeb.getHelper().getExportLink(path);
+    private static Optional<Text> getExportLink(PlotWorld plotWorld, PlotId plotId) {
+        String name = plotWorld.world() + "_" + plotId.plotX() + ";" + plotId.plotZ() + ".schematic";
+        Optional<URL> url = PlotsWeb.getHelper().lookup(name);
         if (url.isPresent()) {
             Text text = Text.builder(url.get().toString())
                     .format(TextFormat.of(TextColors.YELLOW, TextStyles.UNDERLINE))
@@ -125,21 +119,5 @@ public class Export {
             return Optional.of(text);
         }
         return Optional.empty();
-    }
-
-    private static Runnable writeToFile(Schematic schematic, Path path) {
-        return () -> {
-            try {
-                Files.createDirectories(path.getParent());
-                DataContainer container = DataTranslators.SCHEMATIC.translate(schematic);
-                try (OutputStream pathOut = Files.newOutputStream(path)) {
-                    try (OutputStream gzipOut = new GZIPOutputStream(pathOut)) {
-                        DataFormats.NBT.writeTo(gzipOut, container);
-                    }
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        };
     }
 }

@@ -25,7 +25,7 @@ dependencies {
 
     compile "org.spongepowered:spongeapi:${spongeAPI}-$spongeChannel"
 
-    compile ('com.github.dags-:PlotsWebAPI:master-SNAPSHOT') {
+    compile ('com.github.dags-:PlotsWebAPI:339e5a8') {
         exclude module: 'spongeapi'
     }
 

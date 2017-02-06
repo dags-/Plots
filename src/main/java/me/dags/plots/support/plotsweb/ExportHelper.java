@@ -11,5 +11,9 @@ public interface ExportHelper {
 
     boolean isEnabled();
 
+    Optional<URL> lookup(Object obj);
+
     Optional<URL> getExportLink(Path path);
+
+    Optional<URL> getExportLink(String name, byte[] data);
 }

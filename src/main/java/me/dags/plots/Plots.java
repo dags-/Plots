@@ -32,7 +32,6 @@ import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.world.World;
 import org.spongepowered.api.world.weather.Weathers;
 
-import java.io.IOException;
 import java.nio.file.Path;
 
 /**
@@ -141,14 +140,6 @@ public class Plots {
 
         commandBus.submit(this);
 
-        executor().async(() -> {
-            try {
-                IO.delete(configDir.resolve("exports"));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
-
         executor().sync(Support.of(
                 "WorldEdit",
                 "com.sk89q.worldedit.WorldEdit",
@@ -163,7 +154,7 @@ public class Plots {
 
         executor().sync(Support.of(
                 "PlotsWeb",
-                "me.dags.plotsweb.service.ExportService",
+                "me.dags.plotsweb.service.PlotsWebService",
                 "me.dags.plots.support.plotsweb.PlotsWeb")
         );
     }

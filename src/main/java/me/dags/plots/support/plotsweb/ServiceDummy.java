@@ -15,7 +15,17 @@ class ServiceDummy implements ExportHelper {
     }
 
     @Override
+    public Optional<URL> lookup(Object obj) {
+        return Optional.empty();
+    }
+
+    @Override
     public Optional<URL> getExportLink(Path path) {
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<URL> getExportLink(String name, byte[] data) {
         return Optional.empty();
     }
 }
