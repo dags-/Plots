@@ -47,7 +47,7 @@ public class Merge {
             PlotId max = PlotId.of(maxX, maxZ);
             WorldDatabase database = world.database();
 
-            Supplier<Pair<Boolean, Text>> merge = () -> PlotActions.mergePlots(database, Cmd.FMT().message(), owner, min, max);
+            Supplier<Pair<Boolean, Text>> merge = () -> PlotActions.mergePlots(database, Cmd.FMTCopy(), owner, min, max);
             Consumer<Pair<Boolean, Text>> result = merge(player, world);
 
             Plots.executor().async(merge, result);

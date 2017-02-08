@@ -36,7 +36,7 @@ public class Top {
                 return;
             }
             WorldDatabase database = plotWorld.get().database();
-            Supplier<PaginationList> get = () -> PlotActions.topPlots(database, size, Cmd.FMT());
+            Supplier<PaginationList> get = () -> PlotActions.topPlots(database, size, Cmd.FMTCopy());
             Consumer<PaginationList> top = list -> list.sendTo(player);
             Plots.executor().async(get, top);
         }

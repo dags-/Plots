@@ -39,20 +39,21 @@ public class Walls {
             return;
         }
 
+        BlockState state = blockState.get();
         Pair<PlotWorld, PlotId> plot = Cmd.getPlot(player);
         if (plot.present()) {
             PlotWorld world = plot.first();
             PlotId plotId = plot.second();
             PlotUser user = world.user(player.getUniqueId());
             if (user.plotMask().contains(plotId)) {
-                Cmd.FMT().info("Setting wall material to ").stress(blockState.get()).tell(player);
+                Cmd.FMT().info("Setting wall material to ").stress(state).tell(player);
 
                 PlotSchema schema = world.plotSchema();
                 PlotBounds bounds = user.plotMask().plots().get(plotId);
                 Vector3i min = bounds.getBlockMin().sub(schema.wallWidth(), 0, schema.wallWidth());
                 Vector3i max = bounds.getBlockMax().add(schema.wallWidth(), 0, schema.wallWidth());
                 MutableBlockVolume volume = player.getWorld().getBlockView(min, max);
-                WallsOperation operation = new WallsOperation(world.world(), volume, depth, schema, blockState.get());
+                WallsOperation operation = new WallsOperation(world.world(), volume, depth, schema, state);
                 operation.onComplete(() -> Cmd.FMT().info("Finished setting wall material for ").stress(plotId).tell(player));
                 Plots.core().dispatcher().queueOperation(operation);
             } else {

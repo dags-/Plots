@@ -18,6 +18,7 @@ import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.service.user.UserStorageService;
 import org.spongepowered.api.text.Text;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -35,13 +36,13 @@ public class Whitelist {
         if (plot.present()) {
             PlotId plotId = plot.second();
             WorldDatabase database = plot.first().database();
-            Supplier<java.util.List<UUID>> search = () -> UserActions.getWhitelisted(database, plotId);
-            Consumer<java.util.List<UUID>> whitelist = list(player, plotId, Cmd.FMT());
+            Supplier<List<UUID>> search = () -> UserActions.getWhitelisted(database, plotId);
+            Consumer<List<UUID>> whitelist = list(player, plotId, Cmd.FMT());
             Plots.executor().async(search, whitelist);
         }
     }
 
-    static Consumer<java.util.List<UUID>> list(Player player, PlotId plotId, Format format) {
+    static Consumer<List<UUID>> list(Player player, PlotId plotId, Format format) {
         return list -> {
             Iterable<Text> lines = list.stream()
                     .distinct()

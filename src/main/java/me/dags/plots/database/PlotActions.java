@@ -96,7 +96,7 @@ public class PlotActions {
         return Optional.empty();
     }
 
-    public static Pair<Boolean, Text> mergePlots(WorldDatabase database, Format.MessageBuilder msg, UUID uuid, PlotId from, PlotId to) {
+    public static Pair<Boolean, Text> mergePlots(WorldDatabase database, Format format, UUID uuid, PlotId from, PlotId to) {
         MongoCollection<Document> collection = database.plotCollection();
         String owner = uuid.toString();
 
@@ -105,42 +105,53 @@ public class PlotActions {
                 PlotId plotId = PlotId.of(x, z);
                 Document first = collection.find(Filters.eq(Keys.PLOT_ID, plotId.toString())).first();
 
-                // has owner and owner == uuid
-                if (first != null && first.containsKey(Keys.PLOT_OWNER) && first.getString(Keys.PLOT_OWNER).equals(owner)) {
-                    // is in existing merge
+                // Plot is owned
+                if (first != null && first.containsKey(Keys.PLOT_OWNER)) {
+                    // Plot owner is someone else
+                    if (!first.getString(Keys.PLOT_OWNER).equals(owner)) {
+                        Text err = format.error("Plot ").stress(plotId)
+                                .error(" is within merge range ").stress("{} <> {}", from, to)
+                                .error(" but is owned by someone else").build();
+                        return Pair.of(false, err);
+                    }
+
+                    // Plot belongs to existing merge group
                     if (first.containsKey(Keys.PLOT_MERGE_MIN) && first.containsKey(Keys.PLOT_MERGE_MAX)) {
                         PlotId min = PlotId.parse(first.getString(Keys.PLOT_MERGE_MIN));
                         PlotId max = PlotId.parse(first.getString(Keys.PLOT_MERGE_MAX));
 
-                        // existing merge is not contained by new merge
+                        // Existing merge is not contained by new merge
                         if (min.plotX() < from.plotX() || min.plotX() > to.plotX() || min.plotZ() < from.plotZ() || max.plotZ() > to.plotZ()) {
-                            Text error = msg.stress(plotId)
+                            Text error = format.stress(plotId)
                                     .error(" has already been merged in range: ").stress("{} <> {}", min, max)
                                     .error(". Your new merge must contain this range").build();
                             return Pair.of(false, error);
                         }
                     }
-                } else {
-                    Text error = msg.error("You do not own the following plot: ").stress(plotId).build();
-                    return Pair.of(false, error);
                 }
             }
         }
 
-        Document updateFrom = new Document("$set", new Document(Keys.PLOT_MERGE_MIN, from.toString()));
-        Document updateTo = new Document("$set", new Document(Keys.PLOT_MERGE_MAX, to.toString()));
-        int count = 0;
+        // Should work
+        Document updatePlot = new Document()
+                .append("$set", new Document(Keys.PLOT_OWNER, owner))
+                .append("$set", new Document(Keys.PLOT_MERGE_MIN, from.toString()))
+                .append("$set", new Document(Keys.PLOT_MERGE_MAX, to.toString()));
+
+        // 'Record' the plots being merged so they can be added to the user's list
+        Document updateUser = new Document();
 
         for (int x = from.plotX(); x <= to.plotX(); x++) {
             for (int z = from.plotZ(); z <= to.plotZ(); z++) {
-                count++;
                 PlotId plotId = PlotId.of(x, z);
-                collection.updateOne(Filters.eq(Keys.PLOT_ID, plotId.toString()), updateFrom, UPSERT);
-                collection.updateOne(Filters.eq(Keys.PLOT_ID, plotId.toString()), updateTo, UPSERT);
+                collection.updateOne(Filters.eq(Keys.PLOT_ID, plotId.toString()), updatePlot, UPSERT);
+                updateUser.append("$addToSet", new Document(Keys.USER_PLOTS, plotId.toString()));
             }
         }
 
-        return Pair.of(true, msg.info("Merged ").stress(count).info(" plots").build());
+        database.userCollection().updateOne(Filters.eq(Keys.USER_PLOTS, owner), updateUser, UPSERT);
+
+        return Pair.of(true, format.info("Merged ").stress(updateUser.size()).info(" plots").build());
     }
 
     public static void removeMerge(WorldDatabase database, PlotId plotId) {

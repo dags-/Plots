@@ -28,7 +28,7 @@ public class Info {
         if (plot.present()) {
             WorldDatabase database = plot.first().database();
             PlotId plotId = plot.second();
-            Supplier<Text> find = () -> PlotActions.plotInfo(database, plotId, Cmd.FMT());
+            Supplier<Text> find = () -> PlotActions.plotInfo(database, plotId, Cmd.FMTCopy());
             Consumer<Text> info = player::sendMessage;
             Plots.executor().async(find, info);
         }

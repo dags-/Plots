@@ -36,7 +36,7 @@ public class Likes {
             String name = other.getName();
             UUID uuid = other.getUniqueId();
             WorldDatabase database = world.get().database();
-            Supplier<PaginationList> search = () -> UserActions.listLikes(database, name, uuid, Cmd.FMT());
+            Supplier<PaginationList> search = () -> UserActions.listLikes(database, name, uuid, Cmd.FMTCopy());
             Consumer<PaginationList> likes = list -> list.sendTo(player);
             Plots.executor().async(search, likes);
         }

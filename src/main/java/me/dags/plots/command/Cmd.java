@@ -32,6 +32,10 @@ public class Cmd {
         return FMT;
     }
 
+    public static Format FMTCopy() {
+        return Format.fromMap(FMT().toMap());
+    }
+
     public static CommandSourceCache<CommandSource, GeneratorProperties.Builder> genBuilders() {
         return genBuilders;
     }
