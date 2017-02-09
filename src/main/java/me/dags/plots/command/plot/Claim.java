@@ -34,7 +34,7 @@ public class Claim {
         }
     }
 
-    static Consumer<Boolean> claimIfFree(Player player, PlotWorld world, PlotId plotId) {
+    private static Consumer<Boolean> claimIfFree(Player player, PlotWorld world, PlotId plotId) {
         return owned -> {
             if (owned) {
                 Cmd.FMT().error("Plot ").stress(plotId).error(" is already owned").tell(player);
@@ -60,8 +60,9 @@ public class Claim {
             };
 
             Runnable callback = () -> {
-                world.refreshUser(player.getUniqueId());
                 Cmd.FMT().info("Claimed plot ").stress(plotId).tell(player);
+                world.refreshUser(player.getUniqueId());
+                Walls.setWalls(player, world, plotId, Plots.config().getOwnedPlotWall(), 1);
             };
 
             Plots.executor().async(async, callback);

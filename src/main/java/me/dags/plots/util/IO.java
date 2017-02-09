@@ -7,8 +7,6 @@ import me.dags.plots.Config;
 import me.dags.plots.Plots;
 import me.dags.plots.generator.GeneratorProperties;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
@@ -54,19 +52,5 @@ public class IO {
         Plots.log("Saving config to: {}", path);
         Node updated = CONFIG_ADAPTER.toNode(config);
         HOCON.to(updated, path);
-    }
-
-    public static void delete(Path path) throws IOException {
-        if (Files.isDirectory(path)) {
-            Files.list(path).forEach(child -> {
-                try {
-                    delete(child);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
-        }
-
-        Files.deleteIfExists(path);
     }
 }

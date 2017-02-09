@@ -22,19 +22,21 @@ public class PlotsCore {
     private final Map<String, PlotWorld> worlds = new HashMap<>();
     private final Map<String, GeneratorProperties> generators = new HashMap<>();
     private final Plots plugin;
+    private final Path configDir;
 
     private OperationDispatcher dispatcher;
 
-    PlotsCore(Plots plots) {
+    PlotsCore(Plots plots, Path configDir) {
         this.plugin = plots;
+        this.configDir = configDir;
     }
 
     public Path configDir() {
-        return plugin.configDir;
+        return configDir;
     }
 
     public Path generatorsDir() {
-        return plugin.configDir.resolve("generators");
+        return configDir.resolve("generators");
     }
 
     public void loadWorldGenerators() {

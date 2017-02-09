@@ -48,17 +48,18 @@ public class Merge {
             WorldDatabase database = world.database();
 
             Supplier<Pair<Boolean, Text>> merge = () -> PlotActions.mergePlots(database, Cmd.FMTCopy(), owner, min, max);
-            Consumer<Pair<Boolean, Text>> result = merge(player, world);
+            Consumer<Pair<Boolean, Text>> result = merge(player, world, min);
 
             Plots.executor().async(merge, result);
         }
     }
 
-    private static Consumer<Pair<Boolean, Text>> merge(Player player, PlotWorld world) {
+    private static Consumer<Pair<Boolean, Text>> merge(Player player, PlotWorld world, PlotId min) {
         return result -> {
             if (result.first()) {
                 Cmd.FMT().info("Merge Successful: ").append(result.second()).tell(player);
                 world.refreshUser(player.getUniqueId());
+                Walls.setWalls(player, world, min, Plots.config().getOwnedPlotWall(), 1);
             } else {
                 Cmd.FMT().error("Merge failed: ").append(result.second()).tell(player);
             }

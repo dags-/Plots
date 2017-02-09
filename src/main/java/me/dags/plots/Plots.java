@@ -50,7 +50,6 @@ public class Plots {
     private final Cause plotsCause;
     private final Executor executor;
     private final MongoClient client;
-    final Path configDir;
 
     private Config config;
 
@@ -74,8 +73,7 @@ public class Plots {
             critical("MONGO DATABASE NOT AVAILABLE ON {}:{} - PLOTS SET TO SAFE-MODE", database.address(), database.port());
         } finally {
             Plots.instance = this;
-            this.configDir = configDir;
-            this.plots = new PlotsCore(this);
+            this.plots = new PlotsCore(this, configDir);
             this.executor  = new Executor(this);
             this.client = client;
             this.enabled = client != null && enabled;
@@ -85,10 +83,10 @@ public class Plots {
 
     @Listener
     public void init(GameInitializationEvent event) {
-        config = IO.getConfig(configDir.resolve("config.conf"));
+        config = IO.getConfig(core().configDir().resolve("config.conf"));
 
         if (!safeMode()) {
-            IO.writeConfig(config, configDir.resolve("config.conf"));
+            IO.writeConfig(config, core().configDir().resolve("config.conf"));
         }
 
         Cmd.setFormat(config.formatter());

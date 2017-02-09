@@ -2,7 +2,7 @@ package me.dags.plots;
 
 import me.dags.commandbus.utils.Format;
 import org.spongepowered.api.Sponge;
-import org.spongepowered.api.block.BlockType;
+import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.text.format.TextStyles;
@@ -12,8 +12,7 @@ import org.spongepowered.api.text.format.TextStyles;
  */
 public class Config {
 
-    private BlockType proof = BlockTypes.DIAMOND_BLOCK;
-    private BlockType highlight = BlockTypes.GLOWSTONE;
+    private BlockState owned_plot_wall = BlockTypes.STONE_SLAB2.getDefaultState();
     private int blocks_per_tick = 5000;
     private Database database = new Database();
     private Format message_format = Format.DEFAULT;
@@ -28,14 +27,6 @@ public class Config {
                 .build();
     }
 
-    public void setHighlight(String highlight) {
-        this.highlight = Sponge.getRegistry().getType(BlockType.class, highlight).orElse(BlockTypes.GLOWSTONE);
-    }
-
-    public void setProof(String proof) {
-        this.proof = Sponge.getRegistry().getType(BlockType.class, proof).orElse(BlockTypes.DIAMOND_BLOCK);
-    }
-
     public void setBlocksPerTick(int count) {
         this.blocks_per_tick = count;
     }
@@ -48,12 +39,16 @@ public class Config {
         return database;
     }
 
-    public BlockType proofBlock() {
-        return proof;
+    public void setOwnedPlotWall(BlockState blockState) {
+        this.owned_plot_wall = blockState;
     }
 
-    public BlockType highlightBlock() {
-        return highlight;
+    public void setOwnedPlotWall(String input) {
+        Sponge.getRegistry().getType(BlockState.class, input).ifPresent(this::setOwnedPlotWall);
+    }
+
+    public BlockState getOwnedPlotWall() {
+        return this.owned_plot_wall;
     }
 
     public int blocksPerTick() {
