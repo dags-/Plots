@@ -6,7 +6,6 @@ import me.dags.data.node.NodeObject;
 import me.dags.data.node.NodeTypeAdapter;
 import me.dags.data.node.NodeTypeAdapters;
 import me.dags.plots.Config;
-import org.spongepowered.api.block.BlockTypes;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,9 +41,9 @@ public class ConfigAdapter implements NodeTypeAdapter<Config> {
                 config.database().setPort(db.asNodeObject().map("port", n -> n.asNumber().intValue(), 27017));
             }
         });
-        config.setOwnedPlotWall(object.map("owned_plot_wall", Node::asString, BlockTypes.STONE_SLAB2.getDefaultState().getId()));
-        config.setBlocksPerTick(object.map("blocks_per_tick", n -> n.asNumber().intValue(), 10000));
-        config.setMessageFormat(object.map("message_format", n -> Format.fromMap(ConfigAdapter.toMap(n)), Format.DEFAULT));
+        config.setOwnedPlotWall(object.map("owned_plot_wall", Node::asString, config.getOwnedPlotWall().getId()));
+        config.setBlocksPerTick(object.map("blocks_per_tick", n -> n.asNumber().intValue(), config.blocksPerTick()));
+        config.setMessageFormat(object.map("message_format", n -> Format.fromMap(ConfigAdapter.toMap(n)), config.formatter()));
         return config;
     }
 

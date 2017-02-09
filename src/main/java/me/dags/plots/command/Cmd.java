@@ -33,7 +33,7 @@ public class Cmd {
     }
 
     public static Format FMTCopy() {
-        return Format.fromMap(FMT().toMap());
+        return FMT();
     }
 
     public static CommandSourceCache<CommandSource, GeneratorProperties.Builder> genBuilders() {

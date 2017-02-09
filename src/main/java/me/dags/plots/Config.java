@@ -4,6 +4,8 @@ import me.dags.commandbus.utils.Format;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.block.BlockTypes;
+import org.spongepowered.api.data.key.Keys;
+import org.spongepowered.api.data.type.SlabTypes;
 import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.text.format.TextStyles;
 
@@ -12,7 +14,7 @@ import org.spongepowered.api.text.format.TextStyles;
  */
 public class Config {
 
-    private BlockState owned_plot_wall = BlockTypes.STONE_SLAB2.getDefaultState();
+    private BlockState owned_plot_wall = BlockTypes.STONE_SLAB.getDefaultState().with(Keys.SLAB_TYPE, SlabTypes.QUARTZ).orElse(BlockTypes.STONE_SLAB.getDefaultState());
     private int blocks_per_tick = 5000;
     private Database database = new Database();
     private Format message_format = Format.DEFAULT;

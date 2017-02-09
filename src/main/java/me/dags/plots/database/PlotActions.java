@@ -132,26 +132,19 @@ public class PlotActions {
             }
         }
 
-        // Should work
-        Document updatePlot = new Document()
-                .append("$set", new Document(Keys.PLOT_OWNER, owner))
-                .append("$set", new Document(Keys.PLOT_MERGE_MIN, from.toString()))
-                .append("$set", new Document(Keys.PLOT_MERGE_MAX, to.toString()));
-
-        // 'Record' the plots being merged so they can be added to the user's list
-        Document updateUser = new Document();
-
+        int count = 0;
         for (int x = from.plotX(); x <= to.plotX(); x++) {
             for (int z = from.plotZ(); z <= to.plotZ(); z++) {
+                count++;
                 PlotId plotId = PlotId.of(x, z);
-                collection.updateOne(Filters.eq(Keys.PLOT_ID, plotId.toString()), updatePlot, UPSERT);
-                updateUser.append("$addToSet", new Document(Keys.USER_PLOTS, plotId.toString()));
+                collection.updateOne(Filters.eq(Keys.PLOT_ID, plotId.toString()), new Document("$set", new Document(Keys.PLOT_OWNER, owner)), UPSERT);
+                collection.updateOne(Filters.eq(Keys.PLOT_ID, plotId.toString()), new Document("$set", new Document(Keys.PLOT_MERGE_MIN, from.toString())), UPSERT);
+                collection.updateOne(Filters.eq(Keys.PLOT_ID, plotId.toString()), new Document("$set", new Document(Keys.PLOT_MERGE_MAX, to.toString())), UPSERT);
+                UserActions.addPlot(database, uuid, plotId);
             }
         }
 
-        database.userCollection().updateOne(Filters.eq(Keys.USER_PLOTS, owner), updateUser, UPSERT);
-
-        return Pair.of(true, format.info("Merged ").stress(updateUser.size()).info(" plots").build());
+        return Pair.of(true, format.info("Merged ").stress(count).info(" plots").build());
     }
 
     public static void removeMerge(WorldDatabase database, PlotId plotId) {
