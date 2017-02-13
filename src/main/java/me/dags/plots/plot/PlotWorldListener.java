@@ -1,10 +1,12 @@
 package me.dags.plots.plot;
 
 import com.flowpowered.math.vector.Vector3i;
+import me.dags.commandbus.format.FMT;
+import me.dags.commandbus.format.Format;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
-import me.dags.plots.command.Cmd;
 import me.dags.plots.database.PlotActions;
+import me.dags.plots.database.WorldDatabase;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.data.key.Keys;
@@ -252,7 +254,8 @@ public class PlotWorldListener {
         if (plotWorld.equalsWorld(player.getWorld())) {
             PlotId plotId = plotWorld.plotSchema().containingPlot(player.getLocation().getBlockPosition());
             if (plotId.present()) {
-                Supplier<Text> async = () -> PlotActions.plotInfo(plotWorld.database(), plotId, Cmd.FMT());
+                Format format = FMT.copy();
+                Supplier<Text> async = () -> PlotActions.plotInfo(plotWorld.database(), plotId, format);
                 Consumer<Text> sync = text -> player.sendMessage(ChatTypes.ACTION_BAR, text);
                 Plots.executor().async(async, sync);
             }
@@ -264,7 +267,8 @@ public class PlotWorldListener {
         if (plotWorld.equalsWorld(event.getToTransform().getExtent())) {
             PlotId plotId = plotWorld.plotSchema().containingPlot(event.getToTransform().getPosition().toInt());
             if (plotId.present()) {
-                Supplier<Text> async = () -> PlotActions.plotInfo(plotWorld.database(), plotId, Cmd.FMT());
+                Format format = FMT.copy();
+                Supplier<Text> async = () -> PlotActions.plotInfo(plotWorld.database(), plotId, format);
                 Consumer<Text> sync = text -> player.sendMessage(ChatTypes.ACTION_BAR, text);
                 Plots.executor().async(async, sync);
             }
@@ -310,9 +314,11 @@ public class PlotWorldListener {
         PlotId toId = plotWorld.plotSchema().plotId(to);
         if (plotWorld.plotSchema().plotBounds(toId).contains(to)) {
             // player entered the bounds of a new plot
-            Plots.executor().async(() -> PlotActions.plotInfo(plotWorld.database(), toId, Cmd.FMT()), plotInfo -> {
-                player.sendMessage(ChatTypes.ACTION_BAR, plotInfo);
-            });
+            Format format = FMT.copy();
+            WorldDatabase database = plotWorld.database();
+            Supplier<Text> info = () -> PlotActions.plotInfo(database, toId, format);
+            Consumer<Text> send = text -> player.sendMessage(ChatTypes.ACTION_BAR, text);
+            Plots.executor().async(info, send);
         }
     }
 }

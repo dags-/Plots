@@ -3,6 +3,8 @@ package me.dags.plots.command.plot;
 import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
 import me.dags.commandbus.annotation.Permission;
+import me.dags.commandbus.format.FMT;
+import me.dags.commandbus.format.Format;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
 import me.dags.plots.command.Cmd;
@@ -28,7 +30,8 @@ public class Info {
         if (plot.present()) {
             WorldDatabase database = plot.first().database();
             PlotId plotId = plot.second();
-            Supplier<Text> find = () -> PlotActions.plotInfo(database, plotId, Cmd.FMTCopy());
+            Format format = FMT.copy();
+            Supplier<Text> find = () -> PlotActions.plotInfo(database, plotId, format);
             Consumer<Text> info = player::sendMessage;
             Plots.executor().async(find, info);
         }

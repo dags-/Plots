@@ -37,8 +37,8 @@ dependencies {
 
     // shaded dependencies:
     compile 'org.mongodb:mongo-java-driver:3.2.0'
-    compile 'com.github.dags-:NodeData:1.3.0-SNAPSHOT-20'
-    compile 'com.github.dags-:CommandBus:1.4.0-SNAPSHOT-1'
+    compile 'com.github.dags-:NodeData:1.4.1-SNAPSHOT'
+    compile 'com.github.dags-:CommandBus:1.5.1-SNAPSHOT'
 }
 
 shadowJar {

@@ -4,6 +4,7 @@ import com.flowpowered.math.vector.Vector3i;
 import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
 import me.dags.commandbus.annotation.Permission;
+import me.dags.commandbus.format.FMT;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
 import me.dags.plots.command.Cmd;
@@ -43,7 +44,7 @@ public class Export {
     @Command(aliases = "export", parent = "plot", desc = "Export the plot to a schematic that you can download", perm = @Permission(Permissions.PLOT_EXPORT))
     public void export(@Caller Player player) {
         if (!PlotsWeb.getHelper().isEnabled()) {
-            Cmd.FMT().error("PlotsWeb service is not running!").tell(player);
+            FMT.error("PlotsWeb service is not running!").tell(player);
             return;
         }
 
@@ -60,9 +61,9 @@ public class Export {
     static Consumer<Optional<UUID>> export(Player player, PlotWorld world, PlotId plotId) {
         return uuid -> {
             if (uuid.isPresent()) {
-                // Play doesn't own plot
+                // Player doesn't own plot
                 if (uuid.get() != player.getUniqueId() && !player.hasPermission(Permissions.PLOT_EXPORT_OTHER)) {
-                    Cmd.FMT().error("You do not own plot ").stress(plotId).tell(player);
+                    FMT.error("You do not own plot ").stress(plotId).tell(player);
                     return;
                 }
 
@@ -74,7 +75,7 @@ public class Export {
                 }
 
                 // Export plot as schematic to file
-                Cmd.FMT().info("Exporting plot ").stress(plotId).info("...").tell(player);
+                FMT.info("Exporting plot ").stress(plotId).info("...").tell(player);
                 PlotBounds bounds = world.plotSchema().plotBounds(plotId);
                 Vector3i min = bounds.getBlockMin();
                 Vector3i max = bounds.getBlockMax();
@@ -98,13 +99,13 @@ public class Export {
 
                 Optional<Text> link = getExportLink(world, plotId);
                 if (link.isPresent()) {
-                    Cmd.FMT().info("Download: ").append(link.get()).tell(player);
+                    FMT.info("Download: ").append(link.get()).tell(player);
                     return;
                 }
 
-                Cmd.FMT().subdued("No existing export found for plot ").stress(plotId).tell(player);
+                FMT.subdued("No existing export found for plot ").stress(plotId).tell(player);
             } else {
-                Cmd.FMT().error("Nobody owns plot ").stress(plotId).tell(player);
+                FMT.error("Nobody owns plot ").stress(plotId).tell(player);
             }
         };
     }

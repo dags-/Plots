@@ -1,7 +1,7 @@
 package me.dags.plots.command;
 
+import me.dags.commandbus.format.FMT;
 import me.dags.commandbus.utils.CommandSourceCache;
-import me.dags.commandbus.utils.Format;
 import me.dags.plots.Plots;
 import me.dags.plots.generator.GeneratorProperties;
 import me.dags.plots.plot.PlotId;
@@ -18,32 +18,16 @@ import java.util.concurrent.TimeUnit;
  */
 public class Cmd {
 
-    private static Format FMT = Format.builder().build();
     private static final CommandSourceCache<CommandSource, GeneratorProperties.Builder> genBuilders = CommandSourceCache.builder()
             .expireTime(3)
             .timeUnit(TimeUnit.MINUTES)
-            .messageFormat(Format.DEFAULT)
             .addMessage("Started new generator editor session")
             .expireMessage("Your generator editor session has expired")
             .noElementMessage("You are not currently editing a generator")
             .build();
 
-    public static Format FMT() {
-        return FMT;
-    }
-
-    public static Format FMTCopy() {
-        return FMT();
-    }
-
     public static CommandSourceCache<CommandSource, GeneratorProperties.Builder> genBuilders() {
         return genBuilders;
-    }
-
-    public static void setFormat(Format format) {
-        if (format != null) {
-            Cmd.FMT = format;
-        }
     }
 
     // Get the plot currently containing the Player
@@ -54,7 +38,7 @@ public class Cmd {
             if (plotId.present()) {
                 return Pair.of(world.get(), plotId);
             }
-            FMT().error("You are not inside a plot").tell(player);
+            FMT.error("You are not inside a plot").tell(player);
         }
         return Pair.empty();
     }
@@ -67,7 +51,7 @@ public class Cmd {
             if (plotId.present()) {
                 return Pair.of(world.get(), plotId);
             }
-            FMT().error("Could not find the nearest plot :[").tell(player);
+            FMT.error("Could not find the nearest plot :[").tell(player);
         }
         return Pair.empty();
     }
@@ -80,7 +64,7 @@ public class Cmd {
     public static Optional<PlotWorld> getWorld(CommandSource source, String world) {
         Optional<PlotWorld> optional = Plots.core().plotWorld(world);
         if (!optional.isPresent()) {
-            FMT().error("World {} is not a PlotWorld", world).tell(source);
+            FMT.error("World {} is not a PlotWorld", world).tell(source);
         }
         return optional;
     }

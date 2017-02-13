@@ -4,6 +4,8 @@ import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
 import me.dags.commandbus.annotation.One;
 import me.dags.commandbus.annotation.Permission;
+import me.dags.commandbus.format.FMT;
+import me.dags.commandbus.format.Format;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
 import me.dags.plots.command.Cmd;
@@ -32,11 +34,12 @@ public class Top {
         Optional<PlotWorld> plotWorld = Cmd.getWorld(player);
         if (plotWorld.isPresent()) {
             if (size < 1 || size > 100) {
-                Cmd.FMT().error("Please specify a value between 1 & 100").tell(player);
+                FMT.error("Please specify a value between 1 & 100").tell(player);
                 return;
             }
             WorldDatabase database = plotWorld.get().database();
-            Supplier<PaginationList> get = () -> PlotActions.topPlots(database, size, Cmd.FMTCopy());
+            Format format = FMT.copy();
+            Supplier<PaginationList> get = () -> PlotActions.topPlots(database, size, format);
             Consumer<PaginationList> top = list -> list.sendTo(player);
             Plots.executor().async(get, top);
         }

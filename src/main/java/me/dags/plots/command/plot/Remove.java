@@ -4,6 +4,7 @@ import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
 import me.dags.commandbus.annotation.One;
 import me.dags.commandbus.annotation.Permission;
+import me.dags.commandbus.format.FMT;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
 import me.dags.plots.command.Cmd;
@@ -34,7 +35,7 @@ public class Remove {
             boolean removeAny = player.hasPermission(Permissions.PLOT_REMOVE_ANY);
 
             if (player.getUniqueId().equals(user.getUniqueId()) && !removeAny) {
-                Cmd.FMT().error("You cannot remove yourself from a plot").tell(player);
+                FMT.error("You cannot remove yourself from a plot").tell(player);
                 return;
             }
 
@@ -51,15 +52,15 @@ public class Remove {
                     Runnable async = () -> UserActions.removePlot(world.database(), target.getUniqueId(), plotId);
                     Runnable sync = () -> {
                         world.refreshUser(target.getUniqueId());
-                        Cmd.FMT().info("Removed ").stress(target.getName()).info(" from plot ").stress(plotId).tell(player);
-                        target.getPlayer().ifPresent(Cmd.FMT().stress(player.getName()).info(" removed you from plot ").stress(plotId)::tell);
+                        FMT.info("Removed ").stress(target.getName()).info(" from plot ").stress(plotId).tell(player);
+                        target.getPlayer().ifPresent(FMT.stress(player.getName()).info(" removed you from plot ").stress(plotId)::tell);
                     };
                     Plots.executor().async(async, sync);
                 } else {
-                    Cmd.FMT().error("You do not have permission to remove people from plot ").stress(plotId).tell(player);
+                    FMT.error("You do not have permission to remove people from plot ").stress(plotId).tell(player);
                 }
             } else {
-                Cmd.FMT().error("Nobody owns plot ").stress(plotId).tell(player);
+                FMT.error("Nobody owns plot ").stress(plotId).tell(player);
             }
         };
     }

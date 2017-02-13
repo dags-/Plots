@@ -3,7 +3,8 @@ package me.dags.plots.command.plot;
 import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
 import me.dags.commandbus.annotation.Permission;
-import me.dags.commandbus.utils.Format;
+import me.dags.commandbus.format.FMT;
+import me.dags.commandbus.format.FormattedListBuilder;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
 import me.dags.plots.command.Cmd;
@@ -14,16 +15,14 @@ import me.dags.plots.plot.PlotWorld;
 import me.dags.plots.util.Pair;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.service.pagination.PaginationList;
+import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.service.user.UserStorageService;
-import org.spongepowered.api.text.Text;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 /**
  * @author dags <dags@dags.me>
@@ -37,27 +36,26 @@ public class Whitelist {
             PlotId plotId = plot.second();
             WorldDatabase database = plot.first().database();
             Supplier<List<UUID>> search = () -> UserActions.getWhitelisted(database, plotId);
-            Consumer<List<UUID>> whitelist = list(player, plotId, Cmd.FMT());
+            Consumer<List<UUID>> whitelist = list(player, plotId);
             Plots.executor().async(search, whitelist);
         }
     }
 
-    static Consumer<List<UUID>> list(Player player, PlotId plotId, Format format) {
+    static Consumer<List<UUID>> list(Player player, PlotId plotId) {
         return list -> {
-            Iterable<Text> lines = list.stream()
+            FormattedListBuilder builder = FMT.listBuilder();
+            builder.linesPerPage(9);
+            builder.title().stress("Users Whitelisted On %s", plotId);
+
+            list.stream()
                     .distinct()
                     .map(Sponge.getServiceManager().provideUnchecked(UserStorageService.class)::get)
                     .filter(Optional::isPresent)
                     .map(Optional::get)
-                    .map(user -> format.info(" - {}", user.getName()).build())
-                    .collect(Collectors.toList());
+                    .map(User::getName)
+                    .forEach(name -> builder.line().info(" - %s", name));
 
-            PaginationList.builder()
-                    .title(format.stress("Users Whitelisted On {}", plotId).build())
-                    .linesPerPage(9)
-                    .contents(lines)
-                    .build()
-                    .sendTo(player);
+            builder.build().sendTo(player);
         };
     }
 }

@@ -4,13 +4,14 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.UpdateOptions;
-import me.dags.commandbus.utils.Format;
-import me.dags.commandbus.utils.StringUtils;
+import me.dags.commandbus.format.Format;
+import me.dags.commandbus.format.Formatter;
 import me.dags.plots.plot.PlotId;
 import me.dags.plots.util.CountList;
 import me.dags.plots.util.Pair;
 import org.bson.Document;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.service.user.UserStorageService;
 import org.spongepowered.api.text.Text;
@@ -220,13 +221,13 @@ public class PlotActions {
     }
 
     private static Text plotInfo(PlotId plotId, String world, Document document, Format format) {
-        Format.MessageBuilder builder = format.message().info("Plot: ").stress(plotId);
+        Formatter formatter = format.message().info("Plot: ").stress(plotId);
 
         if (document != null) {
             if (document.containsKey(Keys.PLOT_ALIAS)) {
                 String alias = document.getString(Keys.PLOT_ALIAS);
                 if (alias != null && !alias.isEmpty()) {
-                    builder.info(" (").stress(alias).info(")");
+                    formatter.info(" (").stress(alias).info(")");
                 }
             }
             if (document.containsKey(Keys.PLOT_OWNER)) {
@@ -235,16 +236,17 @@ public class PlotActions {
                 Sponge.getServiceManager()
                         .provideUnchecked(UserStorageService.class)
                         .get(uuid)
-                        .ifPresent(user -> builder.info(" Owner: ").stress(user.getName()));
+                        .map(User::getName)
+                        .ifPresent(formatter.info(" Owner: ")::stress);
             }
             if (document.containsKey(Keys.PLOT_LIKES)) {
                 List<?> list = document.get(Keys.PLOT_LIKES, List.class);
-                builder.info(" Likes: ").stress(list.size());
+                formatter.info(" Likes: ").stress(list.size());
             }
         }
 
-        String command = StringUtils.format("/plot tp {} {}", world, plotId);
-        return builder.action(TextActions.runCommand(command)).build();
+        String command = String.format("/plot tp %s %s", world, plotId);
+        return formatter.action(TextActions.runCommand(command)).build();
     }
 
     public static PlotId findNextFreePlot(WorldDatabase database, PlotId closest) {

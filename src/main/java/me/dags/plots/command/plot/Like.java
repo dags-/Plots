@@ -3,6 +3,7 @@ package me.dags.plots.command.plot;
 import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
 import me.dags.commandbus.annotation.Permission;
+import me.dags.commandbus.format.FMT;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
 import me.dags.plots.command.Cmd;
@@ -35,10 +36,10 @@ public class Like {
     static Consumer<Boolean> like(Player player, PlotWorld world, PlotId plotId) {
         return owned -> {
             if (owned) {
-                Cmd.FMT().info("You liked plot ").stress(plotId).tell(player);
+                FMT.info("You liked plot ").stress(plotId).tell(player);
                 Plots.executor().async(() -> PlotActions.addLike(world.database(), plotId, player.getUniqueId()));
             } else {
-                Cmd.FMT().error("Plot ").stress(plotId).error(" is not owned").tell(player);
+                FMT.error("Plot ").stress(plotId).error(" is not owned").tell(player);
             }
         };
     }

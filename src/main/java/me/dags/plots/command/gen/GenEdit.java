@@ -4,7 +4,8 @@ import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
 import me.dags.commandbus.annotation.One;
 import me.dags.commandbus.annotation.Permission;
-import me.dags.commandbus.utils.Format;
+import me.dags.commandbus.format.FMT;
+import me.dags.commandbus.format.Formatter;
 import me.dags.plots.Permissions;
 import me.dags.plots.command.Cmd;
 import me.dags.plots.generator.GeneratorProperties;
@@ -36,7 +37,7 @@ public class GenEdit {
         Optional<GeneratorProperties.Builder> builder = get(source);
         if (builder.isPresent()) {
             builder.get().pathWidth(width);
-            Cmd.FMT().info("Set path width to ").stress(width).tell(source);
+            FMT.info("Set path width to ").stress(width).tell(source);
         }
     }
 
@@ -45,7 +46,7 @@ public class GenEdit {
         Optional<GeneratorProperties.Builder> builder = get(source);
         if (builder.isPresent()) {
             builder.get().xWidth(xWidth).zWidth(zWidth);
-            Cmd.FMT().info("Set plot dimensions to ").stress(xWidth).info("x").stress(zWidth).tell(source);
+            FMT.info("Set plot dimensions to ").stress(xWidth).info("x").stress(zWidth).tell(source);
         }
     }
 
@@ -54,7 +55,7 @@ public class GenEdit {
         Optional<GeneratorProperties.Builder> builder = get(source);
         if (builder.isPresent()) {
             builder.get().wallWidth(width);
-            Cmd.FMT().info("Set wall width to ").stress(width).tell(source);
+            FMT.info("Set wall width to ").stress(width).tell(source);
         }
     }
 
@@ -65,9 +66,9 @@ public class GenEdit {
             Optional<BiomeType> type = Sponge.getRegistry().getType(BiomeType.class, biome);
             if (type.isPresent()) {
                 builder.get().biome(type.get());
-                Cmd.FMT().info("Set biome to ").stress(biome).tell(source);
+                FMT.info("Set biome to ").stress(biome).tell(source);
             } else {
-                Cmd.FMT().error("Biome ").stress(biome).error(" not recognised").tell(source);
+                FMT.error("Biome ").stress(biome).error(" not recognised").tell(source);
             }
         }
     }
@@ -77,7 +78,7 @@ public class GenEdit {
         Optional<GeneratorProperties.Builder> builder = get(source);
         if (builder.isPresent()) {
             builder.get().gameRule(rule, value);
-            Cmd.FMT().info("Set gamerule ").stress(rule).info(" to ").stress(value).tell(source);
+            FMT.info("Set gamerule ").stress(rule).info(" to ").stress(value).tell(source);
         }
     }
 
@@ -90,28 +91,28 @@ public class GenEdit {
             Optional<BlockType> wallType = Sponge.getRegistry().getType(BlockType.class, wall);
 
             boolean error = false;
-            Format.MessageBuilder errorMessage = Cmd.FMT().error("Unknown material(s): ");
+            Formatter err = FMT.error("Unknown material(s): ");
             if (!plotType.isPresent()) {
-                errorMessage.error("plot=").stress(plot);
+                err.error("plot=").stress(plot);
                 error = true;
             }
             if (!pathType.isPresent()) {
-                errorMessage.error(error ? ", path=" : "path=").stress(path);
+                err.error(error ? ", path=" : "path=").stress(path);
                 error = true;
             }
             if (!wallType.isPresent()) {
-                errorMessage.error(error ? ", wall=" : "wall=").stress(path);
+                err.error(error ? ", wall=" : "wall=").stress(path);
             }
 
             if (plotType.isPresent() && wallType.isPresent() && pathType.isPresent()) {
                 builder.get().layer(plotType.get(), wallType.get(), pathType.get(), thickness);
-                Cmd.FMT().info("Set layer to (plot=").stress(plot)
+                FMT.info("Set layer to (plot=").stress(plot)
                         .info(", path=").stress(path)
                         .info(", wall=").stress(wall)
                         .info(")x").stress(thickness)
                         .tell(source);
             } else {
-                errorMessage.tell(source);
+                err.tell(source);
             }
         }
     }

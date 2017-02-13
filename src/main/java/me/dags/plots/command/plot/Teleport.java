@@ -4,6 +4,7 @@ import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
 import me.dags.commandbus.annotation.One;
 import me.dags.commandbus.annotation.Permission;
+import me.dags.commandbus.format.FMT;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
 import me.dags.plots.command.Cmd;
@@ -32,7 +33,7 @@ public class Teleport {
         if (plotWorld.isPresent()) {
             if (PlotId.isValid(plot)) {
                 PlotId plotId = PlotId.parse(plot);
-                Cmd.FMT().info("Teleporting to ").stress(plotId).tell(player);
+                FMT.info("Teleporting to ").stress(plotId).tell(player);
                 plotWorld.get().teleport(player, plotId);
             } else {
                 Supplier<PlotId> findPlot = () -> PlotActions.plotFromAlias(plotWorld.get().database(), plot);
@@ -45,10 +46,10 @@ public class Teleport {
     static Consumer<PlotId> teleport(Player player, PlotWorld world, String alias) {
         return plotId -> {
             if (plotId.present()) {
-                Cmd.FMT().info("Teleporting to ").stress(alias).tell(player);
+                FMT.info("Teleporting to ").stress(alias).tell(player);
                 world.teleport(player, plotId);
             } else {
-                Cmd.FMT().info("Could not find a plot with the alias ").stress(alias).info(" in this world").tell(player);
+                FMT.info("Could not find a plot with the alias ").stress(alias).info(" in this world").tell(player);
             }
         };
     }

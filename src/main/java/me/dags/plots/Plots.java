@@ -3,7 +3,6 @@ package me.dags.plots;
 import com.google.inject.Inject;
 import com.mongodb.MongoClient;
 import me.dags.commandbus.CommandBus;
-import me.dags.plots.command.Cmd;
 import me.dags.plots.command.gen.*;
 import me.dags.plots.command.plot.*;
 import me.dags.plots.command.world.WorldCreate;
@@ -67,6 +66,7 @@ public class Plots {
             client = new MongoClient(database.address(), database.port());
             client.getAddress();
             enabled = true;
+
         } catch (Exception e) {
             client = null;
             enabled = false;
@@ -88,8 +88,6 @@ public class Plots {
         if (!safeMode()) {
             IO.writeConfig(config, core().configDir().resolve("config.conf"));
         }
-
-        Cmd.setFormat(config.formatter());
 
         core().reloadGenerators();
         core().loadWorldGenerators();

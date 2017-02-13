@@ -4,6 +4,8 @@ import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
 import me.dags.commandbus.annotation.One;
 import me.dags.commandbus.annotation.Permission;
+import me.dags.commandbus.format.FMT;
+import me.dags.commandbus.format.Format;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
 import me.dags.plots.command.Cmd;
@@ -27,7 +29,7 @@ public class Merge {
     @Command(aliases = "merge", parent = "plot", desc = "Merge multiple plots into one", perm = @Permission(Permissions.PLOT_MERGE))
     public void merge(@Caller Player player, @One("to") String to) {
         if (!PlotId.isValid(to)) {
-            Cmd.FMT().stress(to).error(" is not a valid plot id!").tell(player);
+            FMT.stress(to).error(" is not a valid plot id!").tell(player);
             return;
         }
 
@@ -46,8 +48,9 @@ public class Merge {
             PlotId min = PlotId.of(minX, minZ);
             PlotId max = PlotId.of(maxX, maxZ);
             WorldDatabase database = world.database();
+            Format format = FMT.copy();
 
-            Supplier<Pair<Boolean, Text>> merge = () -> PlotActions.mergePlots(database, Cmd.FMTCopy(), owner, min, max);
+            Supplier<Pair<Boolean, Text>> merge = () -> PlotActions.mergePlots(database, format, owner, min, max);
             Consumer<Pair<Boolean, Text>> result = merge(player, world, min);
 
             Plots.executor().async(merge, result);
@@ -57,11 +60,11 @@ public class Merge {
     private static Consumer<Pair<Boolean, Text>> merge(Player player, PlotWorld world, PlotId min) {
         return result -> {
             if (result.first()) {
-                Cmd.FMT().info("Merge Successful: ").append(result.second()).tell(player);
+                FMT.info("Merge Successful: ").append(result.second()).tell(player);
                 world.refreshUser(player.getUniqueId());
                 Walls.setWalls(player, world, min, Plots.config().getOwnedPlotWall(), 1);
             } else {
-                Cmd.FMT().error("Merge failed: ").append(result.second()).tell(player);
+                FMT.error("Merge failed: ").append(result.second()).tell(player);
             }
         };
     }

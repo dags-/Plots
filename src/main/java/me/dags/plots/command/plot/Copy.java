@@ -4,6 +4,7 @@ import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
 import me.dags.commandbus.annotation.One;
 import me.dags.commandbus.annotation.Permission;
+import me.dags.commandbus.format.FMT;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
 import me.dags.plots.command.Cmd;
@@ -74,11 +75,11 @@ public class Copy {
             if (plots.present()) {
                 PlotId from = plots.first();
                 PlotId to = plots.second();
-                Cmd.FMT().info("Copying plot ").stress(from).info(" to ").stress(to).info("...").tell(player);
-                Runnable callback = () -> Cmd.FMT().info("Finished copying plot ").stress(from).info(" to ").stress(to).tell(player);
+                FMT.info("Copying plot ").stress(from).info(" to ").stress(to).info("...").tell(player);
+                Runnable callback = () -> FMT.info("Finished copying plot ").stress(from).info(" to ").stress(to).tell(player);
                 world.copyPlot(from, to, callback);
             } else {
-                Cmd.FMT().error("You must be owner or added to the 'from' plot, and owner of the 'to' plot").tell(player);
+                FMT.error("You must be owner or added to the 'from' plot, and owner of the 'to' plot").tell(player);
             }
         };
     }

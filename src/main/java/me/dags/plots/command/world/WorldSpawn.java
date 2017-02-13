@@ -4,8 +4,8 @@ import com.flowpowered.math.vector.Vector3i;
 import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
 import me.dags.commandbus.annotation.Permission;
+import me.dags.commandbus.format.FMT;
 import me.dags.plots.Permissions;
-import me.dags.plots.command.Cmd;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.world.World;
 
@@ -19,6 +19,6 @@ public class WorldSpawn {
         World world = player.getWorld();
         Vector3i pos = player.getLocation().getBlockPosition();
         world.getProperties().setSpawnPosition(pos);
-        Cmd.FMT().info("Set world ").stress(world.getName()).info("'s spawn to ").stress(pos).tell(player);
+        FMT.info("Set world ").stress(world.getName()).info("'s spawn to ").stress(pos).tell(player);
     }
 }

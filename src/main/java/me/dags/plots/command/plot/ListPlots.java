@@ -4,6 +4,8 @@ import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
 import me.dags.commandbus.annotation.One;
 import me.dags.commandbus.annotation.Permission;
+import me.dags.commandbus.format.FMT;
+import me.dags.commandbus.format.Format;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
 import me.dags.plots.command.Cmd;
@@ -35,7 +37,8 @@ public class ListPlots {
             PlotWorld plotWorld = world.get();
             String title = user.getName() + "'s Plots";
             UUID uuid = user.getUniqueId();
-            Supplier<PaginationList> fetch = () -> UserActions.listPlots(plotWorld.database(), title, uuid, Cmd.FMTCopy());
+            Format format = FMT.copy();
+            Supplier<PaginationList> fetch = () -> UserActions.listPlots(plotWorld.database(), title, uuid, format);
             Consumer<PaginationList> send = list -> list.sendTo(player);
             Plots.executor().async(fetch, send);
         }

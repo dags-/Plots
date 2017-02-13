@@ -4,9 +4,9 @@ import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
 import me.dags.commandbus.annotation.One;
 import me.dags.commandbus.annotation.Permission;
+import me.dags.commandbus.format.FMT;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
-import me.dags.plots.command.Cmd;
 import me.dags.plots.generator.GeneratorProperties;
 import me.dags.plots.generator.PlotGenerator;
 import me.dags.plots.util.IO;
@@ -48,10 +48,10 @@ public class WorldCreate {
                 WorldProperties worldProperties = Sponge.getServer().createWorldProperties(name, archetype);
                 Sponge.getServer().loadWorld(worldProperties).ifPresent(world -> {
                     plotGenerator.onLoadWorld(world);
-                    Cmd.FMT().info("Created world ").stress(world.getName()).tell(source);
+                    FMT.info("Created world ").stress(world.getName()).tell(source);
                 });
             } catch (IOException e) {
-                Cmd.FMT().warn("Unable to create world ").stress(name).tell(source);
+                FMT.warn("Unable to create world ").stress(name).tell(source);
                 e.printStackTrace();
             }
         });

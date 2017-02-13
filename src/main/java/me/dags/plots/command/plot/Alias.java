@@ -4,6 +4,7 @@ import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
 import me.dags.commandbus.annotation.One;
 import me.dags.commandbus.annotation.Permission;
+import me.dags.commandbus.format.FMT;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
 import me.dags.plots.command.Cmd;
@@ -42,7 +43,7 @@ public class Alias {
                 Consumer<Boolean> setAlias = setAlias(player, world, plotId, alias);
                 Plots.executor().async(exists, setAlias);
             } else {
-                Cmd.FMT().error("You do not own plot ").stress(plotId).tell(player);
+                FMT.error("You do not own plot ").stress(plotId).tell(player);
             }
         };
     }
@@ -50,10 +51,10 @@ public class Alias {
     static Consumer<Boolean> setAlias(Player player, PlotWorld world, PlotId plotId, String alias) {
         return exists -> {
             if (exists) {
-                Cmd.FMT().error("The alias ").stress(alias).error(" has already been taken by another plot").tell(player);
+                FMT.error("The alias ").stress(alias).error(" has already been taken by another plot").tell(player);
             } else {
                 Runnable async = () -> PlotActions.setPlotAlias(world.database(), plotId, alias);
-                Runnable sync = () -> Cmd.FMT().info("Set plot ").stress(plotId).info("'s alias to ").stress(alias).tell(player);
+                Runnable sync = () -> FMT.info("Set plot ").stress(plotId).info("'s alias to ").stress(alias).tell(player);
                 Plots.executor().async(async, sync);
             }
         };

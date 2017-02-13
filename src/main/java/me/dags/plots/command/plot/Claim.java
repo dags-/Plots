@@ -3,6 +3,7 @@ package me.dags.plots.command.plot;
 import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
 import me.dags.commandbus.annotation.Permission;
+import me.dags.commandbus.format.FMT;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
 import me.dags.plots.command.Cmd;
@@ -37,7 +38,7 @@ public class Claim {
     private static Consumer<Boolean> claimIfFree(Player player, PlotWorld world, PlotId plotId) {
         return owned -> {
             if (owned) {
-                Cmd.FMT().error("Plot ").stress(plotId).error(" is already owned").tell(player);
+                FMT.error("Plot ").stress(plotId).error(" is already owned").tell(player);
             } else {
                 claim(player, world, plotId);
             }
@@ -46,11 +47,11 @@ public class Claim {
 
     static void claim(Player player, PlotWorld world, PlotId plotId) {
         if (!plotId.present()) {
-            Cmd.FMT().error("Plot ").stress(plotId).error(" is not present").tell(player);
+            FMT.error("Plot ").stress(plotId).error(" is not present").tell(player);
         } else {
             PlotUser user = world.user(player.getUniqueId());
             if (user.hasPlot() && !user.approved() && !player.hasPermission(Permissions.PLOT_APPROVAL_BYPASS)) {
-                Cmd.FMT().error("You must have one of your plots approved before claiming a new one").tell(player);
+                FMT.error("You must have one of your plots approved before claiming a new one").tell(player);
                 return;
             }
 
@@ -60,7 +61,7 @@ public class Claim {
             };
 
             Runnable callback = () -> {
-                Cmd.FMT().info("Claimed plot ").stress(plotId).tell(player);
+                FMT.info("Claimed plot ").stress(plotId).tell(player);
                 world.refreshUser(player.getUniqueId());
                 Walls.setWalls(player, world, plotId, Plots.config().getOwnedPlotWall(), 1);
             };

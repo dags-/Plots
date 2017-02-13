@@ -4,6 +4,8 @@ import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
 import me.dags.commandbus.annotation.One;
 import me.dags.commandbus.annotation.Permission;
+import me.dags.commandbus.format.FMT;
+import me.dags.commandbus.format.Format;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
 import me.dags.plots.command.Cmd;
@@ -36,7 +38,8 @@ public class Likes {
             String name = other.getName();
             UUID uuid = other.getUniqueId();
             WorldDatabase database = world.get().database();
-            Supplier<PaginationList> search = () -> UserActions.listLikes(database, name, uuid, Cmd.FMTCopy());
+            Format format = FMT.copy();
+            Supplier<PaginationList> search = () -> UserActions.listLikes(database, name, uuid, format);
             Consumer<PaginationList> likes = list -> list.sendTo(player);
             Plots.executor().async(search, likes);
         }

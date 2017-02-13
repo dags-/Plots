@@ -1,16 +1,9 @@
 package me.dags.plots.util;
 
-import me.dags.commandbus.utils.Format;
 import me.dags.data.node.Node;
 import me.dags.data.node.NodeObject;
 import me.dags.data.node.NodeTypeAdapter;
-import me.dags.data.node.NodeTypeAdapters;
 import me.dags.plots.Config;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author dags <dags@dags.me>
@@ -27,7 +20,6 @@ public class ConfigAdapter implements NodeTypeAdapter<Config> {
         configNode.put("database", database);
         configNode.put("owned_plot_wall", config.getOwnedPlotWall().getId());
         configNode.put("blocks_per_tick", config.blocksPerTick());
-        configNode.put("message_format", NodeTypeAdapters.serialize(config.formatter().toMap()));
         return configNode;
     }
 
@@ -43,30 +35,6 @@ public class ConfigAdapter implements NodeTypeAdapter<Config> {
         });
         config.setOwnedPlotWall(object.map("owned_plot_wall", Node::asString, config.getOwnedPlotWall().getId()));
         config.setBlocksPerTick(object.map("blocks_per_tick", n -> n.asNumber().intValue(), config.blocksPerTick()));
-        config.setMessageFormat(object.map("message_format", n -> Format.fromMap(ConfigAdapter.toMap(n)), config.formatter()));
         return config;
-    }
-
-    @SuppressWarnings("unchecked")
-    private static Map<Object, Object> toMap(Node node) {
-        return (Map<Object, Object>) toObject(node);
-    }
-
-    private static Object toObject(Node node) {
-        if (node.isNodeObject()) {
-            Map<Object, Object> map = new HashMap<>();
-            for (Map.Entry<Node, Node> entry : node.asNodeObject().entries()) {
-                map.put(toObject(entry.getKey()), toObject(entry.getValue()));
-            }
-            return map;
-        } else if (node.isNodeArray()) {
-            List<Object> list = new ArrayList<>();
-            for (Node child : node.asNodeArray().values()) {
-                list.add(toObject(child));
-            }
-            return list;
-        } else {
-            return node.asObject();
-        }
     }
 }

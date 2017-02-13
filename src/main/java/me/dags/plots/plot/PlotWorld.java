@@ -4,8 +4,8 @@ import com.flowpowered.math.vector.Vector3d;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import me.dags.commandbus.format.FMT;
 import me.dags.plots.Plots;
-import me.dags.plots.command.Cmd;
 import me.dags.plots.database.UserActions;
 import me.dags.plots.database.WorldDatabase;
 import me.dags.plots.operation.FillBiomeOperation;
@@ -93,7 +93,7 @@ public class PlotWorld {
             Sponge.getServiceManager().provideUnchecked(UserStorageService.class)
                     .get(uuid)
                     .flatMap(User::getPlayer)
-                    .ifPresent(Cmd.FMT().info("Your plot data has been refreshed")::tell);
+                    .ifPresent(FMT.info("Your plot data has been refreshed")::tell);
         }
     }
 

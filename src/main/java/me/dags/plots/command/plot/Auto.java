@@ -3,6 +3,7 @@ package me.dags.plots.command.plot;
 import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
 import me.dags.commandbus.annotation.Permission;
+import me.dags.commandbus.format.FMT;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
 import me.dags.plots.command.Cmd;
@@ -36,7 +37,7 @@ public class Auto {
         return plotId -> {
             Claim.claim(player, world, plotId);
             world.teleport(player, plotId);
-            Cmd.FMT().info("Teleported to plot ").stress(plotId).tell(player);
+            FMT.info("Teleported to plot ").stress(plotId).tell(player);
         };
     }
 }

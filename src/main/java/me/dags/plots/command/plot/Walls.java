@@ -5,6 +5,7 @@ import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
 import me.dags.commandbus.annotation.One;
 import me.dags.commandbus.annotation.Permission;
+import me.dags.commandbus.format.FMT;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
 import me.dags.plots.command.Cmd;
@@ -35,7 +36,7 @@ public class Walls {
                 .flatMap(itemStack -> itemStack.get(Keys.ITEM_BLOCKSTATE));
 
         if (!blockState.isPresent()) {
-            Cmd.FMT().error("Cannot set your held item as the wall material").tell(player);
+            FMT.error("Cannot set your held item as the wall material").tell(player);
             return;
         }
 
@@ -49,14 +50,14 @@ public class Walls {
     static void setWalls(Player player, PlotWorld world, PlotId plotId, BlockState state, int depth) {
         PlotUser user = world.user(player.getUniqueId());
         if (user.plotMask().contains(plotId)) {
-            Cmd.FMT().info("Setting wall material to ").stress(state).tell(player);
+            FMT.info("Setting wall material to ").stress(state).tell(player);
             PlotSchema schema = world.plotSchema();
             PlotBounds bounds = user.plotMask().plots().get(plotId);
             Vector3i min = bounds.getBlockMin().sub(schema.wallWidth(), 0, schema.wallWidth());
             Vector3i max = bounds.getBlockMax().add(schema.wallWidth(), 0, schema.wallWidth());
             MutableBlockVolume volume = player.getWorld().getBlockView(min, max);
             WallsOperation operation = new WallsOperation(world.world(), volume, depth, schema, state);
-            operation.onComplete(() -> Cmd.FMT().info("Finished setting wall material for ").stress(plotId).tell(player));
+            operation.onComplete(() -> FMT.info("Finished setting wall material for ").stress(plotId).tell(player));
             Plots.core().dispatcher().queueOperation(operation);
         }
     }

@@ -3,6 +3,8 @@ package me.dags.plots.command.plot;
 import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
 import me.dags.commandbus.annotation.Permission;
+import me.dags.commandbus.format.FMT;
+import me.dags.commandbus.format.FormattedListBuilder;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
 import me.dags.plots.command.Cmd;
@@ -13,16 +15,13 @@ import me.dags.plots.util.Pair;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.living.player.User;
-import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.service.user.UserStorageService;
-import org.spongepowered.api.text.Text;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 /**
  * @author dags <dags@dags.me>
@@ -44,22 +43,20 @@ public class Likers {
     static Consumer<Optional<List<UUID>>> likers(Player player, PlotId plotId) {
         return optional -> {
             if (optional.isPresent() && !optional.get().isEmpty()) {
-                List<Text> list = optional.get().stream()
+                FormattedListBuilder list = FMT.listBuilder();
+
+                list.linesPerPage(9);
+                list.title().stress("Plot %s's Likes", plotId);
+                optional.get().stream()
                         .map(Sponge.getServiceManager().provideUnchecked(UserStorageService.class)::get)
                         .filter(Optional::isPresent)
                         .map(Optional::get)
                         .map(User::getName)
-                        .map(name -> Cmd.FMT().info(" - ").stress(name).build())
-                        .collect(Collectors.toList());
+                        .forEach(list.line().info(" - ")::stress);
 
-                PaginationList.builder()
-                        .title(Cmd.FMT().stress("Plot {}'s Likes", plotId).build())
-                        .linesPerPage(9)
-                        .contents(list)
-                        .build()
-                        .sendTo(player);
+                list.build().sendTo(player);
             } else {
-                Cmd.FMT().error("Plot ").stress(plotId).error(" doesn't have any likes").tell(player);
+                FMT.error("Plot ").stress(plotId).error(" doesn't have any likes").tell(player);
             }
         };
     }

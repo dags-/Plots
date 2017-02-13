@@ -4,8 +4,8 @@ import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
 import me.dags.commandbus.annotation.One;
 import me.dags.commandbus.annotation.Permission;
+import me.dags.commandbus.format.FMT;
 import me.dags.plots.Permissions;
-import me.dags.plots.command.Cmd;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.world.World;
@@ -21,10 +21,10 @@ public class WorldTP {
     public void world(@Caller Player player, @One("world") String name) {
         Optional<World> world = matchWorld(name);
         if (world.isPresent()) {
-            Cmd.FMT().info("Teleporting to ").stress(world.get().getName()).tell(player);
+            FMT.info("Teleporting to ").stress(world.get().getName()).tell(player);
             player.setLocation(world.get().getSpawnLocation());
         } else {
-            Cmd.FMT().error("World ").stress(name).error(" does not exist").tell(player);
+            FMT.error("World ").stress(name).error(" does not exist").tell(player);
         }
     }
 

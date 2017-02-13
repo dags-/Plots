@@ -4,6 +4,7 @@ import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
 import me.dags.commandbus.annotation.One;
 import me.dags.commandbus.annotation.Permission;
+import me.dags.commandbus.format.FMT;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
 import me.dags.plots.command.Cmd;
@@ -38,7 +39,7 @@ public class Biome {
                 Consumer<Boolean> setBiome = biome(player, world, plotId, biomeType.get());
                 Plots.executor().async(owner, setBiome);
             } else {
-                Cmd.FMT().error("Biome ").stress(biome).error(" is not recognised").tell(player);
+                FMT.error("Biome ").stress(biome).error(" is not recognised").tell(player);
             }
         }
     }
@@ -46,10 +47,10 @@ public class Biome {
     static Consumer<Boolean> biome(Player player, PlotWorld world, PlotId plotId, BiomeType biome) {
         return owner -> {
             if (owner) {
-                Cmd.FMT().info("Setting the biome of plot ").stress(plotId).info(" to ").stress(biome.getName()).tell(player);
+                FMT.info("Setting the biome of plot ").stress(plotId).info(" to ").stress(biome.getName()).tell(player);
                 world.setBiome(plotId, biome);
             } else {
-                Cmd.FMT().error("You do not own plot ").stress(plotId).tell(player);
+                FMT.error("You do not own plot ").stress(plotId).tell(player);
             }
         };
     }

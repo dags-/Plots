@@ -3,6 +3,7 @@ package me.dags.plots.command.gen;
 import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
 import me.dags.commandbus.annotation.Permission;
+import me.dags.commandbus.format.FMT;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
 import me.dags.plots.command.Cmd;
@@ -24,7 +25,7 @@ public class GenSave {
             GeneratorProperties properties = builder.get().build();
             IO.saveProperties(properties, Plots.core().generatorsDir());
             Cmd.genBuilders().remove(source);
-            Cmd.FMT().info("Saved generator ").stress(properties.name()).info(" to file").tell(source);
+            FMT.info("Saved generator ").stress(properties.name()).info(" to file").tell(source);
         }
     }
 }

@@ -38,7 +38,7 @@ public class IO {
 
         if (!node.isPresent()) {
             Plots.log("Creating default config");
-            config = new Config(true);
+            config = new Config();
         } else {
             Plots.log("Loading config from");
             config = CONFIG_ADAPTER.fromNode(node);
