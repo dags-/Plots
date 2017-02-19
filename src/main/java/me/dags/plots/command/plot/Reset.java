@@ -26,8 +26,8 @@ public class Reset {
     @Permission(Permissions.PLOT_RESET)
     @Description("Reset the plot")
     public void reset(@Caller Player player) {
-        FMT.warn("Resetting a plot will delete everything inside it!").append(Text.NEW_LINE)
-                .warn("Use ").stress("/plot reset true").warn(" if you want to proceed")
+        FMT.warn("Resetting a plot will delete everything inside it!")
+                .newLine().warn("Use ").stress("/plot reset true").warn(" if you want to proceed")
                 .tell(player);
     }
 

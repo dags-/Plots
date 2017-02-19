@@ -12,7 +12,6 @@ import me.dags.plots.plot.PlotUser;
 import me.dags.plots.plot.PlotWorld;
 import me.dags.plots.util.Pair;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.text.Text;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -30,10 +29,10 @@ public class Unclaim {
     public void unclaim(@Caller Player player) {
         Pair<PlotWorld, PlotId> plot = Cmd.getContainingPlot(player);
         if (plot.present()) {
-            FMT.warn("Unclaiming a plot will remove all whitelisted users including the owner!").append(Text.NEW_LINE)
-                    .warn("To confirm, use either:").append(Text.NEW_LINE)
-                    .stress(" /plot unclaim true").warn(" - to unclaim and reset the plot").append(Text.NEW_LINE)
-                    .stress(" /plot unclaim false").warn(" - to unclaim and not reset the plot")
+            FMT.warn("Unclaiming a plot will remove all whitelisted users including the owner!")
+                    .newLine().warn("To confirm, use either:")
+                    .newLine().stress(" /plot unclaim true").warn(" - to unclaim and reset the plot")
+                    .newLine().stress(" /plot unclaim false").warn(" - to unclaim and not reset the plot")
                     .tell(player);
         }
     }
