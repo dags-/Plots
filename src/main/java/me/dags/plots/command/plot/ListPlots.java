@@ -1,9 +1,6 @@
 package me.dags.plots.command.plot;
 
-import me.dags.commandbus.annotation.Caller;
-import me.dags.commandbus.annotation.Command;
-import me.dags.commandbus.annotation.One;
-import me.dags.commandbus.annotation.Permission;
+import me.dags.commandbus.annotation.*;
 import me.dags.commandbus.format.FMT;
 import me.dags.commandbus.format.Format;
 import me.dags.plots.Permissions;
@@ -25,12 +22,16 @@ import java.util.function.Supplier;
  */
 public class ListPlots {
 
-    @Command(aliases = "list", parent = "plot", desc = "List your plots", perm = @Permission(Permissions.PLOT_LIST))
+    @Command(alias = "list", parent = "plot")
+    @Permission(Permissions.PLOT_LIST)
+    @Description("List your plots")
     public void list(@Caller Player player) {
         list(player, player);
     }
 
-    @Command(aliases = "list", parent = "plot", desc = "List plots of a player", perm = @Permission(Permissions.PLOT_LIST_OTHER))
+    @Command(alias = "list", parent = "plot")
+    @Permission(Permissions.PLOT_LIST_OTHER)
+    @Description("List <player>'s plots")
     public void list(@Caller Player player, @One("player")User user) {
         Optional<PlotWorld> world = Cmd.getWorld(player);
         if (world.isPresent()) {

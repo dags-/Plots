@@ -1,9 +1,6 @@
 package me.dags.plots.command.world;
 
-import me.dags.commandbus.annotation.Caller;
-import me.dags.commandbus.annotation.Command;
-import me.dags.commandbus.annotation.One;
-import me.dags.commandbus.annotation.Permission;
+import me.dags.commandbus.annotation.*;
 import me.dags.commandbus.format.FMT;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
@@ -25,7 +22,9 @@ import java.io.IOException;
  */
 public class WorldCreate {
 
-    @Command(aliases = "create", parent = "plotworld", desc = "Create a new PlotWorld", perm = @Permission(Permissions.WORLD_CREATE))
+    @Command(alias = "create")
+    @Permission(Permissions.WORLD_CREATE)
+    @Description("Create a new PlotWorld")
     public void create(@Caller CommandSource source, @One("generator") String generator, @One("world") String name) {
         Plots.core().baseGenerator(generator).ifPresent(baseGenerator -> {
             GeneratorProperties generatorProperties = baseGenerator.copyTo(name);

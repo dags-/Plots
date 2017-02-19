@@ -1,9 +1,6 @@
 package me.dags.plots.command.plot;
 
-import me.dags.commandbus.annotation.Caller;
-import me.dags.commandbus.annotation.Command;
-import me.dags.commandbus.annotation.One;
-import me.dags.commandbus.annotation.Permission;
+import me.dags.commandbus.annotation.*;
 import me.dags.commandbus.format.FMT;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
@@ -26,7 +23,9 @@ import java.util.function.Supplier;
  */
 public class Biome {
 
-    @Command(aliases = "biome", parent = "plot", desc = "Set the biome of the plot", perm = @Permission(Permissions.PLOT_BIOME))
+    @Command(alias = "biome", parent = "plot")
+    @Permission(Permissions.PLOT_BIOME)
+    @Description("Set the biome of the plot")
     public void biome(@Caller Player player, @One("biome") String biome) {
         Pair<PlotWorld, PlotId> plot = Cmd.getContainingPlot(player);
         if (plot.present()) {

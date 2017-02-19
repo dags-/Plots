@@ -1,9 +1,6 @@
 package me.dags.plots.command.plot;
 
-import me.dags.commandbus.annotation.Caller;
-import me.dags.commandbus.annotation.Command;
-import me.dags.commandbus.annotation.One;
-import me.dags.commandbus.annotation.Permission;
+import me.dags.commandbus.annotation.*;
 import me.dags.commandbus.format.FMT;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
@@ -22,12 +19,16 @@ import java.util.function.Supplier;
  */
 public class Teleport {
 
-    @Command(aliases = "tp", parent = "plot", desc = "Teleport to a plot", perm = @Permission(Permissions.PLOT_TP))
+    @Command(alias = "tp", parent = "plot")
+    @Permission(Permissions.PLOT_TP)
+    @Description("Teleport to a plot")
     public void tp(@Caller Player player, @One("plotId | alias") String plot) {
         tp(player, player.getWorld().getName(), plot);
     }
 
-    @Command(aliases = "tp", parent = "plot", desc = "Teleport to a plot", perm = @Permission(Permissions.PLOT_TP))
+    @Command(alias = "tp", parent = "plot")
+    @Permission(Permissions.PLOT_TP)
+    @Description("Teleport to a plot")
     public void tp(@Caller Player player, @One("world") String world, @One("plotId | alias") String plot) {
         Optional<PlotWorld> plotWorld = Cmd.getWorld(player, world);
         if (plotWorld.isPresent()) {

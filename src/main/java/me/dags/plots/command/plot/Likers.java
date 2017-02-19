@@ -2,6 +2,7 @@ package me.dags.plots.command.plot;
 
 import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
+import me.dags.commandbus.annotation.Description;
 import me.dags.commandbus.annotation.Permission;
 import me.dags.commandbus.format.FMT;
 import me.dags.commandbus.format.FormattedListBuilder;
@@ -28,7 +29,9 @@ import java.util.function.Supplier;
  */
 public class Likers {
 
-    @Command(aliases = "likers", parent = "plot", desc = "List the likers of a plot", perm = @Permission(Permissions.PLOT_LIKERS))
+    @Command(alias = "likers", parent = "plot")
+    @Permission(Permissions.PLOT_LIKERS)
+    @Description("List users that 'like' a plot")
     public void likers(@Caller Player player) {
         Pair<PlotWorld, PlotId> plot = Cmd.getContainingPlot(player);
         if (plot.present()) {

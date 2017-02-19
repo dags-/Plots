@@ -16,7 +16,8 @@ import org.spongepowered.api.text.Text;
  */
 public class GenCreate {
 
-    @Command(aliases = "create", parent = "gen", perm = @Permission(Permissions.GEN_EDIT))
+    @Command(alias = "create", parent = "gen")
+    @Permission(value = Permissions.GEN_EDIT)
     public void create(@Caller CommandSource source, @One("name") String name) {
         Cmd.genBuilders().add(source, GeneratorProperties.builder().name(name));
         FMT.info("Building new Generator ").stress(name).append(Text.NEW_LINE)

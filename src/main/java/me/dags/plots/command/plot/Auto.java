@@ -2,6 +2,7 @@ package me.dags.plots.command.plot;
 
 import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
+import me.dags.commandbus.annotation.Description;
 import me.dags.commandbus.annotation.Permission;
 import me.dags.commandbus.format.FMT;
 import me.dags.plots.Permissions;
@@ -21,7 +22,9 @@ import java.util.function.Supplier;
  */
 public class Auto {
 
-    @Command(aliases = "auto", parent = "plot", desc = "Auto-claim a plot", perm = @Permission(Permissions.PLOT_AUTO))
+    @Command(alias = "auto", parent = "plot")
+    @Permission(Permissions.PLOT_AUTO)
+    @Description("Auto-claim the nearest plot")
     public void auto(@Caller Player player) {
         Pair<PlotWorld, PlotId> plot = Cmd.getPlot(player);
         if (plot.present()) {

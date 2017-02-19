@@ -12,7 +12,8 @@ import org.spongepowered.api.command.CommandSource;
  */
 public class GenHelp {
 
-    @Command(aliases = {"help", "?"}, parent = "gen", perm = @Permission(Permissions.GEN_EDIT))
+    @Command(alias = {"help", "?"}, parent = "gen")
+    @Permission(Permissions.GEN_EDIT)
     public void help(@Caller CommandSource source) {
         FMT.info("/gen create <name>").tell(source);
         FMT.info("/gen biome <biome>").tell(source);

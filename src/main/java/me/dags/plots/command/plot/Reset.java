@@ -1,9 +1,6 @@
 package me.dags.plots.command.plot;
 
-import me.dags.commandbus.annotation.Caller;
-import me.dags.commandbus.annotation.Command;
-import me.dags.commandbus.annotation.One;
-import me.dags.commandbus.annotation.Permission;
+import me.dags.commandbus.annotation.*;
 import me.dags.commandbus.format.FMT;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
@@ -25,14 +22,18 @@ import java.util.function.Supplier;
  */
 public class Reset {
 
-    @Command(aliases = "reset", parent = "plot", desc = "Reset the plot", perm = @Permission(Permissions.PLOT_RESET))
+    @Command(alias = "reset", parent = "plot")
+    @Permission(Permissions.PLOT_RESET)
+    @Description("Reset the plot")
     public void reset(@Caller Player player) {
         FMT.warn("Resetting a plot will delete everything inside it!").append(Text.NEW_LINE)
                 .warn("Use ").stress("/plot reset true").warn(" if you want to proceed")
                 .tell(player);
     }
 
-    @Command(aliases = "reset", parent = "plot", desc = "Reset the plot", perm = @Permission(Permissions.PLOT_RESET))
+    @Command(alias = "reset", parent = "plot")
+    @Permission(Permissions.PLOT_RESET)
+    @Description("Reset the plot")
     public void reset(@Caller Player player, @One("confirm") boolean confirm) {
         if (!confirm) {
             FMT.error("You must confirm you want to delete the plot by using ").append(Text.NEW_LINE)

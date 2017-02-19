@@ -18,7 +18,8 @@ import java.util.Optional;
  */
 public class GenSave {
 
-    @Command(aliases = "save", parent = "gen", perm = @Permission(Permissions.GEN_EDIT))
+    @Command(alias = "save", parent = "gen")
+    @Permission(Permissions.GEN_EDIT)
     public void save(@Caller CommandSource source) {
         Optional<GeneratorProperties.Builder> builder = Cmd.genBuilders().get(source);
         if (builder.isPresent()) {

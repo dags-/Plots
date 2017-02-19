@@ -2,6 +2,7 @@ package me.dags.plots.command.plot;
 
 import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
+import me.dags.commandbus.annotation.Description;
 import me.dags.commandbus.annotation.Permission;
 import me.dags.commandbus.format.FMT;
 import me.dags.plots.Permissions;
@@ -21,7 +22,9 @@ import java.util.function.Supplier;
  */
 public class Unlike {
 
-    @Command(aliases = "unlike", parent = "plot", desc = "Un-like a plot", perm = @Permission(Permissions.PLOT_LIKE))
+    @Command(alias = "unlike")
+    @Permission(Permissions.PLOT_LIKE)
+    @Description("Un-like a plot")
     public void unlike(@Caller Player player) {
         Pair<PlotWorld, PlotId> plot = Cmd.getContainingPlot(player);
         if (plot.present()) {

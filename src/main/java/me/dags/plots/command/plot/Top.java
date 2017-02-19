@@ -1,9 +1,6 @@
 package me.dags.plots.command.plot;
 
-import me.dags.commandbus.annotation.Caller;
-import me.dags.commandbus.annotation.Command;
-import me.dags.commandbus.annotation.One;
-import me.dags.commandbus.annotation.Permission;
+import me.dags.commandbus.annotation.*;
 import me.dags.commandbus.format.FMT;
 import me.dags.commandbus.format.Format;
 import me.dags.plots.Permissions;
@@ -24,12 +21,16 @@ import java.util.function.Supplier;
  */
 public class Top {
 
-    @Command(aliases = "top", parent = "plot", desc = "List the most popular plots", perm = @Permission(Permissions.PLOT_TOP))
+    @Command(alias = "top", parent = "plot")
+    @Permission(Permissions.PLOT_TOP)
+    @Description("List the most popular plots")
     public void top(@Caller Player player) {
         top(player, 10);
     }
 
-    @Command(aliases = "top", parent = "plot", desc = "List the most popular plots", perm = @Permission(Permissions.PLOT_TOP))
+    @Command(alias = "top", parent = "plot")
+    @Permission(Permissions.PLOT_TOP)
+    @Description("List the most popular plots")
     public void top(@Caller Player player, @One("size") int size) {
         Optional<PlotWorld> plotWorld = Cmd.getWorld(player);
         if (plotWorld.isPresent()) {

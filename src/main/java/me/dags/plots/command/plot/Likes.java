@@ -1,9 +1,6 @@
 package me.dags.plots.command.plot;
 
-import me.dags.commandbus.annotation.Caller;
-import me.dags.commandbus.annotation.Command;
-import me.dags.commandbus.annotation.One;
-import me.dags.commandbus.annotation.Permission;
+import me.dags.commandbus.annotation.*;
 import me.dags.commandbus.format.FMT;
 import me.dags.commandbus.format.Format;
 import me.dags.plots.Permissions;
@@ -26,12 +23,16 @@ import java.util.function.Supplier;
  */
 public class Likes {
 
-    @Command(aliases = "likes", parent = "plot", desc = "List your liked plots", perm = @Permission(Permissions.PLOT_LIKES))
+    @Command(alias = "likes", parent = "plot")
+    @Permission(Permissions.PLOT_LIKES)
+    @Description("List the plots that you 'like'")
     public void likes(@Caller Player player) {
         likes(player, player);
     }
 
-    @Command(aliases = "likes", parent = "plot", desc = "List your liked plots", perm = @Permission(Permissions.PLOT_LIKES))
+    @Command(alias = "likes", parent = "plot")
+    @Permission(Permissions.PLOT_LIKES_OTHER)
+    @Description("List the plots that <player> 'liked'")
     public void likes(@Caller Player player, @One("player") User other) {
         Optional<PlotWorld> world = Cmd.getWorld(player);
         if (world.isPresent()) {

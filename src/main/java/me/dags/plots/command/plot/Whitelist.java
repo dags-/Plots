@@ -2,6 +2,7 @@ package me.dags.plots.command.plot;
 
 import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
+import me.dags.commandbus.annotation.Description;
 import me.dags.commandbus.annotation.Permission;
 import me.dags.commandbus.format.FMT;
 import me.dags.commandbus.format.FormattedListBuilder;
@@ -29,7 +30,9 @@ import java.util.function.Supplier;
  */
 public class Whitelist {
 
-    @Command(aliases = "whitelist", parent = "plot", desc = "List all whitelisted users", perm = @Permission(Permissions.PLOT_WHITELIST))
+    @Command(alias = "whitelist")
+    @Permission(Permissions.PLOT_WHITELIST)
+    @Description("List all whitelisted users")
     public void whitelist(@Caller Player player) {
         Pair<PlotWorld, PlotId> plot = Cmd.getPlot(player);
         if (plot.present()) {

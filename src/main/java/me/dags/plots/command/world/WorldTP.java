@@ -1,9 +1,6 @@
 package me.dags.plots.command.world;
 
-import me.dags.commandbus.annotation.Caller;
-import me.dags.commandbus.annotation.Command;
-import me.dags.commandbus.annotation.One;
-import me.dags.commandbus.annotation.Permission;
+import me.dags.commandbus.annotation.*;
 import me.dags.commandbus.format.FMT;
 import me.dags.plots.Permissions;
 import org.spongepowered.api.Sponge;
@@ -17,7 +14,9 @@ import java.util.Optional;
  */
 public class WorldTP {
 
-    @Command(aliases = {"worldtp", "wtp"}, desc = "Teleport to a world", perm = @Permission(Permissions.WORLD_TP))
+    @Command(alias = {"worldtp", "wtp"})
+    @Permission(Permissions.WORLD_TP)
+    @Description("Teleport to a world")
     public void world(@Caller Player player, @One("world") String name) {
         Optional<World> world = matchWorld(name);
         if (world.isPresent()) {

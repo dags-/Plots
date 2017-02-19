@@ -1,10 +1,7 @@
 package me.dags.plots.command.plot;
 
 import com.flowpowered.math.vector.Vector3i;
-import me.dags.commandbus.annotation.Caller;
-import me.dags.commandbus.annotation.Command;
-import me.dags.commandbus.annotation.One;
-import me.dags.commandbus.annotation.Permission;
+import me.dags.commandbus.annotation.*;
 import me.dags.commandbus.format.FMT;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
@@ -25,12 +22,16 @@ import java.util.Optional;
  */
 public class Walls {
 
-    @Command(aliases = "walls", parent = "plot", desc = "Change the wall material around the plot", perm = @Permission(Permissions.PLOT_WALLS))
+    @Command(alias = "walls", parent = "plot")
+    @Permission(Permissions.PLOT_WALLS)
+    @Description("Change the wall material around the plot")
     public void walls(@Caller Player player) {
         walls(player, 1);
     }
 
-    @Command(aliases = "walls", parent = "plot", desc = "Change the wall material around the plot", perm = @Permission(Permissions.PLOT_WALLS))
+    @Command(alias = "walls", parent = "plot")
+    @Permission(Permissions.PLOT_WALLS)
+    @Description("Change the wall material around the plot")
     public void walls(@Caller Player player, @One("depth") int depth) {
         Optional<BlockState> blockState = player.getItemInHand(HandTypes.MAIN_HAND)
                 .flatMap(itemStack -> itemStack.get(Keys.ITEM_BLOCKSTATE));

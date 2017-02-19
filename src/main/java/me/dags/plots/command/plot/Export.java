@@ -3,6 +3,7 @@ package me.dags.plots.command.plot;
 import com.flowpowered.math.vector.Vector3i;
 import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
+import me.dags.commandbus.annotation.Description;
 import me.dags.commandbus.annotation.Permission;
 import me.dags.commandbus.format.FMT;
 import me.dags.plots.Permissions;
@@ -41,7 +42,9 @@ import java.util.zip.GZIPOutputStream;
  */
 public class Export {
 
-    @Command(aliases = "export", parent = "plot", desc = "Export the plot to a schematic that you can download", perm = @Permission(Permissions.PLOT_EXPORT))
+    @Command(alias = "export", parent = "plot")
+    @Permission(Permissions.PLOT_EXPORT)
+    @Description("Export the plot to a schematic that you can download")
     public void export(@Caller Player player) {
         if (!PlotsWeb.getHelper().isEnabled()) {
             FMT.error("PlotsWeb service is not running!").tell(player);

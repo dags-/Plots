@@ -2,6 +2,7 @@ package me.dags.plots.command.plot;
 
 import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
+import me.dags.commandbus.annotation.Description;
 import me.dags.commandbus.annotation.Permission;
 import me.dags.commandbus.format.FMT;
 import me.dags.commandbus.format.Format;
@@ -24,7 +25,9 @@ import java.util.function.Supplier;
  */
 public class Info {
 
-    @Command(aliases = "info", parent = "plot", desc = "Get info about a plot", perm = @Permission(Permissions.PLOT_INFO))
+    @Command(alias = "info", parent = "plot")
+    @Permission(Permissions.PLOT_INFO)
+    @Description("Get info about a plot")
     public void info(@Caller Player player) {
         Pair<PlotWorld, PlotId> plot = Cmd.getContainingPlot(player);
         if (plot.present()) {

@@ -1,9 +1,6 @@
 package me.dags.plots.command.plot;
 
-import me.dags.commandbus.annotation.Caller;
-import me.dags.commandbus.annotation.Command;
-import me.dags.commandbus.annotation.One;
-import me.dags.commandbus.annotation.Permission;
+import me.dags.commandbus.annotation.*;
 import me.dags.commandbus.format.FMT;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
@@ -27,7 +24,9 @@ import java.util.function.Supplier;
  */
 public class Unclaim {
 
-    @Command(aliases = "unclaim", parent = "plot", desc = "Unclaim a plot and reset it", perm = @Permission(Permissions.PLOT_UNCLAIM))
+    @Command(alias = "unclaim", parent = "plot")
+    @Permission(Permissions.PLOT_UNCLAIM)
+    @Description("Unclaim a plot and reset it")
     public void unclaim(@Caller Player player) {
         Pair<PlotWorld, PlotId> plot = Cmd.getContainingPlot(player);
         if (plot.present()) {
@@ -39,7 +38,9 @@ public class Unclaim {
         }
     }
 
-    @Command(aliases = "unclaim", parent = "plot", desc = "Un-claim a plot", perm = @Permission(Permissions.PLOT_UNCLAIM))
+    @Command(alias = "unclaim", parent = "plot")
+    @Permission(Permissions.PLOT_UNCLAIM)
+    @Description("Unclaim a plot and reset it")
     public void unclaim(@Caller Player player, @One("reset") boolean reset) {
         Pair<PlotWorld, PlotId> plot = Cmd.getContainingPlot(player);
         if (plot.present()) {

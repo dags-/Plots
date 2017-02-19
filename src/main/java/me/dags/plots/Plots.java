@@ -3,12 +3,7 @@ package me.dags.plots;
 import com.google.inject.Inject;
 import com.mongodb.MongoClient;
 import me.dags.commandbus.CommandBus;
-import me.dags.plots.command.gen.*;
-import me.dags.plots.command.plot.*;
-import me.dags.plots.command.world.WorldCreate;
-import me.dags.plots.command.world.WorldSpawn;
-import me.dags.plots.command.world.WorldTP;
-import me.dags.plots.command.world.WorldWeather;
+import me.dags.plots.command.Cmd;
 import me.dags.plots.database.WorldDatabase;
 import me.dags.plots.generator.PlotGenerator;
 import me.dags.plots.plot.PlotWorld;
@@ -97,44 +92,7 @@ public class Plots {
             return;
         }
 
-        CommandBus commandBus = CommandBus.builder().logger(logger).build();
-
-        commandBus.register(Add.class)
-                .register(Alias.class)
-                .register(Approve.class)
-                .register(Auto.class)
-                .register(Biome.class)
-                .register(Claim.class)
-                .register(Copy.class)
-                .register(Export.class)
-                .register(Info.class)
-                .register(Like.class)
-                .register(Likes.class)
-                .register(Likers.class)
-                .register(ListPlots.class)
-                .register(Maskall.class)
-                .register(Merge.class)
-                .register(Remove.class)
-                .register(Reset.class)
-                .register(Teleport.class)
-                .register(Top.class)
-                .register(Unclaim.class)
-                .register(Unlike.class)
-                .register(Walls.class)
-                .register(Whitelist.class);
-
-        commandBus.register(WorldCreate.class)
-                .register(WorldSpawn.class)
-                .register(WorldTP.class)
-                .register(WorldWeather.class);
-
-        commandBus.register(GenCreate.class)
-                .register(GenEdit.class)
-                .register(GenHelp.class)
-                .register(GenReload.class)
-                .register(GenSave.class);
-
-        commandBus.submit(this);
+        CommandBus.builder().logger(logger).build().registerSubPackagesOf(Cmd.class).submit(Plots.instance);
 
         executor().sync(Support.of(
                 "WorldEdit",

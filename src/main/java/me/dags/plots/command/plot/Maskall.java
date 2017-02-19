@@ -2,6 +2,7 @@ package me.dags.plots.command.plot;
 
 import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
+import me.dags.commandbus.annotation.Description;
 import me.dags.commandbus.annotation.Permission;
 import me.dags.commandbus.format.FMT;
 import me.dags.plots.Permissions;
@@ -18,7 +19,9 @@ import java.util.Optional;
  */
 public class Maskall {
 
-    @Command(aliases = "maskall", parent = "plot", desc = "Toggle building protections", perm = @Permission(Permissions.PLOT_MASKALL))
+    @Command(alias = "maskall", parent = "plot")
+    @Permission(Permissions.PLOT_MASKALL)
+    @Description("Toggle building protections")
     public void maskall(@Caller Player player) {
         Optional<PlotWorld> world = Cmd.getWorld(player);
         if (world.isPresent()) {

@@ -25,14 +25,16 @@ public class GenEdit {
         return Cmd.genBuilders().get(source);
     }
 
-    @Command(aliases = "dims", parent = "gen", perm = @Permission(Permissions.GEN_EDIT))
+    @Command(alias = "dims", parent = "gen")
+    @Permission(Permissions.GEN_EDIT)
     public void dims(@Caller CommandSource source, @One("x width") int x, @One("z width") int z, @One("path width") int path, @One("wall width") int wall) {
         plot(source, x, z);
         wall(source, wall);
         path(source, path);
     }
 
-    @Command(aliases = "path", parent = "gen dim", perm = @Permission(Permissions.GEN_EDIT))
+    @Command(alias = "path", parent = "gen dim")
+    @Permission(Permissions.GEN_EDIT)
     public void path(@Caller CommandSource source, @One("width") int width) {
         Optional<GeneratorProperties.Builder> builder = get(source);
         if (builder.isPresent()) {
@@ -41,7 +43,8 @@ public class GenEdit {
         }
     }
 
-    @Command(aliases = "plot", parent = "gen dim", perm = @Permission(Permissions.GEN_EDIT))
+    @Command(alias = "plot", parent = "gen dim")
+    @Permission(Permissions.GEN_EDIT)
     public void plot(@Caller CommandSource source, @One("x width") int xWidth, @One("z width") int zWidth) {
         Optional<GeneratorProperties.Builder> builder = get(source);
         if (builder.isPresent()) {
@@ -50,7 +53,8 @@ public class GenEdit {
         }
     }
 
-    @Command(aliases = "wall", parent = "gen dim", perm = @Permission(Permissions.GEN_EDIT))
+    @Command(alias = "wall", parent = "gen dim")
+    @Permission(Permissions.GEN_EDIT)
     public void wall(@Caller CommandSource source, @One("width") int width) {
         Optional<GeneratorProperties.Builder> builder = get(source);
         if (builder.isPresent()) {
@@ -59,7 +63,8 @@ public class GenEdit {
         }
     }
 
-    @Command(aliases = "biome", parent = "gen", perm = @Permission(Permissions.GEN_EDIT))
+    @Command(alias = "biome", parent = "gen")
+    @Permission(Permissions.GEN_EDIT)
     public void biome(@Caller CommandSource source, @One("biome") String biome) {
         Optional<GeneratorProperties.Builder> builder = get(source);
         if (builder.isPresent()) {
@@ -73,7 +78,8 @@ public class GenEdit {
         }
     }
 
-    @Command(aliases = "rule", parent = "gen", perm = @Permission(Permissions.GEN_EDIT))
+    @Command(alias = "rule", parent = "gen")
+    @Permission(Permissions.GEN_EDIT)
     public void rule(@Caller CommandSource source, @One("rule") String rule, @One("value") String value) {
         Optional<GeneratorProperties.Builder> builder = get(source);
         if (builder.isPresent()) {
@@ -82,7 +88,8 @@ public class GenEdit {
         }
     }
 
-    @Command(aliases = "layer", parent = "gen", perm = @Permission(Permissions.GEN_EDIT))
+    @Command(alias = "layer", parent = "gen")
+    @Permission(Permissions.GEN_EDIT)
     public void layer(@Caller CommandSource source, @One("plot material") String plot, @One("path material") String path, @One("wall material") String wall, @One("thickness") int thickness) {
         Optional<GeneratorProperties.Builder> builder = get(source);
         if (builder.isPresent()) {

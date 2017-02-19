@@ -2,6 +2,7 @@ package me.dags.plots.command.plot;
 
 import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
+import me.dags.commandbus.annotation.Description;
 import me.dags.commandbus.annotation.Permission;
 import me.dags.commandbus.format.FMT;
 import me.dags.plots.Permissions;
@@ -27,7 +28,9 @@ import java.util.function.Supplier;
  */
 public class Approve {
 
-    @Command(aliases = "approve", parent = "plot", desc = "Approve a user's plot", perm = @Permission(Permissions.PLOT_APPROVE))
+    @Command(alias = "approve", parent = "plot")
+    @Permission(Permissions.PLOT_APPROVE)
+    @Description("Approve a user's plot")
     public void approve(@Caller Player player) {
         Pair<PlotWorld, PlotId> plot = Cmd.getContainingPlot(player);
         if (plot.present()) {
