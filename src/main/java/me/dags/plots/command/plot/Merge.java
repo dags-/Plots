@@ -9,6 +9,7 @@ import me.dags.plots.command.Cmd;
 import me.dags.plots.database.PlotActions;
 import me.dags.plots.database.WorldDatabase;
 import me.dags.plots.plot.PlotId;
+import me.dags.plots.plot.PlotUser;
 import me.dags.plots.plot.PlotWorld;
 import me.dags.plots.util.Pair;
 import org.spongepowered.api.entity.living.player.Player;
@@ -55,6 +56,7 @@ public class Merge {
 
         Optional<PlotWorld> plotWorld = Cmd.getWorld(player);
         if (plotWorld.isPresent()) {
+            PlotWorld world = plotWorld.get();
             PlotId fromPlot = PlotId.parse(from);
             PlotId toPlot = PlotId.parse(to);
 
@@ -63,7 +65,25 @@ public class Merge {
             int maxX = Math.max(toPlot.plotX(), fromPlot.plotX());
             int maxZ = Math.max(toPlot.plotZ(), fromPlot.plotZ());
 
-            PlotWorld world = plotWorld.get();
+            PlotUser user = world.user(player.getUniqueId());
+            if (user.maxClaimCount() > -1) {
+                int mergeSize = (maxX - minX) * (maxZ - minZ);
+                int remaining = user.maxClaimCount() - user.plotCount();
+
+                for (int x = minX; x <= maxX; x++) {
+                    for (int z = minZ; z <= maxZ; z++) {
+                        if (user.plotMask().contains(PlotId.of(x, z))) {
+                            mergeSize--;
+                        }
+                    }
+                }
+
+                if (remaining < mergeSize) {
+                    FMT.error("You do not have enough remaining free plots to make a claim of this size").tell(player);
+                    return;
+                }
+            }
+
             UUID owner = player.getUniqueId();
             PlotId min = PlotId.of(minX, minZ);
             PlotId max = PlotId.of(maxX, maxZ);

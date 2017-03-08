@@ -38,7 +38,7 @@ dependencies {
     // shaded dependencies:
     compile 'org.mongodb:mongo-java-driver:3.2.0'
     compile 'com.github.dags-:CommandBus:1.6.0-RC3'
-    compile 'com.github.dags-:Converse:0.1-SNAPSHOT'
+    compile 'com.github.dags-:Converse:0.1-SNAPSHOT-3'
     compile 'com.github.dags-:NodeData:1.4.1-SNAPSHOT'
 }
 

@@ -17,12 +17,12 @@ public class PlotUser {
 
     private final UUID uuid;
     private final PlotMask mask;
-    private final boolean approved;
+    private final int maxClaimCount;
 
     private PlotUser(Builder builder) {
         this.uuid = builder.uuid;
         this.mask = builder.mask;
-        this.approved = builder.approved;
+        this.maxClaimCount = builder.claimCount;
     }
 
     public UUID uuid() {
@@ -37,28 +37,28 @@ public class PlotUser {
         return mask;
     }
 
-    public boolean approved() {
-        return approved;
-    }
-
     public boolean hasPlot() {
-        return countPlots() > 0;
+        return plotCount() > 0;
     }
 
-    public int countPlots() {
+    public int plotCount() {
         return plotMask().plots().size();
+    }
+
+    public int maxClaimCount() {
+        return maxClaimCount;
     }
 
     public Builder edit() {
         return builder()
                 .uuid(uuid)
-                .plots(mask.plots().keySet())
-                .approved(approved);
+                .claimCount(maxClaimCount)
+                .plots(mask.plots().keySet());
     }
 
     @Override
     public String toString() {
-        return "id=" + uuid + ",approved=" + approved + ",mask=" + mask;
+        return "id=" + uuid + ",maxClaims=" + maxClaimCount + ",mask=" + mask;
     }
 
     public static Builder builder() {
@@ -68,16 +68,11 @@ public class PlotUser {
     public static class Builder {
 
         private UUID uuid = DUMMY;
-        private boolean approved = false;
         private PlotSchema plotSchema = null;
         private Set<PlotId> individualPlots = new HashSet<>();
         private Set<Pair<PlotId, PlotId>> mergedPlots = new HashSet<>();
         private PlotMask mask = PlotMask.EMPTY;
-
-        public Builder approved(boolean approved) {
-            this.approved = approved;
-            return this;
-        }
+        private int claimCount = -1;
 
         public Builder mask(PlotMask mask) {
             this.mask = mask;
@@ -106,6 +101,11 @@ public class PlotUser {
 
         public Builder merge(Pair<PlotId, PlotId> merge) {
             mergedPlots.add(merge);
+            return this;
+        }
+
+        public Builder claimCount(int count) {
+            this.claimCount = count;
             return this;
         }
 

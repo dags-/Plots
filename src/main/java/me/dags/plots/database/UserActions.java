@@ -10,7 +10,9 @@ import me.dags.plots.plot.PlotUser;
 import me.dags.plots.util.Pair;
 import org.bson.Document;
 import org.bson.conversions.Bson;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.service.pagination.PaginationList;
+import org.spongepowered.api.service.user.UserStorageService;
 import org.spongepowered.api.text.Text;
 
 import java.util.ArrayList;
@@ -34,25 +36,30 @@ public class UserActions {
         builder.uuid(userId);
         builder.schema(plotSchema);
 
-        if (first != null) {
-            if (first.containsKey(Keys.USER_APPROVED)) {
-                builder.approved(first.getBoolean(Keys.USER_APPROVED));
-            }
+        if (first != null && first.containsKey(Keys.USER_PLOTS)) {
+            List<?> list = first.get(Keys.USER_PLOTS, List.class);
+            list.forEach(o -> {
+                PlotId plotId = PlotId.parse(o.toString());
+                builder.plot(plotId);
 
-            if (first.containsKey(Keys.USER_PLOTS)) {
-                List<?> list = first.get(Keys.USER_PLOTS, List.class);
-                list.forEach(o -> {
-                    PlotId plotId = PlotId.parse(o.toString());
-                    builder.plot(plotId);
+                Pair<PlotId, PlotId> merge = PlotActions.findMergeRange(database, plotId);
 
-                    Pair<PlotId, PlotId> merge = PlotActions.findMergeRange(database, plotId);
-
-                    if (merge.present()) {
-                        builder.merge(merge);
-                    }
-                });
-            }
+                if (merge.present()) {
+                    builder.merge(merge);
+                }
+            });
         }
+
+
+        Sponge.getServiceManager().provideUnchecked(UserStorageService.class).get(userId).ifPresent(user -> {
+            user.getOption("plots:max_claims").ifPresent(s -> {
+                try {
+                    builder.claimCount(Integer.parseInt(s));
+                } catch (NumberFormatException e) {
+                    builder.claimCount(1);
+                }
+            });
+        });
 
         return builder.build();
     }
@@ -125,11 +132,6 @@ public class UserActions {
             list.add(UUID.fromString(id));
         }
         return list;
-    }
-
-    public static void setApproved(WorldDatabase database, UUID uuid, boolean approved) {
-        Document update = new Document("$set", new Document(Keys.USER_APPROVED, approved));
-        database.userCollection().updateOne(Filters.eq(Keys.USER_ID, uuid.toString()), update, UPSERT);
     }
 
     public static void addPlot(WorldDatabase database, UUID uuid, PlotId plotId) {

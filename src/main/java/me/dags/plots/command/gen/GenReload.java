@@ -15,7 +15,11 @@ public class GenReload {
 
     @Command(alias = "reload", parent = "gen")
     @Permission(Permissions.GEN_EDIT)
-    public void create(@Caller CommandSource source) {
+    public void reload(@Caller CommandSource source) {
+        reloadGenerators(source);
+    }
+
+    public static void reloadGenerators(CommandSource source) {
         FMT.info("Reloading generators...").tell(source);
         Plots.core().reloadGenerators();
     }

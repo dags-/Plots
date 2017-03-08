@@ -8,7 +8,6 @@ import me.dags.plots.command.Cmd;
 import me.dags.plots.database.PlotActions;
 import me.dags.plots.database.UserActions;
 import me.dags.plots.plot.PlotId;
-import me.dags.plots.plot.PlotUser;
 import me.dags.plots.plot.PlotWorld;
 import me.dags.plots.util.Pair;
 import org.spongepowered.api.entity.living.player.Player;
@@ -45,9 +44,8 @@ public class Unclaim {
         if (plot.present()) {
             PlotWorld world = plot.first();
             PlotId plotId = plot.second();
-            PlotUser user = world.user(player.getUniqueId());
 
-            if (!reset && !user.approved() && !player.hasPermission(Permissions.PLOT_APPROVAL_BYPASS)) {
+            if (!reset && !player.hasPermission(Permissions.PLOT_UNCLAIM_BYPASS)) {
                 FMT.warn("Your plot must be reset if you want to unclaim it, use ")
                         .stress("/plot unclaim true")
                         .error(" to proceed")

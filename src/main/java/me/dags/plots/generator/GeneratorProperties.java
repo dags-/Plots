@@ -1,10 +1,15 @@
 package me.dags.plots.generator;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.world.biome.BiomeType;
 import org.spongepowered.api.world.biome.BiomeTypes;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author dags <dags@dags.me>
@@ -37,9 +42,8 @@ public class GeneratorProperties {
         this.wallWidth = builder.wallWidth;
         this.pathWidth = builder.pathWidth;
         this.biomeType = builder.biomeType;
-        this.layers = new ArrayList<>(builder.layers.size());
-        this.layers.addAll(builder.layers);
-        this.gameRules = Collections.unmodifiableMap(new HashMap<>(builder.gameRules));
+        this.layers = ImmutableList.copyOf(builder.layers);
+        this.gameRules = ImmutableMap.copyOf(builder.gameRules);
     }
 
     public PlotWorldGenerator toGenerator() {
@@ -200,6 +204,30 @@ public class GeneratorProperties {
 
         public GeneratorProperties build() {
             return new GeneratorProperties(this);
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public int getxWidth() {
+            return xWidth;
+        }
+
+        public int getzWidth() {
+            return zWidth;
+        }
+
+        public int getPathWidth() {
+            return pathWidth;
+        }
+
+        public int getWallWidth() {
+            return wallWidth;
+        }
+
+        public BiomeType getBiomeType() {
+            return biomeType;
         }
     }
 }

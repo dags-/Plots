@@ -26,6 +26,10 @@ public class WorldCreate {
     @Permission(Permissions.WORLD_CREATE)
     @Description("Create a new PlotWorld")
     public void create(@Caller CommandSource source, @One("generator") String generator, @One("world") String name) {
+        createWorld(source, generator, name);
+    }
+
+    public static void createWorld(CommandSource source, String generator, String name) {
         Plots.core().baseGenerator(generator).ifPresent(baseGenerator -> {
             GeneratorProperties generatorProperties = baseGenerator.copyTo(name);
             PlotGenerator plotGenerator = generatorProperties.toGenerator();

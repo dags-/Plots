@@ -8,8 +8,6 @@ public final class Permissions {
     public static final String PLOT_ADD = "plots.command.add.other";
     public static final String PLOT_ADD_ANY = "plots.command.add.any";
     public static final String PLOT_ALIAS = "plots.command.alias";
-    public static final String PLOT_APPROVAL_BYPASS = "plots.approval.bypass";
-    public static final String PLOT_APPROVE = "plots.command.approve";
     public static final String PLOT_AUTO = "plots.command.auto";
     public static final String PLOT_BIOME = "plots.command.biome";
     public static final String PLOT_CLAIM = "plots.command.claim";
@@ -29,10 +27,12 @@ public final class Permissions {
     public static final String PLOT_REMOVE_ANY = "plots.command.remove.any";
     public static final String PLOT_RESET = "plots.command.reset.self";
     public static final String PLOT_RESET_OTHER = "plots.command.reset.other";
+    public static final String PLOT_SETUP = "plots.command.setup";
     public static final String PLOT_TOP = "plots.command.top";
     public static final String PLOT_TP = "plots.command.tp";
     public static final String PLOT_UNCLAIM = "plots.command.unclaim.self";
     public static final String PLOT_UNCLAIM_OTHER = "plots.command.unclaim.other";
+    public static final String PLOT_UNCLAIM_BYPASS = "plots.command.unclaim.bypass";
     public static final String PLOT_WALLS = "plots.command.walls.self";
     public static final String PLOT_WHITELIST = "plots.command.whitelist";
     public static final String PLOT_WHITELIST_RECIPIENT = "plots.command.whitelistable";

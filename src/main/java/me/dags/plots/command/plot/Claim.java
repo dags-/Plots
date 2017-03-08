@@ -53,8 +53,8 @@ public class Claim {
             FMT.error("Plot ").stress(plotId).error(" is not present").tell(player);
         } else {
             PlotUser user = world.user(player.getUniqueId());
-            if (user.hasPlot() && !user.approved() && !player.hasPermission(Permissions.PLOT_APPROVAL_BYPASS)) {
-                FMT.error("You must have one of your plots approved before claiming a new one").tell(player);
+            if (user.maxClaimCount() > -1 && user.plotCount() >= user.maxClaimCount()) {
+                FMT.error("You cannot claim any more plots").tell(player);
                 return;
             }
 

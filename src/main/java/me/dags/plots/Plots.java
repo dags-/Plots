@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.mongodb.MongoClient;
 import me.dags.commandbus.CommandBus;
 import me.dags.plots.command.Cmd;
+import me.dags.plots.conversation.SetupConversation;
 import me.dags.plots.database.WorldDatabase;
 import me.dags.plots.generator.PlotGenerator;
 import me.dags.plots.plot.PlotWorld;
@@ -92,7 +93,10 @@ public class Plots {
             return;
         }
 
-        CommandBus.builder().logger(logger).build().registerSubPackagesOf(Cmd.class).submit(Plots.instance);
+        CommandBus.builder().logger(logger).build()
+                .registerSubPackagesOf(Cmd.class)
+                .register(new SetupConversation(this))
+                .submit(Plots.instance);
 
         executor().sync(Support.of(
                 "WorldEdit",

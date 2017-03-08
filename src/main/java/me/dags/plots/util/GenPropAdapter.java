@@ -44,6 +44,7 @@ public class GenPropAdapter implements NodeTypeAdapter<GeneratorProperties> {
         NodeObject gameRules = new NodeObject();
         for (Map.Entry<String, String> rule : properties.gameRules().entrySet()) {
             gameRules.put(rule.getKey(), rule.getValue());
+            System.out.println("!");
         }
         node.put("game_rules", gameRules);
 

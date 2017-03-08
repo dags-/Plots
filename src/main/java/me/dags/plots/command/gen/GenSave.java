@@ -24,9 +24,13 @@ public class GenSave {
         Optional<GeneratorProperties.Builder> builder = Cmd.genBuilders().get(source);
         if (builder.isPresent()) {
             GeneratorProperties properties = builder.get().build();
-            IO.saveProperties(properties, Plots.core().generatorsDir());
-            Cmd.genBuilders().remove(source);
-            FMT.info("Saved generator ").stress(properties.name()).info(" to file").tell(source);
+            saveGenerator(source, properties);
         }
+    }
+
+    public static void saveGenerator(CommandSource source, GeneratorProperties properties) {
+        IO.saveProperties(properties, Plots.core().generatorsDir());
+        Cmd.genBuilders().remove(source);
+        FMT.info("Saved generator ").stress(properties.name()).info(" to file").tell(source);
     }
 }

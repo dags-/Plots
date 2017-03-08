@@ -3,16 +3,15 @@ package me.dags.plots.database;
 /**
  * @author dags <dags@dags.me>
  */
-public class Keys {
+class Keys {
 
-    public static final String PLOT_ID = "id";
-    public static final String PLOT_OWNER = "owner";
-    public static final String PLOT_ALIAS = "alias";
-    public static final String PLOT_LIKES = "likes";
-    public static final String PLOT_MERGE_MIN = "mergemin";
-    public static final String PLOT_MERGE_MAX = "mergemax";
+    static final String PLOT_ID = "id";
+    static final String PLOT_OWNER = "owner";
+    static final String PLOT_ALIAS = "alias";
+    static final String PLOT_LIKES = "likes";
+    static final String PLOT_MERGE_MIN = "mergemin";
+    static final String PLOT_MERGE_MAX = "mergemax";
 
-    public static final String USER_ID = "id";
-    public static final String USER_PLOTS = "plots";
-    public static final String USER_APPROVED = "approved";
+    static final String USER_ID = "id";
+    static final String USER_PLOTS = "plots";
 }
