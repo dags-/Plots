@@ -3,6 +3,7 @@ package me.dags.plots.generator;
 import com.flowpowered.math.vector.Vector3i;
 import me.dags.plots.Plots;
 import me.dags.plots.util.GridMap;
+import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.world.extent.MutableBlockVolume;
@@ -13,7 +14,7 @@ import org.spongepowered.api.world.extent.MutableBlockVolume;
 public class Layer {
 
     private final int thickness;
-    private final GridMap<BlockType> layer;
+    private final GridMap<BlockState> layer;
 
     private Layer(Builder builder) {
         this.thickness = builder.thickness;
@@ -28,7 +29,7 @@ public class Layer {
         applyLayer(buffer, y);
     }
 
-    public BlockType getBlockAt(int x, int z) {
+    public BlockState getBlockAt(int x, int z) {
         return layer.get(x, z);
     }
 
@@ -36,8 +37,8 @@ public class Layer {
         Vector3i min = buffer.getBlockMin(), max = buffer.getBlockMax();
         for (int z = min.getZ(); z <= max.getZ(); z++) {
             for (int x = min.getX(); x <= max.getX(); x++) {
-                BlockType type = layer.get(x, z);
-                buffer.setBlockType(x, y, z, type, Plots.PLOTS_CAUSE());
+                BlockState state = layer.get(x, z);
+                buffer.setBlock(x, y, z, state, Plots.PLOTS_CAUSE());
             }
         }
     }
@@ -48,7 +49,7 @@ public class Layer {
 
     private static class Solid extends Layer {
 
-        private final BlockType base;
+        private final BlockState base;
 
         private Solid(Builder builder) {
             super(builder);
@@ -60,12 +61,12 @@ public class Layer {
             Vector3i min = buffer.getBlockMin(), max = buffer.getBlockMax();
             for (int z = min.getZ(); z <= max.getZ(); z++) {
                 for (int x = min.getX(); x <= max.getX(); x++) {
-                    buffer.setBlockType(x, y, z, base, Plots.PLOTS_CAUSE());
+                    buffer.setBlock(x, y, z, base, Plots.PLOTS_CAUSE());
                 }
             }
         }
 
-        public BlockType getBlockAt(int x, int z) {
+        public BlockState getBlockAt(int x, int z) {
             return base;
         }
     }
@@ -77,9 +78,9 @@ public class Layer {
         private int wallWidth = 1;
         private int pathWidth = 5;
         private int thickness = 1;
-        private BlockType body = BlockTypes.BEDROCK;
-        private BlockType wall = BlockTypes.BEDROCK;
-        private BlockType path = BlockTypes.BEDROCK;
+        private BlockState body = BlockTypes.BEDROCK.getDefaultState();
+        private BlockState wall = BlockTypes.BEDROCK.getDefaultState();
+        private BlockState path = BlockTypes.BEDROCK.getDefaultState();
 
         public Builder plotXWidth(int width) {
             this.plotXWidth = width;
@@ -106,25 +107,47 @@ public class Layer {
             return this;
         }
 
+        public Builder body(BlockState state) {
+            this.body = state;
+            return this;
+        }
+
+        public Builder wall(BlockState state) {
+            this.wall = state;
+            return this;
+        }
+
+        public Builder path(BlockState state) {
+            this.path = state;
+            return this;
+        }
+
         public Builder body(BlockType type) {
-            this.body = type;
+            this.body = type.getDefaultState();
             return this;
         }
 
         public Builder wall(BlockType type) {
-            this.wall = type;
+            this.wall = type.getDefaultState();
             return this;
         }
 
         public Builder path(BlockType type) {
-            this.path = type;
+            this.path = type.getDefaultState();
             return this;
         }
 
         public Builder all(BlockType type) {
-            this.body = type;
-            this.wall = type;
-            this.path = type;
+            this.body = type.getDefaultState();
+            this.wall = type.getDefaultState();
+            this.path = type.getDefaultState();
+            return this;
+        }
+
+        public Builder all(BlockState state) {
+            this.body = state;
+            this.wall = state;
+            this.path = state;
             return this;
         }
 
@@ -132,13 +155,13 @@ public class Layer {
             return body == wall && wall == path;
         }
 
-        private GridMap<BlockType> layer() {
+        private GridMap<BlockState> layer() {
             if (solid()) {
                 return GridMap.empty();
             }
             int layerXWidth = plotXWidth + (2 * wallWidth) + pathWidth;
             int layerZWidth = plotZWidth + (2 * wallWidth) + pathWidth;
-            GridMap<BlockType> layer = new GridMap<>(BlockType[]::new, BlockTypes.AIR, layerXWidth, layerZWidth);
+            GridMap<BlockState> layer = new GridMap<>(BlockState[]::new, BlockTypes.AIR.getDefaultState(), layerXWidth, layerZWidth);
             layer.fill(body, wallWidth, plotXWidth + wallWidth, wallWidth, plotZWidth + wallWidth);
 
             layer.fill(wall, 0, wallWidth, 0, plotZWidth + wallWidth);

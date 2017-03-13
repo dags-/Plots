@@ -7,12 +7,14 @@ import me.dags.data.node.NodeTypeAdapter;
 import me.dags.plots.generator.GeneratorProperties;
 import me.dags.plots.generator.LayerProperties;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.world.biome.BiomeType;
 import org.spongepowered.api.world.biome.BiomeTypes;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 
 /**
@@ -44,7 +46,6 @@ public class GenPropAdapter implements NodeTypeAdapter<GeneratorProperties> {
         NodeObject gameRules = new NodeObject();
         for (Map.Entry<String, String> rule : properties.gameRules().entrySet()) {
             gameRules.put(rule.getKey(), rule.getValue());
-            System.out.println("!");
         }
         node.put("game_rules", gameRules);
 
@@ -69,9 +70,9 @@ public class GenPropAdapter implements NodeTypeAdapter<GeneratorProperties> {
                 if (!layer.isNodeObject()) {
                     continue;
                 }
-                BlockType body = blockType(layer.asNodeObject(), "plot");
-                BlockType wall = blockType(layer.asNodeObject(), "wall");
-                BlockType path = blockType(layer.asNodeObject(), "path");
+                BlockState body = block(layer.asNodeObject(), "plot");
+                BlockState wall = block(layer.asNodeObject(), "wall");
+                BlockState path = block(layer.asNodeObject(), "path");
                 int thickness = get(layer.asNodeObject().get("thickness"), n -> n.asNumber().intValue(), 1);
                 builder.layer(body, wall, path, thickness);
             }
@@ -95,11 +96,19 @@ public class GenPropAdapter implements NodeTypeAdapter<GeneratorProperties> {
         return fallback;
     }
 
-    private static BlockType blockType(NodeObject node, String key) {
+    private static BlockState block(NodeObject node, String key) {
         Node n = node.get(key);
         if (n.isPresent()) {
-            return Sponge.getRegistry().getType(BlockType.class, n.asString()).orElse(BlockTypes.AIR);
+            Optional<BlockState> state = Sponge.getRegistry().getType(BlockState.class, n.asString());
+            if (state.isPresent()) {
+                return state.get();
+            }
+
+            Optional<BlockType> type = Sponge.getRegistry().getType(BlockType.class, n.asString());
+            if (type.isPresent()) {
+                return type.get().getDefaultState();
+            }
         }
-        return BlockTypes.AIR;
+        return BlockTypes.AIR.getDefaultState();
     }
 }

@@ -4,7 +4,6 @@ import com.google.inject.Inject;
 import com.mongodb.MongoClient;
 import me.dags.commandbus.CommandBus;
 import me.dags.plots.command.Cmd;
-import me.dags.plots.conversation.SetupConversation;
 import me.dags.plots.database.WorldDatabase;
 import me.dags.plots.generator.PlotGenerator;
 import me.dags.plots.plot.PlotWorld;
@@ -22,6 +21,7 @@ import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStoppingServerEvent;
 import org.spongepowered.api.event.world.LoadWorldEvent;
 import org.spongepowered.api.event.world.UnloadWorldEvent;
+import org.spongepowered.api.plugin.Dependency;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.world.World;
@@ -32,7 +32,7 @@ import java.nio.file.Path;
 /**
  * @author dags <dags@dags.me>
  */
-@Plugin(id = Plots.ID, name = Plots.ID, version = "1.0", description = "shh")
+@Plugin(id = Plots.ID, name = Plots.ID, version = "1.0", description = "shh", dependencies = @Dependency(id = "converse"))
 public class Plots {
 
     public static final String ID = "plots";
@@ -62,7 +62,6 @@ public class Plots {
             client = new MongoClient(database.address(), database.port());
             client.getAddress();
             enabled = true;
-
         } catch (Exception e) {
             client = null;
             enabled = false;
@@ -70,7 +69,7 @@ public class Plots {
         } finally {
             Plots.instance = this;
             this.plots = new PlotsCore(this, configDir);
-            this.executor  = new Executor(this);
+            this.executor = new Executor(this);
             this.client = client;
             this.enabled = client != null && enabled;
             this.plotsCause = Cause.source(container).build();
@@ -95,7 +94,6 @@ public class Plots {
 
         CommandBus.builder().logger(logger).build()
                 .registerSubPackagesOf(Cmd.class)
-                .register(new SetupConversation(this))
                 .submit(Plots.instance);
 
         executor().sync(Support.of(
@@ -117,7 +115,7 @@ public class Plots {
         );
     }
 
-    @Listener (order = Order.POST)
+    @Listener(order = Order.POST)
     public void onWorldLoad(LoadWorldEvent event) {
         World world = event.getTargetWorld();
         if (world.getWorldGenerator().getBaseGenerationPopulator() instanceof PlotGenerator) {
@@ -134,7 +132,7 @@ public class Plots {
         }
     }
 
-    @Listener (order = Order.EARLY)
+    @Listener(order = Order.EARLY)
     public void onWorldUnload(UnloadWorldEvent event) {
         if (safeMode()) {
             return;
@@ -145,7 +143,7 @@ public class Plots {
         }
     }
 
-    @Listener (order = Order.EARLY)
+    @Listener(order = Order.EARLY)
     public void onShutDown(GameStoppingServerEvent event) {
         if (safeMode()) {
             return;

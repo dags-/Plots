@@ -2,6 +2,7 @@ package me.dags.plots.generator;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.world.biome.BiomeType;
 import org.spongepowered.api.world.biome.BiomeTypes;
@@ -174,6 +175,11 @@ public class GeneratorProperties {
         }
 
         public Builder layer(BlockType body, BlockType wall, BlockType path, int thickness) {
+            layers.add(new LayerProperties(body.getDefaultState(), wall.getDefaultState(), path.getDefaultState(), thickness));
+            return this;
+        }
+
+        public Builder layer(BlockState body, BlockState wall, BlockState path, int thickness) {
             layers.add(new LayerProperties(body, wall, path, thickness));
             return this;
         }

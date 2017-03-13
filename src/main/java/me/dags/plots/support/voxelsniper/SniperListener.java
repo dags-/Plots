@@ -2,13 +2,11 @@ package me.dags.plots.support.voxelsniper;
 
 import com.thevoxelbox.voxelsniper.Sniper;
 import com.thevoxelbox.voxelsniper.SniperManager;
-import com.thevoxelbox.voxelsniper.brush.Brush;
 import com.thevoxelbox.voxelsniper.brush.IBrush;
 import me.dags.plots.Plots;
+import me.dags.plots.plot.PlotMask;
 import me.dags.plots.plot.PlotUser;
 import me.dags.plots.plot.PlotWorld;
-import me.dags.plots.support.voxelsniper.mask.IMaskable;
-import me.dags.plots.support.voxelsniper.mask.Mask;
 import me.dags.plots.util.Support;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
@@ -27,11 +25,8 @@ public class SniperListener implements Support.Hook {
 
     @Override
     public void init() {
-        BrushLoader.load();
-        Plots.log("IMaskable Brush loaded: {}", IMaskable.class.isAssignableFrom(Brush.class));
-
         Sponge.getPluginManager().getPlugin("plots").flatMap(PluginContainer::getInstance).ifPresent(plugin -> {
-            Sponge.getEventManager().registerListeners(plugin, this);
+            Sponge.getEventManager().registerListeners(plugin, SniperListener.this);
         });
     }
 
@@ -44,19 +39,34 @@ public class SniperListener implements Support.Hook {
                 return;
             }
 
-            IBrush brush = tool.getCurrentBrush();
-            if (brush == null || !IMaskable.class.isInstance(brush)) {
+            IBrush current = tool.getCurrentBrush();
+            if (current == null) {
                 return;
             }
 
-            Mask mask = Mask.ALL;
-            Optional<PlotWorld> plotWorld = Plots.core().plotWorld(player.getWorld().getName());
-            if (plotWorld.isPresent()) {
-                PlotUser user = plotWorld.get().user(player.getUniqueId());
-                mask = new SniperMask(user.plotMask());
+            MaskedBrush masked = null;
+
+            if (MaskedBrush.class.isInstance(current)) {
+                masked = MaskedBrush.class.cast(current);
+            } else {
+                IBrush brush = tool.setCurrentBrush(MaskedBrush.class);
+
+                if (brush != null) {
+                    masked = MaskedBrush.class.cast(brush);
+                    masked.wrap(current);
+                }
             }
 
-            IMaskable.class.cast(brush).setMask(mask);
+            if (masked != null) {
+                Optional<PlotWorld> plotWorld = Plots.core().plotWorld(player.getWorld().getName());
+                if (plotWorld.isPresent()) {
+                    PlotUser user = plotWorld.get().user(player.getUniqueId());
+                    PlotMask mask = user.plotMask();
+                    masked.setMask(mask);
+                } else {
+                    tool.setCurrentBrush(masked.getWrapped().getClass());
+                }
+            }
         }
     }
 }

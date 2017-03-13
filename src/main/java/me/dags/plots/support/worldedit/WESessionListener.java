@@ -3,6 +3,7 @@ package me.dags.plots.support.worldedit;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.event.extent.EditSessionEvent;
 import com.sk89q.worldedit.extension.platform.Actor;
+import com.sk89q.worldedit.extent.MaskingExtent;
 import com.sk89q.worldedit.util.eventbus.Subscribe;
 import com.sk89q.worldedit.world.World;
 import me.dags.plots.Plots;
@@ -32,8 +33,7 @@ public class WESessionListener implements Support.Hook {
             if (plotWorld.isPresent()) {
                 PlotUser user = plotWorld.get().user(actor.getUniqueId());
                 PlotMask mask = user.plotMask();
-                WEMaskedExtent maskedExtent = new WEMaskedExtent(event.getExtent(), mask);
-                event.setExtent(maskedExtent);
+                event.setExtent(new MaskingExtent(event.getExtent(), new WEMask(mask)));
             }
         }
     }

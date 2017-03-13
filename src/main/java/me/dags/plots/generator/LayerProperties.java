@@ -1,5 +1,6 @@
 package me.dags.plots.generator;
 
+import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.block.BlockTypes;
 
@@ -8,29 +9,38 @@ import org.spongepowered.api.block.BlockTypes;
  */
 public class LayerProperties {
 
-    private BlockType body = BlockTypes.BEDROCK;
-    private BlockType wall = BlockTypes.BEDROCK;
-    private BlockType path = BlockTypes.BEDROCK;
-    private int thickness = 1;
+    private final BlockState body;
+    private final BlockState wall;
+    private final BlockState path;
+    private final int thickness;
 
-    public LayerProperties() {}
+    public LayerProperties() {
+        this(BlockTypes.BEDROCK, BlockTypes.BEDROCK, BlockTypes.BEDROCK, 1);
+    }
 
     public LayerProperties(BlockType body, BlockType wall, BlockType path, int thickness) {
+        this.body = body.getDefaultState();
+        this.wall = wall.getDefaultState();
+        this.path = path.getDefaultState();
+        this.thickness = thickness;
+    }
+
+    public LayerProperties(BlockState body, BlockState wall, BlockState path, int thickness) {
         this.body = body;
         this.wall = wall;
         this.path = path;
         this.thickness = thickness;
     }
 
-    public BlockType body() {
+    public BlockState body() {
         return body;
     }
 
-    public BlockType wall() {
+    public BlockState wall() {
         return wall;
     }
 
-    public BlockType path() {
+    public BlockState path() {
         return path;
     }
 

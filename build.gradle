@@ -38,20 +38,18 @@ dependencies {
     // shaded dependencies:
     compile 'org.mongodb:mongo-java-driver:3.2.0'
     compile 'com.github.dags-:CommandBus:1.6.0-RC3'
-    compile 'com.github.dags-:Converse:0.1-SNAPSHOT-3'
+    compile 'com.github.dags-:Converse:0.1-SNAPSHOT-6'
     compile 'com.github.dags-:NodeData:1.4.1-SNAPSHOT'
 }
 
 shadowJar {
     dependencies {
         include dependency('com.github.dags-:NodeData')
-        include dependency('com.github.dags-:Converse')
         include dependency('com.github.dags-:CommandBus')
         include dependency('org.mongodb:mongo-java-driver')
     }
 
     relocate 'me.dags.commandbus', 'me.dags.plots.libs.commandbus'
-    relocate 'me.dags.converse', 'me.dags.plots.libs.converse'
     relocate 'me.dags.data', 'me.dags.plots.libs.data'
     relocate 'com.mongodb', 'me.dags.plots.libs.mongodb'
     relocate 'org.bson', 'me.dags.plots.libs.bson'

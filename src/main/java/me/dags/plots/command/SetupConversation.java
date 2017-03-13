@@ -1,4 +1,4 @@
-package me.dags.plots.conversation;
+package me.dags.plots.command;
 
 import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
@@ -8,14 +8,12 @@ import me.dags.commandbus.format.FMT;
 import me.dags.commandbus.format.Formatter;
 import me.dags.converse.*;
 import me.dags.plots.Permissions;
-import me.dags.plots.Plots;
 import me.dags.plots.command.gen.GenReload;
 import me.dags.plots.command.gen.GenSave;
 import me.dags.plots.command.world.WorldCreate;
 import me.dags.plots.generator.Defaults;
 import me.dags.plots.generator.GeneratorProperties;
-import org.spongepowered.api.Sponge;
-import org.spongepowered.api.block.BlockType;
+import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandSource;
@@ -31,13 +29,7 @@ import static org.spongepowered.api.command.args.GenericArguments.*;
  */
 public class SetupConversation {
 
-    private final ConversationManager manager;
-    private final ConversationSpec conversation;
-
-    public SetupConversation(Plots plugin) {
-        this.manager = ConversationManager.create(plugin);
-        this.conversation = worldConversation(manager, 1, TimeUnit.MINUTES);
-    }
+    private final ConversationSpec conversation = worldConversation(1, TimeUnit.MINUTES);
 
     @Command(alias = "setup", parent = "plot")
     @Permission(Permissions.PLOT_SETUP)
@@ -46,57 +38,57 @@ public class SetupConversation {
         conversation.startConversation(source);
     }
 
-    private static ConversationSpec worldConversation(ConversationManager manager, int time, TimeUnit unit) {
-        ConversationNode intro = ConversationNode.builder("intro")
-                .parameter(remainingJoinedStrings(id("intro")))
+    private static ConversationSpec worldConversation(int time, TimeUnit unit) {
+        ConversationNode intro = ConversationNode.route("intro")
+                .parameters(string(id("response")))
                 .prompt((src, context) -> FMT
                         .info("Please answer the following set of questions/prompts by typing directly into chat")
                         .newLine().info("Your responses will not be sent to any other players on the server")
                         .newLine().info("This conversation will timeout after ").stress("%s %s", time, unit.name())
                         .newLine().info("You may exit the conversation at any point by replying '").stress("exit").info("'")
                         .newLine()
-                        .newLine().info("Please type anything into to chat to continue...")
+                        .newLine().info("Type anything into to chat to continue...")
                         .build()
                 )
                 .router((src, context) -> ConversationRoute.goTo("world_name"))
                 .build();
 
-        ConversationNode worldName = ConversationNode.builder("world_name")
-                .parameter(remainingJoinedStrings(id("world_name")))
+        ConversationNode worldName = ConversationNode.route("world_name")
+                .parameters(remainingJoinedStrings(id("name")))
                 .prompt((src, context) -> FMT.info("What would you like to call the world?").build())
                 .router((src, context) -> ConversationRoute.goTo("generator_name"))
                 .build();
 
-        ConversationNode generatorName = ConversationNode.builder("generator_name")
-                .parameter(string(id("generator_name")))
+        ConversationNode generatorName = ConversationNode.route("generator_name")
+                .parameters(string(id("name")))
                 .prompt((src, context) -> FMT.info("What would you like to call the generator?").build())
                 .router((src, context) -> {
-                    String name = context.<String>getLast("generator_name").orElse("default");
+                    String name = context.getCurrent().<String>getLast("name").orElse("default");
                     getPropertiesBuilder(context).name(name);
-                    return ConversationRoute.goTo("plot_dims");
+                    return ConversationRoute.goTo("plot_size");
                 })
                 .build();
 
-        ConversationNode plotDims = ConversationNode.builder("plot_dims")
-                .parameter(integer(id("plot_x_width")), integer(id("plot_z_width")))
-                .prompt((src, context) -> FMT.info("What x*z dimensions should the plots be?").build())
+        ConversationNode plotDims = ConversationNode.route("plot_size")
+                .parameters(integer(id("x_width")), integer(id("z_width")))
+                .prompt((src, context) -> FMT.info("What x*z dimensions should plots be?").build())
                 .router((src, context) -> {
-                    int x = context.<Integer>getLast("plot_x_width").orElse(0);
-                    int z = context.<Integer>getLast("plot_z_width").orElse(0);
-                    if (x > 0 && z >0) {
+                    int x = context.getCurrent().<Integer>getLast("x_width").orElse(0);
+                    int z = context.getCurrent().<Integer>getLast("z_width").orElse(0);
+                    if (x > 0 && z > 0) {
                         getPropertiesBuilder(context).xWidth(x).zWidth(z);
                         return ConversationRoute.goTo("path_width");
                     }
                     FMT.error("Plot dimensions must be greater than 0").tell(src);
-                    return ConversationRoute.goTo("plot_dims");
+                    return ConversationRoute.goTo("plot_size");
                 })
                 .build();
 
-        ConversationNode pathWidth = ConversationNode.builder("path_width")
-                .parameter(integer(id("path_width")))
+        ConversationNode pathWidth = ConversationNode.route("path_width")
+                .parameters(integer(id("width")))
                 .prompt((src, context) -> FMT.info("How many blocks wide should the paths be?").build())
                 .router((src, context) -> {
-                    int width = context.<Integer>getLast("path_width").orElse(0);
+                    int width = context.getCurrent().<Integer>getLast("width").orElse(0);
                     if (width > 0) {
                         getPropertiesBuilder(context).pathWidth(width);
                         return ConversationRoute.goTo("wall_width");
@@ -106,11 +98,11 @@ public class SetupConversation {
                 })
                 .build();
 
-        ConversationNode wallWidth = ConversationNode.builder("wall_width")
-                .parameter(integer(id("wall_width")))
+        ConversationNode wallWidth = ConversationNode.route("wall_width")
+                .parameters(integer(id("width")))
                 .prompt((src, context) -> FMT.info("How many blocks wide should the plot walls be?").build())
                 .router((src, context) -> {
-                    int width = context.<Integer>getLast("wall_width").orElse(0);
+                    int width = context.getCurrent().<Integer>getLast("width").orElse(0);
                     if (width > 0) {
                         getPropertiesBuilder(context).wallWidth(width);
                         return ConversationRoute.goTo("add_layer");
@@ -120,21 +112,21 @@ public class SetupConversation {
                 })
                 .build();
 
-        ConversationNode addLayer = ConversationNode.builder("add_layer")
-                .parameter(string(id("add_layer")))
+        ConversationNode addLayer = ConversationNode.route("add_layer")
+                .parameters(string(id("response")))
                 .prompt((src, context) -> {
-                    if (context.hasAny("layer_id")) {
+                    if (context.hasRoute("layer_id")) {
                         return FMT.info("Would you like to add another layer?").build();
                     }
                     return FMT.info("Would you like to add a layer?").build();
                 })
                 .router((src, context) -> {
-                    String response = context.<String>getLast("add_layer").orElse("");
+                    String response = context.getCurrent().<String>getLast("response").orElse("");
                     if (response.equalsIgnoreCase("yes") || response.equalsIgnoreCase("y")) {
                         return ConversationRoute.goTo("plot_material");
                     }
                     if (response.equalsIgnoreCase("no") || response.equalsIgnoreCase("n")) {
-                        if (!context.hasAny("layer_height")) {
+                        if (!context.hasRoute("layer_height")) {
                             FMT.info("Using default generator layers...").tell(src);
                             getPropertiesBuilder(context).layer(Defaults.defaultLayers());
                         }
@@ -145,46 +137,55 @@ public class SetupConversation {
                 })
                 .build();
 
-        ConversationNode plotMaterial = ConversationNode.builder("plot_material")
-                .parameter(string(id("plot_material")))
+        ConversationNode plotMaterial = ConversationNode.route("plot_material")
+                .parameters(catalogedElement(id("material"), BlockState.class))
                 .prompt((src, context) -> {
-                    int layer = context.<Integer>getLast("layer_id").orElse(1);
+                    int layer = context.<Integer>getLast("layer_id", "id").orElse(1);
                     return FMT.info("What material should the plots be in layer %s?", layer).build();
                 })
-                .router(layer("plot_material", "wall_material"))
+                .router(ConversationRoute.goTo("wall_material"))
                 .build();
 
-        ConversationNode wallMaterial = ConversationNode.builder("wall_material")
-                .parameter(string(id("wall_material")))
+        ConversationNode wallMaterial = ConversationNode.route("wall_material")
+                .parameters(catalogedElement(id("material"), BlockState.class))
                 .prompt((src, context) -> {
-                    int layer = context.<Integer>getLast("layer_id").orElse(1);
+                    int layer = context.<Integer>getLast("layer_id", "id").orElse(1);
                     return FMT.info("What material should the walls be in layer %s?", layer).build();
                 })
-                .router(layer("wall_material", "path_material"))
+                .router(ConversationRoute.goTo("path_material"))
                 .build();
 
-        ConversationNode pathMaterial = ConversationNode.builder("path_material")
-                .parameter(string(id("path_material")))
+        ConversationNode pathMaterial = ConversationNode.route("path_material")
+                .parameters(catalogedElement(id("material"), BlockState.class))
                 .prompt((src, context) -> {
-                    int layer = context.<Integer>getLast("layer_id").orElse(1);
+                    int layer = context.<Integer>getLast("layer_id", "id").orElse(1);
                     return FMT.info("What material should the paths be in layer %s?", layer).build();
                 })
-                .router(layer("path_material", "layer_height"))
+                .router(ConversationRoute.goTo("layer_height"))
                 .build();
 
-        ConversationNode layerDepth = ConversationNode.builder("layer_height")
-                .parameter(integer(id("layer_height")))
+        ConversationNode layerHeight = ConversationNode.route("layer_height")
+                .parameters(integer(id("height")))
                 .prompt((src, context) -> FMT.info("How many blocks high should this layer be?").build())
                 .router((src, context) -> {
-                    int depth = context.<Integer>getLast("layer_height").orElse(-1);
+                    int depth = context.getCurrent().<Integer>getLast("height").orElse(-1);
                     if (depth > 0 && depth < 256) {
-                        int layer = context.<Integer>getLast("layer_id").orElse(1);
-                        context.putArg("layer_id", layer + depth);
+                        Optional<ConversationContext> id = context.getLastContext("layer_id");
+
+                        if (id.isPresent()) {
+                            int layer = id.get().<Integer>getLast("id").orElse(1) + depth;
+                            id.get().putArg("id", layer);
+                        } else {
+                            ConversationContext layerId = new ConversationContext();
+                            layerId.putArg("id", 1 + depth);
+                            context.putContext("layer_id", layerId);
+                        }
 
                         GeneratorProperties.Builder builder = getPropertiesBuilder(context);
-                        BlockType plot = context.<BlockType>getLast("plot_material").orElse(BlockTypes.BEDROCK);
-                        BlockType wall = context.<BlockType>getLast("wall_material").orElse(BlockTypes.BEDROCK);
-                        BlockType path = context.<BlockType>getLast("path_material").orElse(BlockTypes.BEDROCK);
+                        BlockState fallback = BlockTypes.BEDROCK.getDefaultState();
+                        BlockState plot = context.<BlockState>getLast("plot_material", "material").orElse(fallback);
+                        BlockState wall = context.<BlockState>getLast("wall_material", "material").orElse(fallback);
+                        BlockState path = context.<BlockState>getLast("path_material", "material").orElse(fallback);
                         builder.layer(plot, wall, path, depth);
 
                         return ConversationRoute.goTo("add_layer");
@@ -195,39 +196,39 @@ public class SetupConversation {
                 })
                 .build();
 
-        ConversationNode biome = ConversationNode.builder("biome")
-                .parameter(string(id("biome")))
+        ConversationNode biome = ConversationNode.route("biome")
+                .parameters(string(id("biome")))
                 .prompt((src, context) -> FMT.info("What biome should be used in the world?").build())
                 .router((src, context) -> ConversationRoute.goTo("default_gamerules"))
                 .build();
 
-        ConversationNode defaultGameRules = ConversationNode.builder("default_gamerules")
-                .parameter(string(id("default_gamerules")))
+        ConversationNode defaultGameRules = ConversationNode.route("default_gamerules")
+                .parameters(string(id("default_gamerules")))
                 .prompt((src, context) -> FMT.info("Do you want to use the default game-rules?").build())
                 .router((src, context) -> {
-                    String response = context.<String>getLast("default_gamerules").orElse("");
+                    String response = context.getCurrent().<String>getLast("default_gamerules").orElse("");
                     if (response.equalsIgnoreCase("yes") || response.equalsIgnoreCase("y")) {
                         getPropertiesBuilder(context).defaultGameRules();
-                        return ConversationRoute.goTo("add_gamerules");
+                        return ConversationRoute.goTo("add_gamerule");
                     }
                     if (response.equalsIgnoreCase("no") || response.equalsIgnoreCase("n")) {
-                        return ConversationRoute.goTo("add_gamerules");
+                        return ConversationRoute.goTo("add_gamerule");
                     }
                     return ConversationRoute.goTo("default_gamerules");
                 })
                 .build();
 
-        ConversationNode addGameRule = ConversationNode.builder("add_gamerule")
-                .parameter(string(id("add_gamerule")))
+        ConversationNode addGameRule = ConversationNode.route("add_gamerule")
+                .parameters(string(id("add_gamerule")))
                 .prompt((src, context) -> {
-                    if (context.hasAny("rule")) {
+                    if (context.hasRoute("rule")) {
                         return FMT.info("Would you like to set another game-rule?").build();
                     } else {
                         return FMT.info("Would you like to set a custom game-rule?").build();
                     }
                 })
-                .router((src, context) -> {
-                    String response = context.<String>getLast("add_gamerule").orElse("");
+                .router((src, contexts) -> {
+                    String response = contexts.getCurrent().<String>getLast("add_gamerule").orElse("");
                     if (response.equalsIgnoreCase("yes") || response.equalsIgnoreCase("y")) {
                         return ConversationRoute.goTo("gamerule");
                     }
@@ -239,12 +240,12 @@ public class SetupConversation {
                 })
                 .build();
 
-        ConversationNode gamerule = ConversationNode.builder("gamerule")
-                .parameter(string(id("rule")), string(id("value")))
+        ConversationNode gamerule = ConversationNode.route("gamerule")
+                .parameters(string(id("rule")), string(id("value")))
                 .prompt((src, context) -> FMT.info("Please specify a gamerule and value").build())
-                .router((src, context) -> {
-                    String rule = context.<String>getLast("rule").orElse("");
-                    String value = context.<String>getLast("value").orElse("");
+                .router((src, contexts) -> {
+                    String rule = contexts.getCurrent().<String>getLast("rule").orElse("");
+                    String value = contexts.getCurrent().<String>getLast("value").orElse("");
                     if (!rule.isEmpty() && !value.isEmpty()) {
                         return ConversationRoute.goTo("add_gamerule");
                     }
@@ -253,12 +254,12 @@ public class SetupConversation {
                 })
                 .build();
 
-        ConversationNode confirm = ConversationNode.builder("confirm")
-                .parameter(string(id("confirm")))
+        ConversationNode confirm = ConversationNode.route("confirm")
+                .parameters(string(id("confirm")))
                 .prompt((src, context) -> {
                     GeneratorProperties.Builder builder = getPropertiesBuilder(context);
                     Formatter fmt = FMT.info("Summary").newLine();
-                    fmt.info("World Name: ").stress(context.getLast("world_name").orElse("")).newLine();
+                    fmt.info("World Name: ").stress(context.getLast("world_name", "name").orElse("")).newLine();
                     fmt.info("Generator Name: ").stress(builder.getName()).newLine();
                     fmt.info("Plot Dimensions: ").stress(builder.getxWidth()).info("x").stress(builder.getzWidth()).newLine();
                     fmt.info("Wall Width: ").stress(builder.getWallWidth()).newLine();
@@ -266,8 +267,8 @@ public class SetupConversation {
                     fmt.newLine().info("Create a new world with these properties?");
                     return fmt.build();
                 })
-                .router((src, context) -> {
-                    String response = context.<String>getLast("confirm").orElse("");
+                .router((src, contexts) -> {
+                    String response = contexts.getCurrent().<String>getLast("confirm").orElse("");
                     if (response.equalsIgnoreCase("yes") || response.equalsIgnoreCase("y")) {
                         return ConversationRoute.end();
                     }
@@ -280,18 +281,18 @@ public class SetupConversation {
                 })
                 .build();
 
-        return manager.specBuilder()
+        return ConversationSpec.builder()
                 .onComplete(conversation -> conversation.getSource().ifPresent(src -> {
-                        String world = conversation.getContext().<String>getLast("world_name").orElse("");
-                        FMT.info("Generating new world ").stress(world).tell(src);
-                        FMT.info("Use the command ").stress("/wtp %s", world).info(" to teleport there").tell(src);
-                        GeneratorProperties properties = getPropertiesBuilder(conversation.getContext()).build();
-                        GenSave.saveGenerator(src, properties);
-                        GenReload.reloadGenerators(src);
-                        WorldCreate.createWorld(src, properties.name(), world);
+                    String world = conversation.getContext().<String>getLast("world_name", "world_name").orElse("");
+                    FMT.info("Generating new world ").stress(world).tell(src);
+                    FMT.info("Use the command ").stress("/wtp %s", world).info(" to teleport there").tell(src);
+                    GeneratorProperties properties = getPropertiesBuilder(conversation.getContext()).build();
+                    GenSave.saveGenerator(src, properties);
+                    GenReload.reloadGenerators(src);
+                    WorldCreate.createWorld(src, properties.name(), world);
                 }))
-                .timeOut(1, TimeUnit.MINUTES)
-                .start(intro)
+                .timeOut(time, unit)
+                .first(intro)
                 .nodes(
                         worldName,
                         generatorName,
@@ -302,7 +303,7 @@ public class SetupConversation {
                         plotMaterial,
                         pathMaterial,
                         wallMaterial,
-                        layerDepth,
+                        layerHeight,
                         biome,
                         defaultGameRules,
                         addGameRule,
@@ -312,30 +313,19 @@ public class SetupConversation {
                 .build();
     }
 
-    private static ConversationRouter layer(String current, String next) {
-        return (src, context) -> {
-            String material = context.<String>getLast(current).orElse("");
-            Optional<BlockType> type = Sponge.getRegistry().getType(BlockType.class, material);
-            if (type.isPresent()) {
-                context.putArg(current, type.get());
-                return ConversationRoute.goTo(next);
-            }
-            FMT.error("'%s' is not recognised, please try again", material).tell(src);
-            return ConversationRoute.goTo(current);
-        };
+    private static Text id(String name) {
+        return Text.of(name);
     }
 
-    private static GeneratorProperties.Builder getPropertiesBuilder(ConversationContext context) {
-        Optional<GeneratorProperties.Builder> builder = context.getOne("property_builder");
+    private static GeneratorProperties.Builder getPropertiesBuilder(ContextCollection context) {
+        Optional<GeneratorProperties.Builder> builder = context.getOne("root", "property_builder");
         if (!builder.isPresent()) {
             GeneratorProperties.Builder b = GeneratorProperties.builder();
-            context.putArg("property_builder", b);
+            ConversationContext c = new ConversationContext();
+            c.putArg("property_builder", b);
+            context.putContext("root", c);
             return b;
         }
         return builder.get();
-    }
-
-    private static Text id(String name) {
-        return Text.of(name);
     }
 }

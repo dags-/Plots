@@ -5,7 +5,7 @@ import me.dags.plots.Plots;
 import me.dags.plots.generator.Layer;
 import me.dags.plots.generator.PlotGenerator;
 import me.dags.plots.plot.PlotBounds;
-import org.spongepowered.api.block.BlockType;
+import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.world.World;
 import org.spongepowered.api.world.extent.MutableBiomeVolume;
@@ -81,13 +81,13 @@ public class ResetOperation implements Operation {
     }
 
     private void processAt(int x, int y, int z) {
-        BlockType blockType = BlockTypes.AIR;
+        BlockState state = BlockTypes.AIR.getDefaultState();
 
         if (y < layersHeight) {
             Layer layer = plotGenerator.layerAtHeight(y);
-            blockType = layer.getBlockAt(x, z);
+            state = layer.getBlockAt(x, z);
         }
 
-        blockView.setBlockType(min.getX() + x, min.getY() + y, min.getZ() + z, blockType, Plots.PLOTS_CAUSE());
+        blockView.setBlock(min.getX() + x, min.getY() + y, min.getZ() + z, state, Plots.PLOTS_CAUSE());
     }
 }
