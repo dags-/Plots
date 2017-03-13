@@ -4,6 +4,7 @@ import com.thevoxelbox.voxelsniper.Message;
 import com.thevoxelbox.voxelsniper.SnipeAction;
 import com.thevoxelbox.voxelsniper.SnipeData;
 import com.thevoxelbox.voxelsniper.brush.IBrush;
+import me.dags.plots.Permissions;
 import me.dags.plots.plot.PlotMask;
 import me.dags.plots.support.MaskedWorld;
 import org.spongepowered.api.world.Location;
@@ -31,12 +32,16 @@ public class MaskedBrush implements IBrush {
 
     @Override
     public void info(Message vm) {
-        brush.info(vm);
+        if (brush != null) {
+            brush.info(vm);
+        }
     }
 
     @Override
     public void parameters(String[] par, SnipeData v) {
-        brush.parameters(par, v);
+        if (brush != null) {
+            brush.parameters(par, v);
+        }
     }
 
     @Override
@@ -51,21 +56,23 @@ public class MaskedBrush implements IBrush {
 
     @Override
     public String getName() {
-        return brush.getName();
+        return brush != null ? brush.getName() : "";
     }
 
     @Override
     public void setName(String name) {
-        brush.setName(name);
+        if (brush != null) {
+            brush.setName(name);
+        }
     }
 
     @Override
     public String getBrushCategory() {
-        return brush.getBrushCategory();
+        return brush != null ? brush.getBrushCategory() : "";
     }
 
     @Override
     public String getPermissionNode() {
-        return brush.getPermissionNode();
+        return brush != null ? brush.getPermissionNode() : Permissions.ACTION_SNIPE;
     }
 }

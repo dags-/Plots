@@ -283,7 +283,7 @@ public class Setup {
 
         return ConversationSpec.builder()
                 .onComplete(conversation -> conversation.getSource().ifPresent(src -> {
-                    String world = conversation.getContext().<String>getLast("world_name", "world_name").orElse("");
+                    String world = conversation.getContext().<String>getLast("world_name", "name").orElse("world");
                     FMT.info("Generating new world ").stress(world).tell(src);
                     FMT.info("Use the command ").stress("/wtp %s", world).info(" to teleport there").tell(src);
                     GeneratorProperties properties = getPropertiesBuilder(conversation.getContext()).build();

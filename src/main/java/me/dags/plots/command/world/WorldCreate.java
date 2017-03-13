@@ -22,7 +22,7 @@ import java.io.IOException;
  */
 public class WorldCreate {
 
-    @Command(alias = "create")
+    @Command(alias = "create", parent = "plotworld")
     @Permission(Permissions.WORLD_CREATE)
     @Description("Create a new PlotWorld")
     public void create(@Caller CommandSource source, @One("generator") String generator, @One("world") String name) {
