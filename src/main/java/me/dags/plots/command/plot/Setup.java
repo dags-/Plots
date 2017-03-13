@@ -1,4 +1,4 @@
-package me.dags.plots.command;
+package me.dags.plots.command.plot;
 
 import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
@@ -27,7 +27,7 @@ import static org.spongepowered.api.command.args.GenericArguments.*;
 /**
  * @author dags <dags@dags.me>
  */
-public class SetupConversation {
+public class Setup {
 
     private final ConversationSpec conversation = worldConversation(1, TimeUnit.MINUTES);
 
