@@ -21,7 +21,6 @@ import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStoppingServerEvent;
 import org.spongepowered.api.event.world.LoadWorldEvent;
 import org.spongepowered.api.event.world.UnloadWorldEvent;
-import org.spongepowered.api.plugin.Dependency;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.world.World;
@@ -32,7 +31,7 @@ import java.nio.file.Path;
 /**
  * @author dags <dags@dags.me>
  */
-@Plugin(id = Plots.ID, name = Plots.ID, version = "1.0", description = "shh", dependencies = @Dependency(id = "converse"))
+@Plugin(id = Plots.ID, name = Plots.ID, version = "1.0", description = "shh")
 public class Plots {
 
     public static final String ID = "plots";
@@ -65,7 +64,7 @@ public class Plots {
         } catch (Exception e) {
             client = null;
             enabled = false;
-            critical("MONGO DATABASE NOT AVAILABLE ON {}:{} - PLOTS SET TO SAFE-MODE", database.address(), database.port());
+            critical("MONGODB NOT AVAILABLE ON {}:{} - PLOTS SET TO SAFE-MODE", database.address(), database.port());
         } finally {
             Plots.instance = this;
             this.plots = new PlotsCore(this, configDir);
@@ -97,6 +96,18 @@ public class Plots {
                 .submit(Plots.instance);
 
         executor().sync(Support.of(
+                "PlotsWeb",
+                "me.dags.plotsweb.service.PlotsWebService",
+                "me.dags.plots.support.plotsweb.PlotsWeb")
+        );
+
+        executor().sync(Support.of(
+                "Converse",
+                "me.dags.converse.Conversation",
+                "me.dags.plots.support.converse.ConverseSupport")
+        );
+
+        executor().sync(Support.of(
                 "WorldEdit",
                 "com.sk89q.worldedit.WorldEdit",
                 "me.dags.plots.support.worldedit.WESessionListener")
@@ -106,12 +117,6 @@ public class Plots {
                 "VoxelSniper",
                 "com.thevoxelbox.voxelsniper.VoxelSniper",
                 "me.dags.plots.support.voxelsniper.SniperListener")
-        );
-
-        executor().sync(Support.of(
-                "PlotsWeb",
-                "me.dags.plotsweb.service.PlotsWebService",
-                "me.dags.plots.support.plotsweb.PlotsWeb")
         );
     }
 

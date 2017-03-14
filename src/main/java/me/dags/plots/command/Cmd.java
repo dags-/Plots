@@ -19,11 +19,11 @@ import java.util.concurrent.TimeUnit;
 public class Cmd {
 
     private static final CommandSourceCache<CommandSource, GeneratorProperties.Builder> genBuilders = CommandSourceCache.builder()
-            .expireTime(3)
-            .timeUnit(TimeUnit.MINUTES)
-            .addMessage("Started new generator editor session")
-            .expireMessage("Your generator editor session has expired")
             .noElementMessage("You are not currently editing a generator")
+            .expireMessage("Your generator editor session has expired")
+            .addMessage("Started new generator editor session")
+            .timeUnit(TimeUnit.MINUTES)
+            .expireTime(3)
             .build();
 
     public static CommandSourceCache<CommandSource, GeneratorProperties.Builder> genBuilders() {
