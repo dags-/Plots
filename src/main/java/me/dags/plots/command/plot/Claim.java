@@ -48,14 +48,15 @@ public class Claim {
         };
     }
 
-    static void claim(Player player, PlotWorld world, PlotId plotId) {
+    static boolean claim(Player player, PlotWorld world, PlotId plotId) {
         if (!plotId.present()) {
             FMT.error("Plot ").stress(plotId).error(" is not present").tell(player);
+            return false;
         } else {
             PlotUser user = world.user(player.getUniqueId());
             if (user.maxClaimCount() > -1 && user.plotCount() >= user.maxClaimCount()) {
                 FMT.error("You cannot claim any more plots").tell(player);
-                return;
+                return false;
             }
 
             Runnable async = () -> {
@@ -70,6 +71,7 @@ public class Claim {
             };
 
             Plots.executor().async(async, callback);
+            return true;
         }
     }
 }

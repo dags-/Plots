@@ -38,9 +38,11 @@ public class Auto {
 
     static Consumer<PlotId> claim(Player player, PlotWorld world) {
         return plotId -> {
-            Claim.claim(player, world, plotId);
-            world.teleport(player, plotId);
-            FMT.info("Teleported to plot ").stress(plotId).tell(player);
+            boolean result = Claim.claim(player, world, plotId);
+            if (result) {
+                world.teleport(player, plotId);
+                FMT.info("Teleported to plot ").stress(plotId).tell(player);
+            }
         };
     }
 }
