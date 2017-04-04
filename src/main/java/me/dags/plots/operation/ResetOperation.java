@@ -54,6 +54,7 @@ public class ResetOperation implements Operation {
         this.maxZ = max.getZ() - min.getZ();
         this.min = min;
         this.entityView = world.getIntersectingEntities(new AABB(min, max)).stream()
+                .filter(NOT_PLAYER)
                 .map(WeakReference::new)
                 .collect(Collectors.toList());
     }
