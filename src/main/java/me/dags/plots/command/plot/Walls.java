@@ -50,7 +50,7 @@ public class Walls {
 
     static void setWalls(Player player, PlotWorld world, PlotId plotId, BlockState state, int depth) {
         PlotUser user = world.user(player.getUniqueId());
-        if (user.plotMask().contains(plotId)) {
+        if (user.plotMask().contains(plotId) || player.hasPermission(Permissions.PLOT_WALLS_OTHER)) {
             FMT.info("Setting wall material to ").stress(state).tell(player);
             PlotSchema schema = world.plotSchema();
             PlotBounds bounds = user.plotMask().plots().get(plotId);
@@ -60,6 +60,8 @@ public class Walls {
             WallsOperation operation = new WallsOperation(world.world(), volume, depth, schema, state);
             operation.onComplete(() -> FMT.info("Finished setting wall material for ").stress(plotId).tell(player));
             Plots.core().dispatcher().queueOperation(operation);
+        } else {
+            FMT.error("You do not have permission to change the walls of plot ").stress(plotId).tell(player);
         }
     }
 }

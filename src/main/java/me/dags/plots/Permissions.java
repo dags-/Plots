@@ -34,6 +34,7 @@ public final class Permissions {
     public static final String PLOT_UNCLAIM_OTHER = "plots.command.unclaim.other";
     public static final String PLOT_UNCLAIM_BYPASS = "plots.command.unclaim.bypass";
     public static final String PLOT_WALLS = "plots.command.walls.self";
+    public static final String PLOT_WALLS_OTHER = "plots.command.walls.other";
     public static final String PLOT_WHITELIST = "plots.command.whitelist";
     public static final String PLOT_WHITELIST_RECIPIENT = "plots.command.whitelistable";
 

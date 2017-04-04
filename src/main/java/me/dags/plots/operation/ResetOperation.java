@@ -7,20 +7,33 @@ import me.dags.plots.generator.PlotGenerator;
 import me.dags.plots.plot.PlotBounds;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.block.BlockTypes;
+import org.spongepowered.api.entity.Entity;
+import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.util.AABB;
 import org.spongepowered.api.world.World;
 import org.spongepowered.api.world.extent.MutableBiomeVolume;
 import org.spongepowered.api.world.extent.MutableBlockVolume;
 import org.spongepowered.api.world.gen.GenerationPopulator;
+
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
+import java.util.Collection;
+import java.util.Objects;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * @author dags <dags@dags.me>
  */
 public class ResetOperation implements Operation {
 
+    private static final Predicate<Entity> NOT_PLAYER = entity -> !Player.class.isInstance(entity);
+
     private final String world;
     private final PlotGenerator plotGenerator;
     private final MutableBlockVolume blockView;
     private final MutableBiomeVolume biomeView;
+    private final Collection<WeakReference<Entity>> entityView;
     private final int maxX, maxZ, layersHeight;
     private final Vector3i min;
 
@@ -40,6 +53,9 @@ public class ResetOperation implements Operation {
         this.maxX = max.getX() - min.getX();
         this.maxZ = max.getZ() - min.getZ();
         this.min = min;
+        this.entityView = world.getIntersectingEntities(new AABB(min, max)).stream()
+                .map(WeakReference::new)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -62,11 +78,15 @@ public class ResetOperation implements Operation {
             }
             this.x = 0;
         }
+
         complete = true;
         plotGenerator.generateBiomes(biomeView);
+        entityView.stream().map(Reference::get).filter(Objects::nonNull).forEach(Entity::remove);
+
         if (callback != null) {
             callback.run();
         }
+
         return blocksToProcess;
     }
 
