@@ -108,7 +108,7 @@ public class UserActions {
 
     public static PaginationList listLikes(WorldDatabase database, String name, UUID uuid, Format format) {
         PaginationList.Builder builder = PaginationList.builder();
-        builder.title(format.stress("{}'s Liked Plots", name).build());
+        builder.title(format.stress("%s's Liked Plots", name).build());
         builder.linesPerPage(9);
         builder.contents(PlotActions.likedPlots(database, uuid, format));
         return builder.build();
