@@ -286,7 +286,7 @@ public class Setup implements Conversation {
                     GeneratorProperties properties = getPropertiesBuilder(conversation.getContext()).build();
                     GenSave.saveGenerator(src, properties);
                     GenReload.reloadGenerators(src);
-                    WorldCreate.createWorld(src, properties.name(), world);
+                    WorldCreate.createWorld(src, properties, world);
                     FMT.info("Use the command ").stress("/wtp %s", world).info(" to teleport there").tell(src);
                 }))
                 .timeOut(time, unit)

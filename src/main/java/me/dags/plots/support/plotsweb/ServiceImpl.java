@@ -20,7 +20,8 @@ class ServiceImpl implements ExportHelper {
 
     @Override
     public Optional<URL> lookup(Object obj) {
-        return Sponge.getServiceManager().provideUnchecked(PlotsWebService.class).lookupURL(obj);
+        return Sponge.getServiceManager().provideUnchecked(PlotsWebService.class).lookupURL(obj)
+                .filter(url -> !url.toString().endsWith("error"));
     }
 
     @Override

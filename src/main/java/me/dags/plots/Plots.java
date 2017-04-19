@@ -5,7 +5,10 @@ import com.mongodb.MongoClient;
 import me.dags.commandbus.CommandBus;
 import me.dags.plots.command.Cmd;
 import me.dags.plots.database.WorldDatabase;
+import me.dags.plots.generator.GeneratorProperties;
 import me.dags.plots.generator.PlotGenerator;
+import me.dags.plots.module.GeneratorModule;
+import me.dags.plots.module.PlotWorldModule;
 import me.dags.plots.plot.PlotWorld;
 import me.dags.plots.util.Executor;
 import me.dags.plots.util.IO;
@@ -31,7 +34,7 @@ import java.nio.file.Path;
 /**
  * @author dags <dags@dags.me>
  */
-@Plugin(id = Plots.ID, name = Plots.ID, version = "1.0", description = "shh")
+@Plugin(id = Plots.ID, name = Plots.ID, version = "1.2", description = "shh")
 public class Plots {
 
     public static final String ID = "plots";
@@ -90,6 +93,9 @@ public class Plots {
             log("Running in Safe Mode, commands will not be registered");
             return;
         }
+
+        Sponge.getRegistry().registerModule(PlotWorld.class, new PlotWorldModule());
+        Sponge.getRegistry().registerModule(GeneratorProperties.class, new GeneratorModule());
 
         CommandBus.builder().logger(logger).build()
                 .registerSubPackagesOf(Cmd.class)

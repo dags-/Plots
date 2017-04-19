@@ -25,38 +25,36 @@ public class WorldCreate {
     @Command(alias = "create", parent = "plotworld")
     @Permission(Permissions.WORLD_CREATE)
     @Description("Create a new PlotWorld")
-    public void create(@Caller CommandSource source, @One("generator") String generator, @One("world") String name) {
+    public void create(@Caller CommandSource source, @One("generator") GeneratorProperties generator, @One("world") String name) {
         createWorld(source, generator, name);
     }
 
-    public static void createWorld(CommandSource source, String generator, String name) {
-        Plots.core().baseGenerator(generator).ifPresent(baseGenerator -> {
-            GeneratorProperties generatorProperties = baseGenerator.copyTo(name);
-            PlotGenerator plotGenerator = generatorProperties.toGenerator();
-            Plots.core().registerWorldGenerator(plotGenerator);
+    public static void createWorld(CommandSource source, GeneratorProperties generator, String name) {
+        GeneratorProperties generatorProperties = generator.copyTo(name);
+        PlotGenerator plotGenerator = generatorProperties.toGenerator();
+        Plots.core().registerWorldGenerator(plotGenerator);
 
-            IO.saveProperties(generatorProperties, Plots.core().configDir().resolve("worlds"));
+        IO.saveProperties(generatorProperties, Plots.core().configDir().resolve("worlds"));
 
-            WorldArchetype archetype = WorldArchetype.builder()
-                    .generatorModifiers(plotGenerator)
-                    .dimension(DimensionTypes.OVERWORLD)
-                    .generator(GeneratorTypes.FLAT)
-                    .gameMode(GameModes.CREATIVE)
-                    .generateSpawnOnLoad(true)
-                    .usesMapFeatures(false)
-                    .loadsOnStartup(true)
-                    .build(generator, generator);
+        WorldArchetype archetype = WorldArchetype.builder()
+                .generatorModifiers(plotGenerator)
+                .dimension(DimensionTypes.OVERWORLD)
+                .generator(GeneratorTypes.FLAT)
+                .gameMode(GameModes.CREATIVE)
+                .generateSpawnOnLoad(true)
+                .usesMapFeatures(false)
+                .loadsOnStartup(true)
+                .build(generatorProperties.getId(), generatorProperties.getId());
 
-            try {
-                WorldProperties worldProperties = Sponge.getServer().createWorldProperties(name, archetype);
-                Sponge.getServer().loadWorld(worldProperties).ifPresent(world -> {
-                    plotGenerator.onLoadWorld(world);
-                    FMT.info("Created world ").stress(world.getName()).tell(source);
-                });
-            } catch (IOException e) {
-                FMT.warn("Unable to create world ").stress(name).tell(source);
-                e.printStackTrace();
-            }
-        });
+        try {
+            WorldProperties worldProperties = Sponge.getServer().createWorldProperties(name, archetype);
+            Sponge.getServer().loadWorld(worldProperties).ifPresent(world -> {
+                plotGenerator.onLoadWorld(world);
+                FMT.info("Created world ").stress(world.getName()).tell(source);
+            });
+        } catch (IOException e) {
+            FMT.warn("Unable to create world ").stress(name).tell(source);
+            e.printStackTrace();
+        }
     }
 }

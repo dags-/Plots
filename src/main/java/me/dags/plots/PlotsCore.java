@@ -1,5 +1,6 @@
 package me.dags.plots;
 
+import com.google.common.collect.ImmutableList;
 import me.dags.plots.generator.GeneratorProperties;
 import me.dags.plots.generator.PlotGenerator;
 import me.dags.plots.operation.OperationDispatcher;
@@ -10,6 +11,7 @@ import org.spongepowered.api.world.gen.WorldGeneratorModifier;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -29,6 +31,14 @@ public class PlotsCore {
     PlotsCore(Plots plots, Path configDir) {
         this.plugin = plots;
         this.configDir = configDir;
+    }
+
+    public Collection<PlotWorld> allWorlds() {
+        return ImmutableList.copyOf(worlds.values());
+    }
+
+    public Collection<GeneratorProperties> allGenerators() {
+        return ImmutableList.copyOf(generators.values());
     }
 
     public Path configDir() {
@@ -102,6 +112,7 @@ public class PlotsCore {
     }
 
     public void registerPlotWorld(PlotWorld plotWorld) {
+        Plots.log("Registering plot world {}", plotWorld.getName());
         worlds.put(plotWorld.world(), plotWorld);
         plotWorld.register(plugin);
     }

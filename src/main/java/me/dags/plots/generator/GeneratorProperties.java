@@ -2,6 +2,7 @@ package me.dags.plots.generator;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import org.spongepowered.api.CatalogType;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.world.biome.BiomeType;
@@ -15,7 +16,7 @@ import java.util.Map;
 /**
  * @author dags <dags@dags.me>
  */
-public class GeneratorProperties {
+public class GeneratorProperties implements CatalogType {
 
     public static final GeneratorProperties DEFAULT = builder()
             .gameRules(Defaults.defaultGameRules())
@@ -45,6 +46,16 @@ public class GeneratorProperties {
         this.biomeType = builder.biomeType;
         this.layers = ImmutableList.copyOf(builder.layers);
         this.gameRules = ImmutableMap.copyOf(builder.gameRules);
+    }
+
+    @Override
+    public String getId() {
+        return name();
+    }
+
+    @Override
+    public String getName() {
+        return name();
     }
 
     public PlotWorldGenerator toGenerator() {
@@ -118,7 +129,8 @@ public class GeneratorProperties {
     }
 
     public GeneratorProperties copyTo(String name) {
-        return builder().name(name)
+        return builder()
+                .name(name)
                 .xWidth(xWidth)
                 .zWidth(zWidth)
                 .wallWidth(wallWidth)
@@ -135,7 +147,7 @@ public class GeneratorProperties {
 
     public static class Builder {
 
-        private String name = "DEFAULT";
+        private String name = "default";
         private int xWidth = 42;
         private int zWidth = 42;
         private int wallWidth = 1;

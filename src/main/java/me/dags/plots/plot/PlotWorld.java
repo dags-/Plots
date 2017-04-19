@@ -10,6 +10,7 @@ import me.dags.plots.database.UserActions;
 import me.dags.plots.database.WorldDatabase;
 import me.dags.plots.operation.FillBiomeOperation;
 import me.dags.plots.operation.ResetOperation;
+import org.spongepowered.api.CatalogType;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.living.player.User;
@@ -21,13 +22,14 @@ import org.spongepowered.api.world.biome.BiomeType;
 import org.spongepowered.api.world.extent.ArchetypeVolume;
 import org.spongepowered.api.world.extent.MutableBiomeVolume;
 
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
  * @author dags <dags@dags.me>
  */
-public class PlotWorld {
+public class PlotWorld implements CatalogType {
 
     private final String world;
     private final UUID worldId;
@@ -46,12 +48,26 @@ public class PlotWorld {
                 .build(new UserLoaderSaver());
     }
 
+    @Override
+    public String getId() {
+        return world();
+    }
+
+    @Override
+    public String getName() {
+        return world();
+    }
+
     public String world() {
         return world;
     }
 
     public UUID worldId() {
         return worldId;
+    }
+
+    public Optional<World> getWorld() {
+        return Sponge.getServer().getWorld(worldId());
     }
 
     public PlotSchema plotSchema() {
