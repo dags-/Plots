@@ -9,7 +9,6 @@ import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.util.AABB;
 import org.spongepowered.api.world.World;
 import org.spongepowered.api.world.extent.MutableBiomeVolume;
 import org.spongepowered.api.world.extent.MutableBlockVolume;
@@ -53,7 +52,7 @@ public class ResetOperation implements Operation {
         this.maxX = max.getX() - min.getX();
         this.maxZ = max.getZ() - min.getZ();
         this.min = min;
-        this.entityView = world.getIntersectingEntities(new AABB(min, max)).stream()
+        this.entityView = world.getExtentView(min, max).getEntities().stream()
                 .filter(NOT_PLAYER)
                 .map(WeakReference::new)
                 .collect(Collectors.toList());
