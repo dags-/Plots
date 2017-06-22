@@ -30,9 +30,10 @@ public class SniperListener implements Support.Hook {
         });
     }
 
-    @Listener(order = Order.PRE)
+    @Listener(order = Order.FIRST)
     public void interact(InteractItemEvent.Secondary.MainHand event, @Root Player player) {
         Sniper sniper = SniperManager.get().getSniperForPlayer(player);
+
         if (sniper != null) {
             Sniper.SniperTool tool = sniper.getSniperTool(sniper.getCurrentToolId());
             if (tool == null) {
@@ -44,27 +45,17 @@ public class SniperListener implements Support.Hook {
                 return;
             }
 
-            MaskedBrush masked = null;
-
-            if (MaskedBrush.class.isInstance(current)) {
-                masked = MaskedBrush.class.cast(current);
-            } else {
+            Optional<PlotWorld> plotWorld = Plots.core().plotWorld(player.getWorld().getName());
+            if (plotWorld.isPresent()) {
+                PlotUser user = plotWorld.get().user(player.getUniqueId());
+                PlotMask mask = user.plotMask();
                 IBrush brush = tool.setCurrentBrush(MaskedBrush.class);
 
                 if (brush != null) {
-                    masked = MaskedBrush.class.cast(brush);
+                    MaskedBrush masked = MaskedBrush.class.cast(brush);
                     masked.wrap(current);
-                }
-            }
-
-            if (masked != null) {
-                Optional<PlotWorld> plotWorld = Plots.core().plotWorld(player.getWorld().getName());
-                if (plotWorld.isPresent()) {
-                    PlotUser user = plotWorld.get().user(player.getUniqueId());
-                    PlotMask mask = user.plotMask();
                     masked.setMask(mask);
-                } else {
-                    tool.setCurrentBrush(masked.getWrapped().getClass());
+                    masked.setTool(tool);
                 }
             }
         }
