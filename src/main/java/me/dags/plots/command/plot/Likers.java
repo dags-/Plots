@@ -5,7 +5,6 @@ import me.dags.commandbus.annotation.Command;
 import me.dags.commandbus.annotation.Description;
 import me.dags.commandbus.annotation.Permission;
 import me.dags.commandbus.format.FMT;
-import me.dags.commandbus.format.FormattedListBuilder;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
 import me.dags.plots.command.Cmd;
@@ -15,9 +14,11 @@ import me.dags.plots.plot.PlotWorld;
 import me.dags.plots.util.Pair;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.entity.living.player.User;
+import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.service.user.UserStorageService;
+import org.spongepowered.api.text.Text;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -46,18 +47,19 @@ public class Likers {
     static Consumer<Optional<List<UUID>>> likers(Player player, PlotId plotId) {
         return optional -> {
             if (optional.isPresent() && !optional.get().isEmpty()) {
-                FormattedListBuilder list = FMT.listBuilder();
-
-                list.linesPerPage(9);
-                list.title().stress("Plot %s's Likes", plotId);
+                List<Text> lines = new LinkedList<>();
                 optional.get().stream()
                         .map(Sponge.getServiceManager().provideUnchecked(UserStorageService.class)::get)
                         .filter(Optional::isPresent)
                         .map(Optional::get)
-                        .map(User::getName)
-                        .forEach(list.line().info(" - ")::stress);
+                        .map(p -> FMT.info(" - ").stress(p.getName()).build())
+                        .forEach(lines::add);
 
-                list.build().sendTo(player);
+                PaginationList.Builder builder = PaginationList.builder();
+                builder.title(FMT.stress("Plot %s's Likes", plotId).build());
+                builder.linesPerPage(9);
+                builder.contents(lines);
+                builder.build().sendTo(player);
             } else {
                 FMT.error("Plot ").stress(plotId).error(" doesn't have any likes").tell(player);
             }
