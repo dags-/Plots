@@ -1,27 +1,44 @@
 package me.dags.plots.operation;
 
-import com.flowpowered.math.vector.Vector3i;
 import org.spongepowered.api.world.biome.BiomeType;
 import org.spongepowered.api.world.extent.MutableBiomeVolume;
 
 /**
  * @author dags <dags@dags.me>
  */
-public class FillBiomeOperation extends AbstractBiomeOperation {
+public class FillBiomeOperation implements Operation {
 
-    private final MutableBiomeVolume biomeArea;
-    private final Vector3i min;
-    private final BiomeType biomeType;
+    private final String world;
+    private final MutableBiomeVolume volume;
+    private final BiomeType biome;
 
-    public FillBiomeOperation(String world, MutableBiomeVolume biomeArea, BiomeType biomeType) {
-        super(world, biomeArea.getBiomeMin(), biomeArea.getBiomeMax());
-        this.biomeArea = biomeArea;
-        this.min = biomeArea.getBiomeMin();
-        this.biomeType = biomeType;
+    private boolean complete = false;
+
+    public FillBiomeOperation(String world, MutableBiomeVolume volume, BiomeType biome) {
+        this.world = world;
+        this.volume = volume;
+        this.biome = biome;
     }
 
     @Override
-    void processAt(int x, int y, int z) {
-        biomeArea.setBiome(min.getX() + x, 0, min.getZ() + z, biomeType);
+    public String getWorld() {
+        return world;
+    }
+
+    @Override
+    public int process(int blocksToProcess) {
+        volume.getBiomeWorker().fill((x, y, z) -> biome);
+        complete = true;
+        return 0;
+    }
+
+    @Override
+    public boolean complete() {
+        return complete;
+    }
+
+    @Override
+    public void onComplete(Runnable callback) {
+
     }
 }
