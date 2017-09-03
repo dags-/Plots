@@ -34,7 +34,7 @@ import java.nio.file.Path;
 /**
  * @author dags <dags@dags.me>
  */
-@Plugin(id = Plots.ID, name = Plots.ID, version = "1.2", description = "shh")
+@Plugin(id = Plots.ID, name = Plots.ID, version = "1.2.2", description = "shh")
 public class Plots {
 
     public static final String ID = "plots";
