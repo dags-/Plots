@@ -1,6 +1,7 @@
 package me.dags.plots.plot;
 
 import com.flowpowered.math.vector.Vector3d;
+import com.flowpowered.math.vector.Vector3i;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -129,7 +130,9 @@ public class PlotWorld implements CatalogType {
     public void setBiome(PlotId plotId, BiomeType type) {
         Sponge.getServer().getWorld(worldId).ifPresent(world -> {
             PlotBounds bounds = plotSchema.plotBounds(plotId);
-            MutableBiomeVolume volume = world.getBiomeView(bounds.getBlockMin(), bounds.getBlockMax());
+            Vector3i min = new Vector3i(bounds.getMin().getX(), 0, bounds.getMin().getY());
+            Vector3i max = new Vector3i(bounds.getMax().getX(), 0, bounds.getMax().getY());
+            MutableBiomeVolume volume = world.getBiomeView(min, max);
             FillBiomeOperation fill = new FillBiomeOperation(world.getName(), volume, type);
             Plots.core().dispatcher().queueOperation(fill);
         });
