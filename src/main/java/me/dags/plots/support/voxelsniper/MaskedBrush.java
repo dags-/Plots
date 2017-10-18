@@ -21,6 +21,9 @@ public class MaskedBrush implements IBrush {
     private PlotMask mask = PlotMask.ANYWHERE;
 
     public void wrap(IBrush brush) {
+        while (brush != null && brush instanceof MaskedBrush) {
+            brush = ((MaskedBrush) brush).brush;
+        }
         this.brush = brush;
     }
 

@@ -41,7 +41,7 @@ public class SniperListener implements Support.Hook {
             }
 
             IBrush current = tool.getCurrentBrush();
-            if (current == null) {
+            if (current == null || current.getClass() == MaskedBrush.class) {
                 return;
             }
 
