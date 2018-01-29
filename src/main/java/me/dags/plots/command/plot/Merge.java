@@ -1,8 +1,11 @@
 package me.dags.plots.command.plot;
 
-import me.dags.commandbus.annotation.*;
-import me.dags.commandbus.format.FMT;
-import me.dags.commandbus.format.Format;
+import me.dags.commandbus.annotation.Command;
+import me.dags.commandbus.annotation.Description;
+import me.dags.commandbus.annotation.Permission;
+import me.dags.commandbus.annotation.Src;
+import me.dags.commandbus.fmt.Fmt;
+import me.dags.commandbus.fmt.Format;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
 import me.dags.plots.command.Cmd;
@@ -25,12 +28,12 @@ import java.util.function.Supplier;
  */
 public class Merge {
 
-    @Command(alias = "merge", parent = "plot")
+    @Command("plot merge")
     @Permission(Permissions.PLOT_MERGE)
     @Description("Merge all plots between the current one and <to>")
-    public void merge(@Caller Player player, @One("to") String to) {
+    public void merge(@Src Player player, String to) {
         if (!PlotId.isValid(to)) {
-            FMT.stress(to).error(" is not a valid plot id!").tell(player);
+            Fmt.stress(to).error(" is not a valid plot id!").tell(player);
             return;
         }
 
@@ -40,17 +43,17 @@ public class Merge {
         }
     }
 
-    @Command(alias = "merge", parent = "plot")
+    @Command("plot merge")
     @Permission(Permissions.PLOT_MERGE)
     @Description("Merge all plots between plots <from> and <to>")
-    public void merge(@Caller Player player, @One("from") String from, @One("to") String to) {
+    public void merge(@Src Player player, String from, String to) {
         if (!PlotId.isValid(from)) {
-            FMT.error("The <from> Plot ID: ").stress(from).error(" is not a valid ID").tell(player);
+            Fmt.error("The <from> Plot ID: ").stress(from).error(" is not a valid ID").tell(player);
             return;
         }
 
         if (!PlotId.isValid(to)) {
-            FMT.error("The <to> Plot ID: ").stress(to).error(" is not a valid ID").tell(player);
+            Fmt.error("The <to> Plot ID: ").stress(to).error(" is not a valid ID").tell(player);
             return;
         }
 
@@ -79,7 +82,7 @@ public class Merge {
                 }
 
                 if (remaining < mergeSize) {
-                    FMT.error("You do not have enough remaining free plots to make a claim of this size").tell(player);
+                    Fmt.error("You do not have enough remaining free plots to make a claim of this size").tell(player);
                     return;
                 }
             }
@@ -88,7 +91,7 @@ public class Merge {
             PlotId min = PlotId.of(minX, minZ);
             PlotId max = PlotId.of(maxX, maxZ);
             WorldDatabase database = world.database();
-            Format format = FMT.copy();
+            Format format = Fmt.copy();
 
             Supplier<Pair<Boolean, Text>> merge = () -> PlotActions.mergePlots(database, format, owner, min, max);
             Consumer<Pair<Boolean, Text>> result = merge(player, world, min);
@@ -100,11 +103,11 @@ public class Merge {
     private static Consumer<Pair<Boolean, Text>> merge(Player player, PlotWorld world, PlotId min) {
         return result -> {
             if (result.first()) {
-                FMT.info("Merge Successful: ").append(result.second()).tell(player);
+                Fmt.info("Merge Successful: ").append(result.second()).tell(player);
                 world.refreshUser(player.getUniqueId());
                 Walls.setWalls(player, world, min, Plots.config().getOwnedPlotWall(), 1);
             } else {
-                FMT.error("Merge failed: ").append(result.second()).tell(player);
+                Fmt.error("Merge failed: ").append(result.second()).tell(player);
             }
         };
     }

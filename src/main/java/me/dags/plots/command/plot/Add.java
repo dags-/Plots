@@ -1,7 +1,10 @@
 package me.dags.plots.command.plot;
 
-import me.dags.commandbus.annotation.*;
-import me.dags.commandbus.format.FMT;
+import me.dags.commandbus.annotation.Command;
+import me.dags.commandbus.annotation.Description;
+import me.dags.commandbus.annotation.Permission;
+import me.dags.commandbus.annotation.Src;
+import me.dags.commandbus.fmt.Fmt;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
 import me.dags.plots.command.Cmd;
@@ -23,10 +26,10 @@ import java.util.function.Supplier;
  */
 public class Add {
 
-    @Command(alias = "add", parent = "plot")
     @Permission(Permissions.PLOT_ADD)
     @Description("Add someone to the plot")
-    public void add(@Caller Player player, @One("player") User user) {
+    @Command("plot add <user>")
+    public void add(@Src Player player, User user) {
         Pair<PlotWorld, PlotId> plot = Cmd.getContainingPlot(player);
         if (plot.present()) {
             PlotWorld world = plot.first();
@@ -34,12 +37,12 @@ public class Add {
             boolean whitelistAny = player.hasPermission(Permissions.PLOT_ADD_ANY);
 
             if (!user.hasPermission(Permissions.PLOT_WHITELIST_RECIPIENT) && !whitelistAny) {
-                FMT.error("User ").stress(user.getName()).error(" does not hav permission to be added to a plot").tell(player);
+                Fmt.error("User ").stress(user.getName()).error(" does not hav permission to be added to a plot").tell(player);
                 return;
             }
 
             if (player.getUniqueId().equals(user.getUniqueId()) && !whitelistAny) {
-                FMT.error("You cannot add yourself to a plot").tell(player);
+                Fmt.error("You cannot add yourself to a plot").tell(player);
                 return;
             }
 
@@ -56,15 +59,15 @@ public class Add {
                     Runnable async = () -> UserActions.addPlot(world.database(), target.getUniqueId(), plotId);
                     Runnable sync = () -> {
                         world.refreshUser(target.getUniqueId());
-                        FMT.info("Added ").stress(target.getName()).info(" to plot ").stress(plotId).tell(player);
-                        target.getPlayer().ifPresent(FMT.stress(player.getName()).info(" added you to plot ").stress(plotId)::tell);
+                        Fmt.info("Added ").stress(target.getName()).info(" to plot ").stress(plotId).tell(player);
+                        target.getPlayer().ifPresent(Fmt.stress(player.getName()).info(" added you to plot ").stress(plotId)::tell);
                     };
                     Plots.executor().async(async, sync);
                 } else {
-                    FMT.error("You do not have permission to add people to plot ").stress(plotId).tell(player);
+                    Fmt.error("You do not have permission to add people to plot ").stress(plotId).tell(player);
                 }
             } else {
-                FMT.error("Nobody owns plot ").stress(plotId).tell(player);
+                Fmt.error("Nobody owns plot ").stress(plotId).tell(player);
             }
         };
     }

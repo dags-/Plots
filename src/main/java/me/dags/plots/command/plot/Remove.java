@@ -1,7 +1,10 @@
 package me.dags.plots.command.plot;
 
-import me.dags.commandbus.annotation.*;
-import me.dags.commandbus.format.FMT;
+import me.dags.commandbus.annotation.Command;
+import me.dags.commandbus.annotation.Description;
+import me.dags.commandbus.annotation.Permission;
+import me.dags.commandbus.annotation.Src;
+import me.dags.commandbus.fmt.Fmt;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
 import me.dags.plots.command.Cmd;
@@ -23,10 +26,10 @@ import java.util.function.Supplier;
  */
 public class Remove {
 
-    @Command(alias = "remove", parent = "plot")
+    @Command("plot remove <user>")
     @Permission(Permissions.PLOT_REMOVE)
     @Description("Remove someone from the plot")
-    public void remove(@Caller Player player, @One("player") User user) {
+    public void remove(@Src Player player, User user) {
         Pair<PlotWorld, PlotId> plot = Cmd.getContainingPlot(player);
         if (plot.present()) {
             PlotWorld world = plot.first();
@@ -34,7 +37,7 @@ public class Remove {
             boolean removeAny = player.hasPermission(Permissions.PLOT_REMOVE_ANY);
 
             if (player.getUniqueId().equals(user.getUniqueId()) && !removeAny) {
-                FMT.error("You cannot remove yourself from a plot").tell(player);
+                Fmt.error("You cannot remove yourself from a plot").tell(player);
                 return;
             }
 
@@ -51,15 +54,15 @@ public class Remove {
                     Runnable async = () -> UserActions.removePlot(world.database(), target.getUniqueId(), plotId);
                     Runnable sync = () -> {
                         world.refreshUser(target.getUniqueId());
-                        FMT.info("Removed ").stress(target.getName()).info(" from plot ").stress(plotId).tell(player);
-                        target.getPlayer().ifPresent(FMT.stress(player.getName()).info(" removed you from plot ").stress(plotId)::tell);
+                        Fmt.info("Removed ").stress(target.getName()).info(" from plot ").stress(plotId).tell(player);
+                        target.getPlayer().ifPresent(Fmt.stress(player.getName()).info(" removed you from plot ").stress(plotId)::tell);
                     };
                     Plots.executor().async(async, sync);
                 } else {
-                    FMT.error("You do not have permission to remove people from plot ").stress(plotId).tell(player);
+                    Fmt.error("You do not have permission to remove people from plot ").stress(plotId).tell(player);
                 }
             } else {
-                FMT.error("Nobody owns plot ").stress(plotId).tell(player);
+                Fmt.error("Nobody owns plot ").stress(plotId).tell(player);
             }
         };
     }

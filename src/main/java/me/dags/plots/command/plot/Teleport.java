@@ -1,7 +1,10 @@
 package me.dags.plots.command.plot;
 
-import me.dags.commandbus.annotation.*;
-import me.dags.commandbus.format.FMT;
+import me.dags.commandbus.annotation.Command;
+import me.dags.commandbus.annotation.Description;
+import me.dags.commandbus.annotation.Permission;
+import me.dags.commandbus.annotation.Src;
+import me.dags.commandbus.fmt.Fmt;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
 import me.dags.plots.command.Cmd;
@@ -19,22 +22,22 @@ import java.util.function.Supplier;
  */
 public class Teleport {
 
-    @Command(alias = "tp", parent = "plot")
+    @Command("plot tp <plot>")
     @Permission(Permissions.PLOT_TP)
     @Description("Teleport to a plot")
-    public void tp(@Caller Player player, @One("plotId | alias") String plot) {
+    public void tp(@Src Player player, String plot) {
         tp(player, player.getWorld().getName(), plot);
     }
 
-    @Command(alias = "tp", parent = "plot")
+    @Command("plot tp <world> <plot>")
     @Permission(Permissions.PLOT_TP)
     @Description("Teleport to a plot")
-    public void tp(@Caller Player player, @One("world") String world, @One("plotId | alias") String plot) {
+    public void tp(@Src Player player, String world, String plot) {
         Optional<PlotWorld> plotWorld = Cmd.getWorld(player, world);
         if (plotWorld.isPresent()) {
             if (PlotId.isValid(plot)) {
                 PlotId plotId = PlotId.parse(plot);
-                FMT.info("Teleporting to ").stress(plotId).tell(player);
+                Fmt.info("Teleporting to ").stress(plotId).tell(player);
                 plotWorld.get().teleport(player, plotId);
             } else {
                 Supplier<PlotId> findPlot = () -> PlotActions.plotFromAlias(plotWorld.get().database(), plot);
@@ -47,10 +50,10 @@ public class Teleport {
     static Consumer<PlotId> teleport(Player player, PlotWorld world, String alias) {
         return plotId -> {
             if (plotId.present()) {
-                FMT.info("Teleporting to ").stress(alias).tell(player);
+                Fmt.info("Teleporting to ").stress(alias).tell(player);
                 world.teleport(player, plotId);
             } else {
-                FMT.info("Could not find a plot with the alias ").stress(alias).info(" in this world").tell(player);
+                Fmt.info("Could not find a plot with the alias ").stress(alias).info(" in this world").tell(player);
             }
         };
     }

@@ -1,11 +1,10 @@
 package me.dags.plots.command.gen;
 
-import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
-import me.dags.commandbus.annotation.One;
 import me.dags.commandbus.annotation.Permission;
-import me.dags.commandbus.format.FMT;
-import me.dags.commandbus.format.Formatter;
+import me.dags.commandbus.annotation.Src;
+import me.dags.commandbus.fmt.Fmt;
+import me.dags.commandbus.fmt.Formatter;
 import me.dags.plots.Permissions;
 import me.dags.plots.command.Cmd;
 import me.dags.plots.generator.GeneratorProperties;
@@ -25,72 +24,72 @@ public class GenEdit {
         return Cmd.genBuilders().get(source);
     }
 
-    @Command(alias = "dims", parent = "gen")
     @Permission(Permissions.GEN_EDIT)
-    public void dims(@Caller CommandSource source, @One("x width") int x, @One("z width") int z, @One("path width") int path, @One("wall width") int wall) {
+    @Command("gen dims <x> <z> <path> <wall>")
+    public void dims(@Src CommandSource source, int x, int z, int path, int wall) {
         plot(source, x, z);
         wall(source, wall);
         path(source, path);
     }
 
-    @Command(alias = "path", parent = "gen dim")
     @Permission(Permissions.GEN_EDIT)
-    public void path(@Caller CommandSource source, @One("width") int width) {
+    @Command("gen dim path <width>")
+    public void path(@Src CommandSource source, int width) {
         Optional<GeneratorProperties.Builder> builder = get(source);
         if (builder.isPresent()) {
             builder.get().pathWidth(width);
-            FMT.info("Set path width to ").stress(width).tell(source);
+            Fmt.info("Set path width to ").stress(width).tell(source);
         }
     }
 
-    @Command(alias = "plot", parent = "gen dim")
     @Permission(Permissions.GEN_EDIT)
-    public void plot(@Caller CommandSource source, @One("x width") int xWidth, @One("z width") int zWidth) {
+    @Command("gen dim plot <x> <z>")
+    public void plot(@Src CommandSource source, int xWidth, int zWidth) {
         Optional<GeneratorProperties.Builder> builder = get(source);
         if (builder.isPresent()) {
             builder.get().xWidth(xWidth).zWidth(zWidth);
-            FMT.info("Set plot dimensions to ").stress(xWidth).info("x").stress(zWidth).tell(source);
+            Fmt.info("Set plot dimensions to ").stress(xWidth).info("x").stress(zWidth).tell(source);
         }
     }
 
-    @Command(alias = "wall", parent = "gen dim")
     @Permission(Permissions.GEN_EDIT)
-    public void wall(@Caller CommandSource source, @One("width") int width) {
+    @Command("gen dim wall <width>")
+    public void wall(@Src CommandSource source, int width) {
         Optional<GeneratorProperties.Builder> builder = get(source);
         if (builder.isPresent()) {
             builder.get().wallWidth(width);
-            FMT.info("Set wall width to ").stress(width).tell(source);
+            Fmt.info("Set wall width to ").stress(width).tell(source);
         }
     }
 
-    @Command(alias = "biome", parent = "gen")
     @Permission(Permissions.GEN_EDIT)
-    public void biome(@Caller CommandSource source, @One("biome") String biome) {
+    @Command("gen biome <biome>")
+    public void biome(@Src CommandSource source, String biome) {
         Optional<GeneratorProperties.Builder> builder = get(source);
         if (builder.isPresent()) {
             Optional<BiomeType> type = Sponge.getRegistry().getType(BiomeType.class, biome);
             if (type.isPresent()) {
                 builder.get().biome(type.get());
-                FMT.info("Set biome to ").stress(biome).tell(source);
+                Fmt.info("Set biome to ").stress(biome).tell(source);
             } else {
-                FMT.error("Biome ").stress(biome).error(" not recognised").tell(source);
+                Fmt.error("Biome ").stress(biome).error(" not recognised").tell(source);
             }
         }
     }
 
-    @Command(alias = "rule", parent = "gen")
     @Permission(Permissions.GEN_EDIT)
-    public void rule(@Caller CommandSource source, @One("rule") String rule, @One("value") String value) {
+    @Command("gen rule <rule> <value>")
+    public void rule(@Src CommandSource source, String rule, String value) {
         Optional<GeneratorProperties.Builder> builder = get(source);
         if (builder.isPresent()) {
             builder.get().gameRule(rule, value);
-            FMT.info("Set gamerule ").stress(rule).info(" to ").stress(value).tell(source);
+            Fmt.info("Set gamerule ").stress(rule).info(" to ").stress(value).tell(source);
         }
     }
 
-    @Command(alias = "layer", parent = "gen")
     @Permission(Permissions.GEN_EDIT)
-    public void layer(@Caller CommandSource source, @One("plot material") String plot, @One("path material") String path, @One("wall material") String wall, @One("thickness") int thickness) {
+    @Command("gen layer <plot_material> <path_material> <wall_material> <thickness>")
+    public void layer(@Src CommandSource source, String plot, String path, String wall, int thickness) {
         Optional<GeneratorProperties.Builder> builder = get(source);
         if (builder.isPresent()) {
             Optional<BlockType> plotType = Sponge.getRegistry().getType(BlockType.class, plot);
@@ -98,7 +97,7 @@ public class GenEdit {
             Optional<BlockType> wallType = Sponge.getRegistry().getType(BlockType.class, wall);
 
             boolean error = false;
-            Formatter err = FMT.error("Unknown material(s): ");
+            Formatter err = Fmt.error("Unknown material(s): ");
             if (!plotType.isPresent()) {
                 err.error("plot=").stress(plot);
                 error = true;
@@ -113,7 +112,7 @@ public class GenEdit {
 
             if (plotType.isPresent() && wallType.isPresent() && pathType.isPresent()) {
                 builder.get().layer(plotType.get(), wallType.get(), pathType.get(), thickness);
-                FMT.info("Set layer to (plot=").stress(plot)
+                Fmt.info("Set layer to (plot=").stress(plot)
                         .info(", path=").stress(path)
                         .info(", wall=").stress(wall)
                         .info(")x").stress(thickness)

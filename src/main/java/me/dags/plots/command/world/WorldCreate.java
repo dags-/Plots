@@ -1,7 +1,10 @@
 package me.dags.plots.command.world;
 
-import me.dags.commandbus.annotation.*;
-import me.dags.commandbus.format.FMT;
+import me.dags.commandbus.annotation.Command;
+import me.dags.commandbus.annotation.Description;
+import me.dags.commandbus.annotation.Permission;
+import me.dags.commandbus.annotation.Src;
+import me.dags.commandbus.fmt.Fmt;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
 import me.dags.plots.generator.GeneratorProperties;
@@ -22,10 +25,10 @@ import java.io.IOException;
  */
 public class WorldCreate {
 
-    @Command(alias = "create", parent = "plotworld")
+    @Command("plotworld create <generator> <name>")
     @Permission(Permissions.WORLD_CREATE)
     @Description("Create a new PlotWorld")
-    public void create(@Caller CommandSource source, @One("generator") GeneratorProperties generator, @One("world") String name) {
+    public void create(@Src CommandSource source, GeneratorProperties generator, String name) {
         createWorld(source, generator, name);
     }
 
@@ -50,10 +53,10 @@ public class WorldCreate {
             WorldProperties worldProperties = Sponge.getServer().createWorldProperties(name, archetype);
             Sponge.getServer().loadWorld(worldProperties).ifPresent(world -> {
                 plotGenerator.onLoadWorld(world);
-                FMT.info("Created world ").stress(world.getName()).tell(source);
+                Fmt.info("Created world ").stress(world.getName()).tell(source);
             });
         } catch (IOException e) {
-            FMT.warn("Unable to create world ").stress(name).tell(source);
+            Fmt.warn("Unable to create world ").stress(name).tell(source);
             e.printStackTrace();
         }
     }

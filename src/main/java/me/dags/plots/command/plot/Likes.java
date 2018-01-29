@@ -1,8 +1,11 @@
 package me.dags.plots.command.plot;
 
-import me.dags.commandbus.annotation.*;
-import me.dags.commandbus.format.FMT;
-import me.dags.commandbus.format.Format;
+import me.dags.commandbus.annotation.Command;
+import me.dags.commandbus.annotation.Description;
+import me.dags.commandbus.annotation.Permission;
+import me.dags.commandbus.annotation.Src;
+import me.dags.commandbus.fmt.Fmt;
+import me.dags.commandbus.fmt.Format;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
 import me.dags.plots.command.Cmd;
@@ -23,23 +26,23 @@ import java.util.function.Supplier;
  */
 public class Likes {
 
-    @Command(alias = "likes", parent = "plot")
     @Permission(Permissions.PLOT_LIKES)
     @Description("List the plots that you 'like'")
-    public void likes(@Caller Player player) {
+    @Command("plot likes")
+    public void likes(@Src Player player) {
         likes(player, player);
     }
 
-    @Command(alias = "likes", parent = "plot")
     @Permission(Permissions.PLOT_LIKES_OTHER)
     @Description("List the plots that <player> 'liked'")
-    public void likes(@Caller Player player, @One("player") User other) {
+    @Command("plot likes <user>")
+    public void likes(@Src Player player, User other) {
         Optional<PlotWorld> world = Cmd.getWorld(player);
         if (world.isPresent()) {
             String name = other.getName();
             UUID uuid = other.getUniqueId();
             WorldDatabase database = world.get().database();
-            Format format = FMT.copy();
+            Format format = Fmt.copy();
             Supplier<PaginationList> search = () -> UserActions.listLikes(database, name, uuid, format);
             Consumer<PaginationList> likes = list -> list.sendTo(player);
             Plots.executor().async(search, likes);

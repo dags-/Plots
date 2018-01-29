@@ -1,10 +1,10 @@
 package me.dags.plots.command.plot;
 
-import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
 import me.dags.commandbus.annotation.Description;
 import me.dags.commandbus.annotation.Permission;
-import me.dags.commandbus.format.FMT;
+import me.dags.commandbus.annotation.Src;
+import me.dags.commandbus.fmt.Fmt;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
 import me.dags.plots.command.Cmd;
@@ -24,10 +24,10 @@ import java.util.function.Supplier;
  */
 public class Claim {
 
-    @Command(alias = "claim", parent = "plot")
     @Permission(Permissions.PLOT_CLAIM)
     @Description("Claim a plot")
-    public void claim(@Caller Player player) {
+    @Command("plot claim")
+    public void claim(@Src Player player) {
         Pair<PlotWorld, PlotId> plot = Cmd.getContainingPlot(player);
         if (plot.present()) {
             PlotWorld world = plot.first();
@@ -41,7 +41,7 @@ public class Claim {
     private static Consumer<Boolean> claimIfFree(Player player, PlotWorld world, PlotId plotId) {
         return owned -> {
             if (owned) {
-                FMT.error("Plot ").stress(plotId).error(" is already owned").tell(player);
+                Fmt.error("Plot ").stress(plotId).error(" is already owned").tell(player);
             } else {
                 claim(player, world, plotId);
             }
@@ -50,12 +50,12 @@ public class Claim {
 
     static boolean claim(Player player, PlotWorld world, PlotId plotId) {
         if (!plotId.present()) {
-            FMT.error("Plot ").stress(plotId).error(" is not present").tell(player);
+            Fmt.error("Plot ").stress(plotId).error(" is not present").tell(player);
             return false;
         } else {
             PlotUser user = world.user(player.getUniqueId());
             if (user.maxClaimCount() > -1 && user.plotCount() >= user.maxClaimCount()) {
-                FMT.error("You cannot claim any more plots").tell(player);
+                Fmt.error("You cannot claim any more plots").tell(player);
                 return false;
             }
 
@@ -65,7 +65,7 @@ public class Claim {
             };
 
             Runnable callback = () -> {
-                FMT.info("Claimed plot ").stress(plotId).tell(player);
+                Fmt.info("Claimed plot ").stress(plotId).tell(player);
                 world.refreshUser(player.getUniqueId());
                 Walls.setWalls(player, world, plotId, Plots.config().getOwnedPlotWall(), 1);
             };

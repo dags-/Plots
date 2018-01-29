@@ -1,7 +1,10 @@
 package me.dags.plots.command.plot;
 
-import me.dags.commandbus.annotation.*;
-import me.dags.commandbus.format.FMT;
+import me.dags.commandbus.annotation.Command;
+import me.dags.commandbus.annotation.Description;
+import me.dags.commandbus.annotation.Permission;
+import me.dags.commandbus.annotation.Src;
+import me.dags.commandbus.fmt.Fmt;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
 import me.dags.plots.command.Cmd;
@@ -23,10 +26,10 @@ import java.util.function.Supplier;
  */
 public class Copy {
 
-    @Command(alias = "copy", parent = "plot")
     @Permission(Permissions.PLOT_COPY)
     @Description("Copy one plot to another")
-    public void copy(@Caller Player player, @One("to") String to) {
+    @Command("plot copy <to>")
+    public void copy(@Src Player player, String to) {
         Pair<PlotWorld, PlotId> plot = Cmd.getContainingPlot(player);
         if (plot.present()) {
             Supplier<Pair<PlotId, PlotId>> validPlots = validPlots(player, plot.first(), plot.second().toString(), to);
@@ -35,10 +38,10 @@ public class Copy {
         }
     }
 
-    @Command(alias = "copy", parent = "plot")
     @Permission(Permissions.PLOT_COPY)
     @Description("Copy one plot to another")
-    public void copy(@Caller Player player, @One("from") String from, @One("to") String to) {
+    @Command("plot copy <from> <to>")
+    public void copy(@Src Player player, String from, String to) {
         Optional<PlotWorld> world = Cmd.getWorld(player);
         if (world.isPresent()) {
             copy(player, world.get(), from, to);
@@ -76,11 +79,11 @@ public class Copy {
             if (plots.present()) {
                 PlotId from = plots.first();
                 PlotId to = plots.second();
-                FMT.info("Copying plot ").stress(from).info(" to ").stress(to).info("...").tell(player);
-                Runnable callback = () -> FMT.info("Finished copying plot ").stress(from).info(" to ").stress(to).tell(player);
+                Fmt.info("Copying plot ").stress(from).info(" to ").stress(to).info("...").tell(player);
+                Runnable callback = () -> Fmt.info("Finished copying plot ").stress(from).info(" to ").stress(to).tell(player);
                 world.copyPlot(from, to, callback);
             } else {
-                FMT.error("You must be owner or added to the 'from' plot, and owner of the 'to' plot").tell(player);
+                Fmt.error("You must be owner or added to the 'from' plot, and owner of the 'to' plot").tell(player);
             }
         };
     }

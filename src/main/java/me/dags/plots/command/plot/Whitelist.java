@@ -1,11 +1,11 @@
 package me.dags.plots.command.plot;
 
-import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
 import me.dags.commandbus.annotation.Description;
 import me.dags.commandbus.annotation.Permission;
-import me.dags.commandbus.format.FMT;
-import me.dags.commandbus.format.FormattedListBuilder;
+import me.dags.commandbus.annotation.Src;
+import me.dags.commandbus.fmt.Fmt;
+import me.dags.commandbus.fmt.PagFormatter;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
 import me.dags.plots.command.Cmd;
@@ -30,10 +30,10 @@ import java.util.function.Supplier;
  */
 public class Whitelist {
 
-    @Command(alias = "whitelist")
+    @Command("plot whitelist")
     @Permission(Permissions.PLOT_WHITELIST)
     @Description("List all whitelisted users")
-    public void whitelist(@Caller Player player) {
+    public void whitelist(@Src Player player) {
         Pair<PlotWorld, PlotId> plot = Cmd.getPlot(player);
         if (plot.present()) {
             PlotId plotId = plot.second();
@@ -46,8 +46,8 @@ public class Whitelist {
 
     static Consumer<List<UUID>> list(Player player, PlotId plotId) {
         return list -> {
-            FormattedListBuilder builder = FMT.listBuilder();
-            builder.linesPerPage(9);
+            PagFormatter builder = Fmt.copy().list();
+            builder.lines(9);
             builder.title().stress("Users Whitelisted On %s", plotId);
 
             list.stream()

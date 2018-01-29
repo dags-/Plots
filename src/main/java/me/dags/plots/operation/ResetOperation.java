@@ -1,7 +1,6 @@
 package me.dags.plots.operation;
 
 import com.flowpowered.math.vector.Vector3i;
-import me.dags.plots.Plots;
 import me.dags.plots.generator.Layer;
 import me.dags.plots.generator.PlotGenerator;
 import me.dags.plots.plot.PlotBounds;
@@ -108,6 +107,6 @@ public class ResetOperation implements Operation {
             state = layer.getBlockAt(x, z);
         }
 
-        blockView.setBlock(min.getX() + x, min.getY() + y, min.getZ() + z, state, Plots.PLOTS_CAUSE());
+        blockView.setBlock(min.getX() + x, min.getY() + y, min.getZ() + z, state);
     }
 }

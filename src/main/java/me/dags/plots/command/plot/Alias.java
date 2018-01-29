@@ -1,7 +1,10 @@
 package me.dags.plots.command.plot;
 
-import me.dags.commandbus.annotation.*;
-import me.dags.commandbus.format.FMT;
+import me.dags.commandbus.annotation.Command;
+import me.dags.commandbus.annotation.Description;
+import me.dags.commandbus.annotation.Permission;
+import me.dags.commandbus.annotation.Src;
+import me.dags.commandbus.fmt.Fmt;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
 import me.dags.plots.command.Cmd;
@@ -21,10 +24,10 @@ import java.util.function.Supplier;
  */
 public class Alias {
 
-    @Command(alias = "alias", parent = "plot")
     @Permission(Permissions.PLOT_ALIAS)
     @Description("Set the plot's alias")
-    public void alias(@Caller Player player, @One("alias") String alias) {
+    @Command("plot alias <alias>")
+    public void alias(@Src Player player, String alias) {
         Pair<PlotWorld, PlotId> plot = Cmd.getContainingPlot(player);
         if (plot.present()) {
             PlotWorld world = plot.first();
@@ -42,7 +45,7 @@ public class Alias {
                 Consumer<Boolean> setAlias = setAlias(player, world, plotId, alias);
                 Plots.executor().async(exists, setAlias);
             } else {
-                FMT.error("You do not own plot ").stress(plotId).tell(player);
+                Fmt.error("You do not own plot ").stress(plotId).tell(player);
             }
         };
     }
@@ -50,10 +53,10 @@ public class Alias {
     static Consumer<Boolean> setAlias(Player player, PlotWorld world, PlotId plotId, String alias) {
         return exists -> {
             if (exists) {
-                FMT.error("The alias ").stress(alias).error(" has already been taken by another plot").tell(player);
+                Fmt.error("The alias ").stress(alias).error(" has already been taken by another plot").tell(player);
             } else {
                 Runnable async = () -> PlotActions.setPlotAlias(world.database(), plotId, alias);
-                Runnable sync = () -> FMT.info("Set plot ").stress(plotId).info("'s alias to ").stress(alias).tell(player);
+                Runnable sync = () -> Fmt.info("Set plot ").stress(plotId).info("'s alias to ").stress(alias).tell(player);
                 Plots.executor().async(async, sync);
             }
         };

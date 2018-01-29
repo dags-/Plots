@@ -19,7 +19,6 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
-import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStoppingServerEvent;
 import org.spongepowered.api.event.world.LoadWorldEvent;
@@ -44,9 +43,9 @@ public class Plots {
 
     private final boolean enabled;
     private final PlotsCore plots;
-    private final Cause plotsCause;
     private final Executor executor;
     private final MongoClient client;
+    private final PluginContainer container;
 
     private Config config;
 
@@ -74,7 +73,7 @@ public class Plots {
             this.executor = new Executor(this);
             this.client = client;
             this.enabled = client != null && enabled;
-            this.plotsCause = Cause.source(container).build();
+            this.container = container;
         }
     }
 
@@ -96,22 +95,7 @@ public class Plots {
 
         Sponge.getRegistry().registerModule(PlotWorld.class, new PlotWorldModule());
         Sponge.getRegistry().registerModule(GeneratorProperties.class, new GeneratorModule());
-
-        CommandBus.builder().logger(logger).build()
-                .registerSubPackagesOf(Cmd.class)
-                .submit(Plots.instance);
-
-        executor().sync(Support.of(
-                "PlotsWeb",
-                "me.dags.plotsweb.service.PlotsWebService",
-                "me.dags.plots.support.plotsweb.PlotsWeb")
-        );
-
-        executor().sync(Support.of(
-                "Converse",
-                "me.dags.converse.Conversation",
-                "me.dags.plots.support.converse.ConverseSupport")
-        );
+        CommandBus.create(this).registerPackage(true, Cmd.class).submit();
 
         executor().sync(Support.of(
                 "WorldEdit",
@@ -162,10 +146,6 @@ public class Plots {
         client.close();
         executor().close();
         core().dispatcher().finishAll();
-    }
-
-    public static Cause PLOTS_CAUSE() {
-        return instance.plotsCause;
     }
 
     public static PlotsCore core() {

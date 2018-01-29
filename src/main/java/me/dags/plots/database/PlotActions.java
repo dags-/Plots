@@ -4,8 +4,8 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.UpdateOptions;
-import me.dags.commandbus.format.Format;
-import me.dags.commandbus.format.Formatter;
+import me.dags.commandbus.fmt.Format;
+import me.dags.commandbus.fmt.Formatter;
 import me.dags.plots.plot.PlotId;
 import me.dags.plots.util.CountList;
 import me.dags.plots.util.Pair;
@@ -221,7 +221,7 @@ public class PlotActions {
     }
 
     private static Text plotInfo(PlotId plotId, String world, Document document, Format format) {
-        Formatter formatter = format.message().info("Plot: ").stress(plotId);
+        Formatter formatter = format.info("Plot: ").stress(plotId);
 
         if (document != null) {
             if (document.containsKey(Keys.PLOT_ALIAS)) {

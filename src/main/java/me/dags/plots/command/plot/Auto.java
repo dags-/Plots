@@ -1,10 +1,10 @@
 package me.dags.plots.command.plot;
 
-import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
 import me.dags.commandbus.annotation.Description;
 import me.dags.commandbus.annotation.Permission;
-import me.dags.commandbus.format.FMT;
+import me.dags.commandbus.annotation.Src;
+import me.dags.commandbus.fmt.Fmt;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
 import me.dags.plots.command.Cmd;
@@ -22,10 +22,10 @@ import java.util.function.Supplier;
  */
 public class Auto {
 
-    @Command(alias = "auto", parent = "plot")
     @Permission(Permissions.PLOT_AUTO)
     @Description("Auto-claim the nearest plot")
-    public void auto(@Caller Player player) {
+    @Command("plot auto")
+    public void auto(@Src Player player) {
         Pair<PlotWorld, PlotId> plot = Cmd.getPlot(player);
         if (plot.present()) {
             PlotWorld world = plot.first();
@@ -41,7 +41,7 @@ public class Auto {
             boolean result = Claim.claim(player, world, plotId);
             if (result) {
                 world.teleport(player, plotId);
-                FMT.info("Teleported to plot ").stress(plotId).tell(player);
+                Fmt.info("Teleported to plot ").stress(plotId).tell(player);
             }
         };
     }

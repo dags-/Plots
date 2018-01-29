@@ -1,8 +1,11 @@
 package me.dags.plots.command.plot;
 
-import me.dags.commandbus.annotation.*;
-import me.dags.commandbus.format.FMT;
-import me.dags.commandbus.format.Format;
+import me.dags.commandbus.annotation.Command;
+import me.dags.commandbus.annotation.Description;
+import me.dags.commandbus.annotation.Permission;
+import me.dags.commandbus.annotation.Src;
+import me.dags.commandbus.fmt.Fmt;
+import me.dags.commandbus.fmt.Format;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
 import me.dags.plots.command.Cmd;
@@ -21,25 +24,25 @@ import java.util.function.Supplier;
  */
 public class Top {
 
-    @Command(alias = "top", parent = "plot")
+    @Command("plot top")
     @Permission(Permissions.PLOT_TOP)
     @Description("List the most popular plots")
-    public void top(@Caller Player player) {
+    public void top(@Src Player player) {
         top(player, 10);
     }
 
-    @Command(alias = "top", parent = "plot")
+    @Command("plot top <size>")
     @Permission(Permissions.PLOT_TOP)
     @Description("List the most popular plots")
-    public void top(@Caller Player player, @One("size") int size) {
+    public void top(@Src Player player, int size) {
         Optional<PlotWorld> plotWorld = Cmd.getWorld(player);
         if (plotWorld.isPresent()) {
             if (size < 1 || size > 100) {
-                FMT.error("Please specify a value between 1 & 100").tell(player);
+                Fmt.error("Please specify a value between 1 & 100").tell(player);
                 return;
             }
             WorldDatabase database = plotWorld.get().database();
-            Format format = FMT.copy();
+            Format format = Fmt.copy();
             Supplier<PaginationList> get = () -> PlotActions.topPlots(database, size, format);
             Consumer<PaginationList> top = list -> list.sendTo(player);
             Plots.executor().async(get, top);

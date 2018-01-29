@@ -3,7 +3,7 @@ package me.dags.plots.database;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.UpdateOptions;
-import me.dags.commandbus.format.Format;
+import me.dags.commandbus.fmt.Format;
 import me.dags.plots.plot.PlotId;
 import me.dags.plots.plot.PlotSchema;
 import me.dags.plots.plot.PlotUser;

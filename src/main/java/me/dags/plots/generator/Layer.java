@@ -1,7 +1,6 @@
 package me.dags.plots.generator;
 
 import com.flowpowered.math.vector.Vector3i;
-import me.dags.plots.Plots;
 import me.dags.plots.util.GridMap;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.block.BlockType;
@@ -38,7 +37,7 @@ public class Layer {
         for (int z = min.getZ(); z <= max.getZ(); z++) {
             for (int x = min.getX(); x <= max.getX(); x++) {
                 BlockState state = layer.get(x, z);
-                buffer.setBlock(x, y, z, state, Plots.PLOTS_CAUSE());
+                buffer.setBlock(x, y, z, state);
             }
         }
     }
@@ -61,7 +60,7 @@ public class Layer {
             Vector3i min = buffer.getBlockMin(), max = buffer.getBlockMax();
             for (int z = min.getZ(); z <= max.getZ(); z++) {
                 for (int x = min.getX(); x <= max.getX(); x++) {
-                    buffer.setBlock(x, y, z, base, Plots.PLOTS_CAUSE());
+                    buffer.setBlock(x, y, z, base);
                 }
             }
         }

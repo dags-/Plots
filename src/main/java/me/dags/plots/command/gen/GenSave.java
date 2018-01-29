@@ -1,9 +1,9 @@
 package me.dags.plots.command.gen;
 
-import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
 import me.dags.commandbus.annotation.Permission;
-import me.dags.commandbus.format.FMT;
+import me.dags.commandbus.annotation.Src;
+import me.dags.commandbus.fmt.Fmt;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
 import me.dags.plots.command.Cmd;
@@ -18,9 +18,9 @@ import java.util.Optional;
  */
 public class GenSave {
 
-    @Command(alias = "save", parent = "gen")
+    @Command("gen save")
     @Permission(Permissions.GEN_EDIT)
-    public void save(@Caller CommandSource source) {
+    public void save(@Src CommandSource source) {
         Optional<GeneratorProperties.Builder> builder = Cmd.genBuilders().get(source);
         if (builder.isPresent()) {
             GeneratorProperties properties = builder.get().build();
@@ -31,6 +31,6 @@ public class GenSave {
     public static void saveGenerator(CommandSource source, GeneratorProperties properties) {
         IO.saveProperties(properties, Plots.core().generatorsDir());
         Cmd.genBuilders().remove(source);
-        FMT.info("Saved generator ").stress(properties.name()).info(" to file").tell(source);
+        Fmt.info("Saved generator ").stress(properties.name()).info(" to file").tell(source);
     }
 }

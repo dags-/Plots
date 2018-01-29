@@ -1,7 +1,10 @@
 package me.dags.plots.command.plot;
 
-import me.dags.commandbus.annotation.*;
-import me.dags.commandbus.format.FMT;
+import me.dags.commandbus.annotation.Command;
+import me.dags.commandbus.annotation.Description;
+import me.dags.commandbus.annotation.Permission;
+import me.dags.commandbus.annotation.Src;
+import me.dags.commandbus.fmt.Fmt;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
 import me.dags.plots.command.Cmd;
@@ -22,31 +25,31 @@ import java.util.function.Supplier;
  */
 public class Unclaim {
 
-    @Command(alias = "unclaim", parent = "plot")
+    @Command("plot unclaim")
     @Permission(Permissions.PLOT_UNCLAIM)
     @Description("Unclaim a plot and reset it")
-    public void unclaim(@Caller Player player) {
+    public void unclaim(@Src Player player) {
         Pair<PlotWorld, PlotId> plot = Cmd.getContainingPlot(player);
         if (plot.present()) {
-            FMT.warn("Unclaiming a plot will remove all whitelisted users including the owner!")
-                    .newLine().warn("To confirm, use either:")
-                    .newLine().stress(" /plot unclaim true").warn(" - to unclaim and reset the plot")
-                    .newLine().stress(" /plot unclaim false").warn(" - to unclaim and not reset the plot")
+            Fmt.warn("Unclaiming a plot will remove all whitelisted users including the owner!")
+                    .line().warn("To confirm, use either:")
+                    .line().stress(" /plot unclaim true").warn(" - to unclaim and reset the plot")
+                    .line().stress(" /plot unclaim false").warn(" - to unclaim and not reset the plot")
                     .tell(player);
         }
     }
 
-    @Command(alias = "unclaim", parent = "plot")
+    @Command("plot unclaim <confirm>")
     @Permission(Permissions.PLOT_UNCLAIM)
     @Description("Unclaim a plot and reset it")
-    public void unclaim(@Caller Player player, @One("reset") boolean reset) {
+    public void unclaim(@Src Player player, boolean reset) {
         Pair<PlotWorld, PlotId> plot = Cmd.getContainingPlot(player);
         if (plot.present()) {
             PlotWorld world = plot.first();
             PlotId plotId = plot.second();
 
             if (!reset && !player.hasPermission(Permissions.PLOT_UNCLAIM_BYPASS)) {
-                FMT.warn("Your plot must be reset if you want to unclaim it, use ")
+                Fmt.warn("Your plot must be reset if you want to unclaim it, use ")
                         .stress("/plot unclaim true")
                         .error(" to proceed")
                         .tell(player);
@@ -62,17 +65,17 @@ public class Unclaim {
     static Consumer<Optional<UUID>> unclaimIfOwned(Player player, PlotWorld plotWorld, PlotId plotId, boolean reset) {
         return owner -> {
             if (!owner.isPresent()) {
-                FMT.error("Plot ").stress(plotId).error(" is not owned by anyone").tell(player);
+                Fmt.error("Plot ").stress(plotId).error(" is not owned by anyone").tell(player);
             } else if (player.hasPermission(Permissions.PLOT_UNCLAIM_OTHER) || owner.get().equals(player.getUniqueId())) {
                 unclaim(player, plotWorld, plotId, reset);
             } else {
-                FMT.error("You do not own plot ").stress(plotId).tell(player);
+                Fmt.error("You do not own plot ").stress(plotId).tell(player);
             }
         };
     }
 
     static void unclaim(Player player, PlotWorld plotWorld, PlotId plotId, boolean reset) {
-        FMT.info("Unclaiming plot ").stress(plotId).tell(player);
+        Fmt.info("Unclaiming plot ").stress(plotId).tell(player);
 
         Runnable async = () -> {
             PlotActions.removePlot(plotWorld.database(), plotId);
@@ -84,7 +87,7 @@ public class Unclaim {
         Plots.executor().async(async, callback);
 
         if (reset) {
-            plotWorld.resetPlot(plotId, () -> FMT.info("Plot ").stress(plotId).info(" has been reset").tell(player));
+            plotWorld.resetPlot(plotId, () -> Fmt.info("Plot ").stress(plotId).info(" has been reset").tell(player));
         }
     }
 }

@@ -1,7 +1,10 @@
 package me.dags.plots.command.plot;
 
-import me.dags.commandbus.annotation.*;
-import me.dags.commandbus.format.FMT;
+import me.dags.commandbus.annotation.Command;
+import me.dags.commandbus.annotation.Description;
+import me.dags.commandbus.annotation.Permission;
+import me.dags.commandbus.annotation.Src;
+import me.dags.commandbus.fmt.Fmt;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
 import me.dags.plots.command.Cmd;
@@ -23,10 +26,10 @@ import java.util.function.Supplier;
  */
 public class Biome {
 
-    @Command(alias = "biome", parent = "plot")
     @Permission(Permissions.PLOT_BIOME)
     @Description("Set the biome of the plot")
-    public void biome(@Caller Player player, @One("biome") String biome) {
+    @Command("plot biome <biome>")
+    public void biome(@Src Player player, String biome) {
         Pair<PlotWorld, PlotId> plot = Cmd.getContainingPlot(player);
         if (plot.present()) {
             Optional<BiomeType> biomeType = Sponge.getRegistry().getType(BiomeType.class, biome);
@@ -38,7 +41,7 @@ public class Biome {
                 Consumer<Boolean> setBiome = biome(player, world, plotId, biomeType.get());
                 Plots.executor().async(owner, setBiome);
             } else {
-                FMT.error("Biome ").stress(biome).error(" is not recognised").tell(player);
+                Fmt.error("Biome ").stress(biome).error(" is not recognised").tell(player);
             }
         }
     }
@@ -46,10 +49,10 @@ public class Biome {
     static Consumer<Boolean> biome(Player player, PlotWorld world, PlotId plotId, BiomeType biome) {
         return owner -> {
             if (owner) {
-                FMT.info("Setting the biome of plot ").stress(plotId).info(" to ").stress(biome.getName()).tell(player);
+                Fmt.info("Setting the biome of plot ").stress(plotId).info(" to ").stress(biome.getName()).tell(player);
                 world.setBiome(plotId, biome);
             } else {
-                FMT.error("You do not own plot ").stress(plotId).tell(player);
+                Fmt.error("You do not own plot ").stress(plotId).tell(player);
             }
         };
     }

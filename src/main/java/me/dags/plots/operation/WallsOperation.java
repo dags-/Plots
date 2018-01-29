@@ -1,7 +1,6 @@
 package me.dags.plots.operation;
 
 import com.flowpowered.math.vector.Vector3i;
-import me.dags.plots.Plots;
 import me.dags.plots.plot.PlotSchema;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.world.extent.MutableBlockVolume;
@@ -81,7 +80,7 @@ public class WallsOperation implements Operation {
     private int phase0(int blocksToProcess) {
         for (int y = level; y > level - depth && y >= 0; y--) {
             for (int z = zPos; z > volume.getBlockMin().getZ(); z--) {
-                volume.setBlock(xPos, y, z, state, Plots.PLOTS_CAUSE());
+                volume.setBlock(xPos, y, z, state);
                 blocksToProcess--;
             }
         }
@@ -97,7 +96,7 @@ public class WallsOperation implements Operation {
     private int phase1(int blocksToProcess) {
         for (int y = level; y > level - depth && y >= 0; y--) {
             for (int x = xPos; x < volume.getBlockMax().getX(); x++) {
-                volume.setBlock(x, y, zPos, state, Plots.PLOTS_CAUSE());
+                volume.setBlock(x, y, zPos, state);
                 blocksToProcess--;
             }
         }
@@ -113,7 +112,7 @@ public class WallsOperation implements Operation {
     private int phase2(int blocksToProcess) {
         for (int y = level; y > level - depth && y >= 0; y--) {
             for (int z = zPos; z < volume.getBlockMax().getZ(); z++) {
-                volume.setBlock(xPos, y, z, state, Plots.PLOTS_CAUSE());
+                volume.setBlock(xPos, y, z, state);
                 blocksToProcess--;
             }
         }
@@ -129,7 +128,7 @@ public class WallsOperation implements Operation {
     private int phase3(int blocksToProcess) {
         for (int y = level; y > level - depth && y >= 0; y--) {
             for (int x = xPos; x > volume.getBlockMin().getX(); x--) {
-                volume.setBlock(x, y, zPos, state, Plots.PLOTS_CAUSE());
+                volume.setBlock(x, y, zPos, state);
                 blocksToProcess--;
             }
         }

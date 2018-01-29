@@ -1,9 +1,9 @@
 package me.dags.plots.command.gen;
 
-import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
 import me.dags.commandbus.annotation.Permission;
-import me.dags.commandbus.format.FMT;
+import me.dags.commandbus.annotation.Src;
+import me.dags.commandbus.fmt.Fmt;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
 import org.spongepowered.api.command.CommandSource;
@@ -13,14 +13,14 @@ import org.spongepowered.api.command.CommandSource;
  */
 public class GenReload {
 
-    @Command(alias = "reload", parent = "gen")
+    @Command("gen reload")
     @Permission(Permissions.GEN_EDIT)
-    public void reload(@Caller CommandSource source) {
+    public void reload(@Src CommandSource source) {
         reloadGenerators(source);
     }
 
     public static void reloadGenerators(CommandSource source) {
-        FMT.info("Reloading generators...").tell(source);
+        Fmt.info("Reloading generators...").tell(source);
         Plots.core().reloadGenerators();
     }
 }

@@ -1,10 +1,10 @@
 package me.dags.plots.command.plot;
 
-import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
 import me.dags.commandbus.annotation.Description;
 import me.dags.commandbus.annotation.Permission;
-import me.dags.commandbus.format.FMT;
+import me.dags.commandbus.annotation.Src;
+import me.dags.commandbus.fmt.Fmt;
 import me.dags.plots.Permissions;
 import me.dags.plots.command.Cmd;
 import me.dags.plots.plot.PlotMask;
@@ -19,20 +19,20 @@ import java.util.Optional;
  */
 public class Maskall {
 
-    @Command(alias = "maskall", parent = "plot")
+    @Command("plot maskall")
     @Permission(Permissions.PLOT_MASKALL)
     @Description("Toggle building protections")
-    public void maskall(@Caller Player player) {
+    public void maskall(@Src Player player) {
         Optional<PlotWorld> world = Cmd.getWorld(player);
         if (world.isPresent()) {
             PlotUser user = world.get().user(player.getUniqueId());
             if (user.plotMask() == PlotMask.ANYWHERE) {
                 world.get().refreshUser(user.uuid());
-                FMT.info("Plot mask reset").tell(player);
+                Fmt.info("Plot mask reset").tell(player);
             } else {
                 user = user.edit().mask(PlotMask.ANYWHERE).build();
                 world.get().setUser(user);
-                FMT.info("Plot mask set to Anywhere").tell(player);
+                Fmt.info("Plot mask set to Anywhere").tell(player);
             }
         }
     }

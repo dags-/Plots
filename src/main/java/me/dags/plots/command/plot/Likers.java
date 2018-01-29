@@ -1,10 +1,10 @@
 package me.dags.plots.command.plot;
 
-import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
 import me.dags.commandbus.annotation.Description;
 import me.dags.commandbus.annotation.Permission;
-import me.dags.commandbus.format.FMT;
+import me.dags.commandbus.annotation.Src;
+import me.dags.commandbus.fmt.Fmt;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
 import me.dags.plots.command.Cmd;
@@ -30,10 +30,10 @@ import java.util.function.Supplier;
  */
 public class Likers {
 
-    @Command(alias = "likers", parent = "plot")
     @Permission(Permissions.PLOT_LIKERS)
     @Description("List users that 'like' a plot")
-    public void likers(@Caller Player player) {
+    @Command("plot likers")
+    public void likers(@Src Player player) {
         Pair<PlotWorld, PlotId> plot = Cmd.getContainingPlot(player);
         if (plot.present()) {
             PlotWorld world = plot.first();
@@ -52,16 +52,16 @@ public class Likers {
                         .map(Sponge.getServiceManager().provideUnchecked(UserStorageService.class)::get)
                         .filter(Optional::isPresent)
                         .map(Optional::get)
-                        .map(p -> FMT.info(" - ").stress(p.getName()).build())
+                        .map(p -> Fmt.info(" - ").stress(p.getName()).build())
                         .forEach(lines::add);
 
                 PaginationList.Builder builder = PaginationList.builder();
-                builder.title(FMT.stress("Plot %s's Likes", plotId).build());
+                builder.title(Fmt.stress("Plot %s's Likes", plotId).build());
                 builder.linesPerPage(9);
                 builder.contents(lines);
                 builder.build().sendTo(player);
             } else {
-                FMT.error("Plot ").stress(plotId).error(" doesn't have any likes").tell(player);
+                Fmt.error("Plot ").stress(plotId).error(" doesn't have any likes").tell(player);
             }
         };
     }

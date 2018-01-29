@@ -5,7 +5,7 @@ import com.flowpowered.math.vector.Vector3i;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import me.dags.commandbus.format.FMT;
+import me.dags.commandbus.fmt.Fmt;
 import me.dags.plots.Plots;
 import me.dags.plots.database.UserActions;
 import me.dags.plots.database.WorldDatabase;
@@ -16,7 +16,7 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.service.user.UserStorageService;
-import org.spongepowered.api.world.BlockChangeFlag;
+import org.spongepowered.api.world.BlockChangeFlags;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 import org.spongepowered.api.world.biome.BiomeType;
@@ -110,7 +110,7 @@ public class PlotWorld implements CatalogType {
             Sponge.getServiceManager().provideUnchecked(UserStorageService.class)
                     .get(uuid)
                     .flatMap(User::getPlayer)
-                    .ifPresent(FMT.info("Your plot data has been refreshed")::tell);
+                    .ifPresent(Fmt.info("Your plot data has been refreshed")::tell);
         }
     }
 
@@ -146,7 +146,7 @@ public class PlotWorld implements CatalogType {
             Location<World> target = world.getLocation(to.getBlockMin());
 
             ArchetypeVolume volume = world.createArchetypeVolume(from.getBlockMin(), from.getBlockMax(), from.getBlockMin());
-            volume.apply(target, BlockChangeFlag.NONE, Plots.PLOTS_CAUSE());
+            volume.apply(target, BlockChangeFlags.NONE);
             callback.run();
         });
     }

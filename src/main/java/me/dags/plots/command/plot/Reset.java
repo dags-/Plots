@@ -1,7 +1,10 @@
 package me.dags.plots.command.plot;
 
-import me.dags.commandbus.annotation.*;
-import me.dags.commandbus.format.FMT;
+import me.dags.commandbus.annotation.Command;
+import me.dags.commandbus.annotation.Description;
+import me.dags.commandbus.annotation.Permission;
+import me.dags.commandbus.annotation.Src;
+import me.dags.commandbus.fmt.Fmt;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
 import me.dags.plots.command.Cmd;
@@ -22,21 +25,21 @@ import java.util.function.Supplier;
  */
 public class Reset {
 
-    @Command(alias = "reset", parent = "plot")
+    @Command("plot reset")
     @Permission(Permissions.PLOT_RESET)
     @Description("Reset the plot")
-    public void reset(@Caller Player player) {
-        FMT.warn("Resetting a plot will delete everything inside it!")
-                .newLine().warn("Use ").stress("/plot reset true").warn(" if you want to proceed")
+    public void reset(@Src Player player) {
+        Fmt.warn("Resetting a plot will delete everything inside it!")
+                .line().warn("Use ").stress("/plot reset true").warn(" if you want to proceed")
                 .tell(player);
     }
 
-    @Command(alias = "reset", parent = "plot")
+    @Command("plot reset <confirm>")
     @Permission(Permissions.PLOT_RESET)
     @Description("Reset the plot")
-    public void reset(@Caller Player player, @One("confirm") boolean confirm) {
+    public void reset(@Src Player player, boolean confirm) {
         if (!confirm) {
-            FMT.error("You must confirm you want to delete the plot by using ").append(Text.NEW_LINE)
+            Fmt.error("You must confirm you want to delete the plot by using ").append(Text.NEW_LINE)
                     .stress("/plot reset true")
                     .tell(player);
             return;
@@ -55,10 +58,10 @@ public class Reset {
     static Consumer<Optional<UUID>> reset(Player player, PlotWorld world, PlotId plotId) {
         return uuid -> {
             if ((uuid.isPresent() && player.getUniqueId().equals(uuid.get())) || player.hasPermission(Permissions.PLOT_RESET_OTHER)) {
-                FMT.info("Resetting plot ").stress(plotId).info("...").tell(player);
-                world.resetPlot(plotId, () -> FMT.info("Reset complete for plot ").stress(plotId).tell(player));
+                Fmt.info("Resetting plot ").stress(plotId).info("...").tell(player);
+                world.resetPlot(plotId, () -> Fmt.info("Reset complete for plot ").stress(plotId).tell(player));
             } else {
-                FMT.error("You do not own plot ").stress(plotId).tell(player);
+                Fmt.error("You do not own plot ").stress(plotId).tell(player);
             }
         };
     }

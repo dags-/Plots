@@ -7,7 +7,7 @@ import com.thevoxelbox.voxelsniper.Sniper;
 import com.thevoxelbox.voxelsniper.brush.IBrush;
 import me.dags.plots.Permissions;
 import me.dags.plots.plot.PlotMask;
-import me.dags.plots.support.MaskedWorld;
+import me.dags.plots.world.MaskedWorld;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 

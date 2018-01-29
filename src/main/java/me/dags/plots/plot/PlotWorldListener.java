@@ -1,8 +1,8 @@
 package me.dags.plots.plot;
 
 import com.flowpowered.math.vector.Vector3i;
-import me.dags.commandbus.format.FMT;
-import me.dags.commandbus.format.Format;
+import me.dags.commandbus.fmt.Fmt;
+import me.dags.commandbus.fmt.Format;
 import me.dags.plots.Permissions;
 import me.dags.plots.Plots;
 import me.dags.plots.database.PlotActions;
@@ -23,7 +23,6 @@ import org.spongepowered.api.event.block.InteractBlockEvent;
 import org.spongepowered.api.event.block.NotifyNeighborBlockEvent;
 import org.spongepowered.api.event.cause.entity.damage.source.EntityDamageSource;
 import org.spongepowered.api.event.cause.entity.damage.source.IndirectEntityDamageSource;
-import org.spongepowered.api.event.cause.entity.spawn.EntitySpawnCause;
 import org.spongepowered.api.event.entity.DamageEntityEvent;
 import org.spongepowered.api.event.entity.InteractEntityEvent;
 import org.spongepowered.api.event.entity.MoveEntityEvent;
@@ -40,6 +39,7 @@ import org.spongepowered.api.text.chat.ChatTypes;
 import org.spongepowered.api.util.Tristate;
 import org.spongepowered.api.world.weather.Weathers;
 
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -81,7 +81,7 @@ public class PlotWorldListener {
 
                 if (cancel) {
                     event.setCancelled(true);
-                    root.getLocation().ifPresent(location -> location.setBlockType(BlockTypes.AIR, Plots.PLOTS_CAUSE()));
+                    root.getLocation().ifPresent(location -> location.setBlockType(BlockTypes.AIR));
                 }
             } else if (root.supports(Keys.POWER) || root.supports(Keys.POWERED)) {
                 event.setCancelled(true);
@@ -91,16 +91,17 @@ public class PlotWorldListener {
 
     @Listener(order = Order.PRE)
     public void onBlockChange(ChangeBlockEvent event) {
-        Object root = event.getCause().root();
-        if (!(root instanceof Player) && plotWorld.equalsWorld(event.getTargetWorld())) {
+        Object root = event.getSource();
+        if (!(root instanceof Player)) {
             // prevent blocks 'leaking' outside of a plot (trees growing, water flowing etc)
-            event.filter(loc -> plotWorld.plotSchema().containingPlot(loc.getBlockPosition()).present());
+            List<?> input = event.getTransactions();
+            List<?> result = event.filter(loc -> plotWorld.equalsWorld(loc.getExtent()) && plotWorld.plotSchema().containingPlot(loc.getBlockPosition()).present());
 
             // remove block if it's outside of a plot to prevent repeat events
-            if (root instanceof BlockSnapshot) {
+            if (result.size() != input.size() && root instanceof BlockSnapshot) {
                 BlockSnapshot snapshot = (BlockSnapshot) root;
                 if (!plotWorld.plotSchema().containingPlot(snapshot.getPosition()).present()) {
-                    snapshot.getLocation().ifPresent(location -> location.setBlockType(BlockTypes.AIR, Plots.PLOTS_CAUSE()));
+                    snapshot.getLocation().ifPresent(location -> location.setBlockType(BlockTypes.AIR));
                 }
             }
         }
@@ -213,11 +214,12 @@ public class PlotWorldListener {
 
     // DropItemEvent is dumb
     @Listener(order = Order.PRE)
-    public void drop(DropItemEvent event, @First EntitySpawnCause cause) {
-        // No docs :/ assume getEntity returns the entity that has caused this event
-        // Hopefully isn't the entity that has been spawned!
-        Entity entity = cause.getEntity();
+    public void drop(DropItemEvent event) {
+        if (!(event.getSource() instanceof Entity)) {
+            return;
+        }
 
+        Entity entity = (Entity) event.getSource();
         if (plotWorld.equalsWorld(entity.getWorld())) {
             if (entity.getType() != EntityTypes.PLAYER) {
                 return;
@@ -234,7 +236,7 @@ public class PlotWorldListener {
 
     @Listener(order = Order.PRE)
     public void onSpawn(SpawnEntityEvent event, @First Player player) {
-        if (plotWorld.equalsWorld(event.getTargetWorld())) {
+        if (plotWorld.equalsWorld(player.getWorld())) {
             if (player.hasPermission(Permissions.ACTION_BYPASS)) {
                 return;
             }
@@ -254,7 +256,7 @@ public class PlotWorldListener {
         if (plotWorld.equalsWorld(player.getWorld())) {
             PlotId plotId = plotWorld.plotSchema().containingPlot(player.getLocation().getBlockPosition());
             if (plotId.present()) {
-                Format format = FMT.copy();
+                Format format = Fmt.copy();
                 Supplier<Text> async = () -> PlotActions.plotInfo(plotWorld.database(), plotId, format);
                 Consumer<Text> sync = text -> player.sendMessage(ChatTypes.ACTION_BAR, text);
                 Plots.executor().async(async, sync);
@@ -267,7 +269,7 @@ public class PlotWorldListener {
         if (plotWorld.equalsWorld(event.getToTransform().getExtent())) {
             PlotId plotId = plotWorld.plotSchema().containingPlot(event.getToTransform().getPosition().toInt());
             if (plotId.present()) {
-                Format format = FMT.copy();
+                Format format = Fmt.copy();
                 Supplier<Text> async = () -> PlotActions.plotInfo(plotWorld.database(), plotId, format);
                 Consumer<Text> sync = text -> player.sendMessage(ChatTypes.ACTION_BAR, text);
                 Plots.executor().async(async, sync);
@@ -314,7 +316,7 @@ public class PlotWorldListener {
         PlotId toId = plotWorld.plotSchema().plotId(to);
         if (plotWorld.plotSchema().plotBounds(toId).contains(to)) {
             // player entered the bounds of a new plot
-            Format format = FMT.copy();
+            Format format = Fmt.copy();
             WorldDatabase database = plotWorld.database();
             Supplier<Text> info = () -> PlotActions.plotInfo(database, toId, format);
             Consumer<Text> send = text -> player.sendMessage(ChatTypes.ACTION_BAR, text);
