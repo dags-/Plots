@@ -12,8 +12,6 @@ public final class Permissions {
     public static final String PLOT_BIOME = "plots.command.biome";
     public static final String PLOT_CLAIM = "plots.command.claim";
     public static final String PLOT_COPY = "plots.command.copy";
-    public static final String PLOT_EXPORT = "plots.command.export.self";
-    public static final String PLOT_EXPORT_OTHER = "plots.command.export.other";
     public static final String PLOT_INFO = "plots.command.info";
     public static final String PLOT_LIKE = "plots.command.like";
     public static final String PLOT_LIKES = "plots.command.likes.self";
@@ -27,7 +25,6 @@ public final class Permissions {
     public static final String PLOT_REMOVE_ANY = "plots.command.remove.any";
     public static final String PLOT_RESET = "plots.command.reset.self";
     public static final String PLOT_RESET_OTHER = "plots.command.reset.other";
-    public static final String PLOT_SETUP = "plots.command.setup";
     public static final String PLOT_TOP = "plots.command.top";
     public static final String PLOT_TP = "plots.command.tp";
     public static final String PLOT_UNCLAIM = "plots.command.unclaim.self";
@@ -43,9 +40,7 @@ public final class Permissions {
     public static final String WORLD_CREATE = "plots.command.world.create";
     public static final String WORLD_SPAWN = "plots.command.world.spawn";
     public static final String WORLD_TP = "plots.command.world.tp";
-    public static final String WORLD_WEATHER = "plots.command.world.weather";
 
-    public static final String ACTION_BYPASS = "plots.action.bypass";
     public static final String ACTION_DAMAGE = "plots.action.damage";
     public static final String ACTION_SNIPE = "plots.action.snipe";
     public static final String ACTION_SPAWN_INANIMATE = "plots.action.spawn.inanimate";

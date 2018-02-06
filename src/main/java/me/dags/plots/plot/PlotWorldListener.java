@@ -54,9 +54,12 @@ public class PlotWorldListener {
         this.plotWorld = plotWorld;
     }
 
+    private PlotMask getMask(Player player) {
+        return plotWorld.user(player.getUniqueId()).plotMask();
+    }
+
     private boolean canEdit(Player player, Vector3i position) {
-        PlotUser user = plotWorld.user(player.getUniqueId());
-        return user.plotMask().contains(position);
+        return getMask(player).contains(position);
     }
 
     @Listener(order = Order.PRE)
@@ -64,6 +67,7 @@ public class PlotWorldListener {
         if (event.getCause().root() instanceof Player) {
             return;
         }
+
         if (plotWorld.equalsWorld(event.getTargetWorld()) && event.getWeather() != Weathers.CLEAR) {
             event.getTargetWorld().setWeather(Weathers.CLEAR);
             event.setCancelled(true);
@@ -72,37 +76,42 @@ public class PlotWorldListener {
 
     @Listener(order = Order.PRE)
     public void onNotify(NotifyNeighborBlockEvent event, @Root BlockSnapshot root) {
-        if (plotWorld.equalsWorld(root.getWorldUniqueId())) {
-            if (root.supports(Keys.EXTENDED)) {
-                Vector3i position = root.getPosition();
-                boolean cancel = event.getNeighbors().keySet().stream()
-                        .map(direction -> position.add(direction.asBlockOffset()))
-                        .anyMatch(pos -> !plotWorld.plotSchema().containingPlot(pos).present());
+        if (!plotWorld.equalsWorld(root.getWorldUniqueId())) {
+            return;
+        }
 
-                if (cancel) {
-                    event.setCancelled(true);
-                    root.getLocation().ifPresent(location -> location.setBlockType(BlockTypes.AIR));
-                }
-            } else if (root.supports(Keys.POWER) || root.supports(Keys.POWERED)) {
+        if (root.supports(Keys.EXTENDED)) {
+            Vector3i position = root.getPosition();
+            boolean cancel = event.getNeighbors().keySet().stream()
+                    .map(direction -> position.add(direction.asBlockOffset()))
+                    .anyMatch(pos -> !plotWorld.plotSchema().containingPlot(pos).present());
+
+            if (cancel) {
                 event.setCancelled(true);
+                root.getLocation().ifPresent(location -> location.setBlockType(BlockTypes.AIR));
             }
+        } else if (root.supports(Keys.POWER) || root.supports(Keys.POWERED)) {
+            event.setCancelled(true);
         }
     }
 
     @Listener(order = Order.PRE)
     public void onBlockChange(ChangeBlockEvent event) {
         Object root = event.getSource();
-        if (!(root instanceof Player)) {
-            // prevent blocks 'leaking' outside of a plot (trees growing, water flowing etc)
-            List<?> input = event.getTransactions();
-            List<?> result = event.filter(loc -> plotWorld.equalsWorld(loc.getExtent()) && plotWorld.plotSchema().containingPlot(loc.getBlockPosition()).present());
+        if (root instanceof Player) {
+            // handled elsewhere
+            return;
+        }
 
-            // remove block if it's outside of a plot to prevent repeat events
-            if (result.size() != input.size() && root instanceof BlockSnapshot) {
-                BlockSnapshot snapshot = (BlockSnapshot) root;
-                if (!plotWorld.plotSchema().containingPlot(snapshot.getPosition()).present()) {
-                    snapshot.getLocation().ifPresent(location -> location.setBlockType(BlockTypes.AIR));
-                }
+        // prevent blocks 'leaking' outside of a plot (trees growing, water flowing etc)
+        List<?> input = event.getTransactions();
+        List<?> result = event.filter(loc -> plotWorld.equalsWorld(loc.getExtent()) && plotWorld.plotSchema().containingPlot(loc.getBlockPosition()).present());
+
+        // remove block if it's outside of a plot to prevent repeat events
+        if (result.size() != input.size() && root instanceof BlockSnapshot) {
+            BlockSnapshot snapshot = (BlockSnapshot) root;
+            if (!plotWorld.plotSchema().containingPlot(snapshot.getPosition()).present()) {
+                snapshot.getLocation().ifPresent(location -> location.setBlockType(BlockTypes.AIR));
             }
         }
     }
@@ -117,98 +126,88 @@ public class PlotWorldListener {
 
     @Listener(order = Order.PRE)
     public void onInteractPrimary(InteractBlockEvent.Primary event, @First Player player) {
-        if (plotWorld.equalsWorld(event.getTargetBlock().getWorldUniqueId())) {
-            if (player.hasPermission(Permissions.ACTION_BYPASS)) {
-                return;
-            }
+        if (!plotWorld.equalsWorld(event.getTargetBlock().getWorldUniqueId())) {
+            return;
+        }
 
-            if (!player.hasPermission(Permissions.ACTION_MODIFY) || !canEdit(player, event.getTargetBlock().getPosition())) {
-                event.setCancelled(true);
-            }
+        if (!player.hasPermission(Permissions.ACTION_MODIFY) || !getMask(player).contains(event.getTargetBlock().getPosition())) {
+            event.setCancelled(true);
         }
     }
 
     @Listener(order = Order.PRE)
     public void onBlockPlace(ChangeBlockEvent.Place event, @First Player player) {
-        if (plotWorld.equalsWorld(player.getWorld())) {
-            if (player.hasPermission(Permissions.ACTION_BYPASS)) {
-                return;
-            }
-
-            if (!player.hasPermission(Permissions.ACTION_MODIFY)) {
-                event.filterAll();
-                return;
-            }
-
-            event.filter(location -> canEdit(player, location.getBlockPosition()));
+        if (!plotWorld.equalsWorld(player.getWorld())) {
+            return;
         }
+
+        if (!player.hasPermission(Permissions.ACTION_MODIFY)) {
+            event.filterAll();
+            return;
+        }
+
+        final PlotMask mask = getMask(player);
+        event.filter(location -> mask.contains(location.getBlockPosition()));
     }
 
     @Listener(order = Order.PRE)
     public void onInteractSecondary(InteractBlockEvent.Secondary event, @First Player player) {
-        if (plotWorld.equalsWorld(event.getTargetBlock().getWorldUniqueId())) {
-            if (player.hasPermission(Permissions.ACTION_BYPASS)) {
-                return;
-            }
+        if (!plotWorld.equalsWorld(event.getTargetBlock().getWorldUniqueId())) {
+            return;
+        }
 
-            if (!player.hasPermission(Permissions.ACTION_MODIFY) || !canEdit(player, event.getTargetBlock().getPosition())) {
-                event.setUseItemResult(Tristate.FALSE);
-            }
+        if (!player.hasPermission(Permissions.ACTION_MODIFY) || !canEdit(player, event.getTargetBlock().getPosition())) {
+            event.setUseItemResult(Tristate.FALSE);
         }
     }
 
     // might not detect entities fired into the plot
     @Listener(order = Order.PRE)
     public void onInteractEntity(InteractEntityEvent event, @First Player player) {
-        if (plotWorld.equalsWorld(event.getTargetEntity().getWorld())) {
-            if (player.hasPermission(Permissions.ACTION_BYPASS)) {
-                return;
-            }
+        if (!plotWorld.equalsWorld(event.getTargetEntity().getWorld())) {
+            return;
+        }
 
-            if (!player.hasPermission(Permissions.ACTION_INTERACT_ENTITY) || !canEdit(player, event.getTargetEntity().getLocation().getBlockPosition())) {
-                event.setCancelled(true);
-            }
+        if (!player.hasPermission(Permissions.ACTION_INTERACT_ENTITY) || !canEdit(player, event.getTargetEntity().getLocation().getBlockPosition())) {
+            event.setCancelled(true);
         }
     }
 
     @Listener
     public void onDamage(DamageEntityEvent event, @First EntityDamageSource damageSource) {
-        if (plotWorld.equalsWorld(event.getTargetEntity().getWorld())) {
-            Entity source = damageSource.getSource(), cause = source;
+        if (!plotWorld.equalsWorld(event.getTargetEntity().getWorld())) {
+            return;
+        }
 
-            if (damageSource instanceof IndirectEntityDamageSource) {
-                cause = ((IndirectEntityDamageSource) damageSource).getIndirectSource();
-            }
+        Entity source = damageSource.getSource(), cause = source;
+        if (damageSource instanceof IndirectEntityDamageSource) {
+            cause = ((IndirectEntityDamageSource) damageSource).getIndirectSource();
+        }
 
-            if (cause instanceof Player) {
-                Player player = (Player) cause;
-                if (player.hasPermission(Permissions.ACTION_BYPASS)) {
-                    return;
-                }
-                if (!player.hasPermission(Permissions.ACTION_DAMAGE) || !canEdit(player, event.getTargetEntity().getLocation().getBlockPosition())) {
-                    event.setCancelled(true);
-                    if (source != cause) {
-                        // damaging entity (source) has been spawned (or w/e) by player (cause); remove it from the world
-                        source.remove();
-                    }
-                }
-            } else {
-                // some other entity has caused damage, don't want this.
-                // doesn't remove the entity
+        if (cause instanceof Player) {
+            Player player = (Player) cause;
+            if (!player.hasPermission(Permissions.ACTION_DAMAGE) || !canEdit(player, event.getTargetEntity().getLocation().getBlockPosition())) {
                 event.setCancelled(true);
+                if (source != cause) {
+                    // damaging entity (source) has been spawned (or w/e) by player (cause); remove it from the world
+                    source.remove();
+                }
             }
+        } else {
+            // some other entity has caused damage, don't want this.
+            // doesn't remove the entity
+            event.setCancelled(true);
         }
     }
 
     @Listener(order = Order.PRE)
     public void onUse(UseItemStackEvent.Start event, @First Player player) {
-        if (plotWorld.equalsWorld(player.getWorld())) {
-            if (player.hasPermission(Permissions.ACTION_BYPASS)) {
-                return;
-            }
-            if (!player.hasPermission(Permissions.ACTION_USE) || !canEdit(player, player.getLocation().getBlockPosition())) {
-                event.setCancelled(true);
-            }
+        if (!plotWorld.equalsWorld(player.getWorld())) {
+            return;
+        }
+
+        if (!player.hasPermission(Permissions.ACTION_USE) || !canEdit(player, player.getLocation().getBlockPosition())) {
+            event.setCancelled(true);
         }
     }
 
@@ -220,90 +219,96 @@ public class PlotWorldListener {
         }
 
         Entity entity = (Entity) event.getSource();
-        if (plotWorld.equalsWorld(entity.getWorld())) {
-            if (entity.getType() != EntityTypes.PLAYER) {
-                return;
-            }
-            Player player = (Player) entity;
-            if (player.hasPermission(Permissions.ACTION_BYPASS)) {
-                return;
-            }
-            if (!player.hasPermission(Permissions.ACTION_DROP) || !canEdit(player, player.getLocation().getBlockPosition())) {
-                event.setCancelled(true);
-            }
+        if (!plotWorld.equalsWorld(entity.getWorld())) {
+            return;
+        }
+
+        if (entity.getType() != EntityTypes.PLAYER) {
+            return;
+        }
+
+        Player player = (Player) entity;
+        if (!player.hasPermission(Permissions.ACTION_DROP) || !canEdit(player, player.getLocation().getBlockPosition())) {
+            event.setCancelled(true);
         }
     }
 
     @Listener(order = Order.PRE)
     public void onSpawn(SpawnEntityEvent event, @First Player player) {
-        if (plotWorld.equalsWorld(player.getWorld())) {
-            if (player.hasPermission(Permissions.ACTION_BYPASS)) {
-                return;
-            }
-            boolean spawnInanimate = player.hasPermission(Permissions.ACTION_SPAWN_INANIMATE);
-            boolean spawnLiving = player.hasPermission(Permissions.ACTION_SPAWN_LIVING);
-            event.filterEntities(entity -> {
-                if (entity instanceof Living && !(entity instanceof ArmorStand)) {
-                    return spawnLiving && canEdit(player, entity.getLocation().getBlockPosition());
-                }
-                return spawnInanimate && canEdit(player, entity.getLocation().getBlockPosition());
-            });
+        if (!plotWorld.equalsWorld(player.getWorld())) {
+            return;
         }
+
+        boolean spawnInanimate = player.hasPermission(Permissions.ACTION_SPAWN_INANIMATE);
+        boolean spawnLiving = player.hasPermission(Permissions.ACTION_SPAWN_LIVING);
+        event.filterEntities(entity -> {
+            if (entity instanceof Living && !(entity instanceof ArmorStand)) {
+                return spawnLiving && canEdit(player, entity.getLocation().getBlockPosition());
+            }
+            return spawnInanimate && canEdit(player, entity.getLocation().getBlockPosition());
+        });
     }
 
     @Listener
     public void onJoin(ClientConnectionEvent.Join event, @Root Player player) {
-        if (plotWorld.equalsWorld(player.getWorld())) {
-            PlotId plotId = plotWorld.plotSchema().containingPlot(player.getLocation().getBlockPosition());
-            if (plotId.present()) {
-                Format format = Fmt.copy();
-                Supplier<Text> async = () -> PlotActions.plotInfo(plotWorld.database(), plotId, format);
-                Consumer<Text> sync = text -> player.sendMessage(ChatTypes.ACTION_BAR, text);
-                Plots.executor().async(async, sync);
-            }
+        if (!plotWorld.equalsWorld(player.getWorld())) {
+            return;
+        }
+
+        PlotId plotId = plotWorld.plotSchema().containingPlot(player.getLocation().getBlockPosition());
+        if (plotId.present()) {
+            Format format = Fmt.copy();
+            Supplier<Text> async = () -> PlotActions.plotInfo(plotWorld.database(), plotId, format);
+            Consumer<Text> sync = text -> player.sendMessage(ChatTypes.ACTION_BAR, text);
+            Plots.executor().async(async, sync);
         }
     }
 
     @Listener (order = Order.POST)
     public void onTeleport(MoveEntityEvent.Teleport event, @Root Player player) {
-        if (plotWorld.equalsWorld(event.getToTransform().getExtent())) {
-            PlotId plotId = plotWorld.plotSchema().containingPlot(event.getToTransform().getPosition().toInt());
-            if (plotId.present()) {
-                Format format = Fmt.copy();
-                Supplier<Text> async = () -> PlotActions.plotInfo(plotWorld.database(), plotId, format);
-                Consumer<Text> sync = text -> player.sendMessage(ChatTypes.ACTION_BAR, text);
-                Plots.executor().async(async, sync);
-            }
+        if (!plotWorld.equalsWorld(event.getToTransform().getExtent())) {
+            return;
+        }
+
+        PlotId plotId = plotWorld.plotSchema().containingPlot(event.getToTransform().getPosition().toInt());
+        if (plotId.present()) {
+            Format format = Fmt.copy();
+            Supplier<Text> async = () -> PlotActions.plotInfo(plotWorld.database(), plotId, format);
+            Consumer<Text> sync = text -> player.sendMessage(ChatTypes.ACTION_BAR, text);
+            Plots.executor().async(async, sync);
         }
     }
 
     @Listener
     public void onEntityMove(MoveEntityEvent event) {
-        if (plotWorld.equalsWorld(event.getToTransform().getExtent())) {
-            Vector3i from = event.getFromTransform().getLocation().getBlockPosition();
-            Vector3i to = event.getToTransform().getLocation().getBlockPosition();
-            if (from.getX() != to.getX() || from.getZ() != to.getZ()) {
-                if (event.getTargetEntity() instanceof Player) {
-                    onPlayerMove((Player) event.getTargetEntity(), from, to);
-                } else {
-                    onEntityMove(event, event.getTargetEntity(), from, to);
-                }
+        if (!plotWorld.equalsWorld(event.getToTransform().getExtent())) {
+            return;
+        }
+
+        Vector3i from = event.getFromTransform().getLocation().getBlockPosition();
+        Vector3i to = event.getToTransform().getLocation().getBlockPosition();
+        if (from.getX() != to.getX() || from.getZ() != to.getZ()) {
+            if (event.getTargetEntity() instanceof Player) {
+                onPlayerMove((Player) event.getTargetEntity(), from, to);
+            } else {
+                onEntityMove(event, event.getTargetEntity(), from, to);
             }
         }
     }
 
     private void onEntityMove(Cancellable event, Entity entity, Vector3i from, Vector3i to) {
-        if (from.getX() != to.getX() || from.getZ() != to.getZ()) {
-            PlotId fromId = plotWorld.plotSchema().plotId(from);
-            PlotBounds bounds = plotWorld.plotSchema().plotBounds(fromId);
+        if (from.getX() == to.getX() && from.getZ() == to.getZ()) {
+            return;
+        }
 
-            if (!bounds.contains(from)) {
-                // entity is already outside of a plot so remove it
-                entity.remove();
-            } else if (!bounds.contains(to)) {
-                // entity attempted to leave the bounds of a plot so prevent it
-                event.setCancelled(true);
-            }
+        PlotId fromId = plotWorld.plotSchema().plotId(from);
+        PlotBounds bounds = plotWorld.plotSchema().plotBounds(fromId);
+        if (!bounds.contains(from)) {
+            // entity is already outside of a plot so remove it
+            entity.remove();
+        } else if (!bounds.contains(to)) {
+            // entity attempted to leave the bounds of a plot so prevent it
+            event.setCancelled(true);
         }
     }
 
@@ -313,6 +318,7 @@ public class PlotWorldListener {
             // player already inside a plot
             return;
         }
+
         PlotId toId = plotWorld.plotSchema().plotId(to);
         if (plotWorld.plotSchema().plotBounds(toId).contains(to)) {
             // player entered the bounds of a new plot
