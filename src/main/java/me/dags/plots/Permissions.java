@@ -45,7 +45,6 @@ public final class Permissions {
     public static final String WORLD_TP = "plots.command.world.tp";
     public static final String WORLD_WEATHER = "plots.command.world.weather";
 
-    public static final String ACTION_BYPASS = "plots.action.bypass";
     public static final String ACTION_DAMAGE = "plots.action.damage";
     public static final String ACTION_SNIPE = "plots.action.snipe";
     public static final String ACTION_SPAWN_INANIMATE = "plots.action.spawn.inanimate";

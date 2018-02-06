@@ -42,50 +42,27 @@ public class Plots {
     private static final Logger logger = LoggerFactory.getLogger("PLOTS");
     private static Plots instance;
 
-    private final boolean enabled;
     private final PlotsCore plots;
     private final Cause plotsCause;
     private final Executor executor;
-    private final MongoClient client;
-
+    private final Path configDir;
+    private MongoClient client;
     private Config config;
-
-    private boolean safeMode() {
-        return !enabled || client == null;
-    }
 
     @Inject
     public Plots(@ConfigDir(sharedRoot = false) Path configDir, PluginContainer container) {
-        final Config.Database database = IO.getConfig(configDir.resolve("config.conf")).database();
-
-        boolean enabled = false;
-        MongoClient client = null;
-        try {
-            client = new MongoClient(database.address(), database.port());
-            client.getAddress();
-            enabled = true;
-        } catch (Exception e) {
-            client = null;
-            enabled = false;
-            critical("MONGODB NOT AVAILABLE ON {}:{} - PLOTS SET TO SAFE-MODE", database.address(), database.port());
-        } finally {
-            Plots.instance = this;
-            this.plots = new PlotsCore(this, configDir);
-            this.executor = new Executor(this);
-            this.client = client;
-            this.enabled = client != null && enabled;
-            this.plotsCause = Cause.source(container).build();
-        }
+        Plots.instance = this;
+        this.plots = new PlotsCore(this, configDir);
+        this.executor = new Executor(this);
+        this.configDir = configDir;
+        this.plotsCause = Cause.source(container).build();
     }
 
     @Listener
-    public void init(GameInitializationEvent event) {
+    public void connect(GameInitializationEvent event) {
         config = IO.getConfig(core().configDir().resolve("config.conf"));
 
-        if (!safeMode()) {
-            IO.writeConfig(config, core().configDir().resolve("config.conf"));
-        }
-
+        connect();
         core().reloadGenerators();
         core().loadWorldGenerators();
 
@@ -94,36 +71,7 @@ public class Plots {
             return;
         }
 
-        Sponge.getRegistry().registerModule(PlotWorld.class, new PlotWorldModule());
-        Sponge.getRegistry().registerModule(GeneratorProperties.class, new GeneratorModule());
-
-        CommandBus.builder().logger(logger).build()
-                .registerSubPackagesOf(Cmd.class)
-                .submit(Plots.instance);
-
-        executor().sync(Support.of(
-                "PlotsWeb",
-                "me.dags.plotsweb.service.PlotsWebService",
-                "me.dags.plots.support.plotsweb.PlotsWeb")
-        );
-
-        executor().sync(Support.of(
-                "Converse",
-                "me.dags.converse.Conversation",
-                "me.dags.plots.support.converse.ConverseSupport")
-        );
-
-        executor().sync(Support.of(
-                "WorldEdit",
-                "com.sk89q.worldedit.WorldEdit",
-                "me.dags.plots.support.worldedit.WESessionListener")
-        );
-
-        executor().sync(Support.of(
-                "VoxelSniper",
-                "com.thevoxelbox.voxelsniper.VoxelSniper",
-                "me.dags.plots.support.voxelsniper.SniperListener")
-        );
+        register();
     }
 
     @Listener(order = Order.POST)
@@ -162,6 +110,41 @@ public class Plots {
         client.close();
         executor().close();
         core().dispatcher().finishAll();
+    }
+
+    private boolean safeMode() {
+        return client == null;
+    }
+
+    private void connect() {
+        Config.Database database = IO.getConfig(configDir.resolve("config.conf")).database();
+
+        try {
+            client = new MongoClient(database.address(), database.port());
+            client.getAddress();
+            IO.writeConfig(config, core().configDir().resolve("config.conf"));
+        } catch (Exception e) {
+            client = null;
+            critical("MONGODB NOT AVAILABLE ON {}:{} - PLOTS SET TO SAFE-MODE", database.address(), database.port());
+        }
+    }
+
+    private void register() {
+        Sponge.getRegistry().registerModule(PlotWorld.class, new PlotWorldModule());
+        Sponge.getRegistry().registerModule(GeneratorProperties.class, new GeneratorModule());
+        CommandBus.create().registerSubPackagesOf(Cmd.class).submit(this);
+
+        executor().sync(Support.of(
+                "WorldEdit",
+                "com.sk89q.worldedit.WorldEdit",
+                "me.dags.plots.support.worldedit.WESessionListener")
+        );
+
+        executor().sync(Support.of(
+                "VoxelSniper",
+                "com.thevoxelbox.voxelsniper.VoxelSniper",
+                "me.dags.plots.support.voxelsniper.SniperListener")
+        );
     }
 
     public static Cause PLOTS_CAUSE() {
