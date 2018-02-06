@@ -146,7 +146,7 @@ public class PlotWorldListener {
             return;
         }
 
-        final PlotMask mask = getMask(player);
+        PlotMask mask = getMask(player);
         event.filter(location -> mask.contains(location.getBlockPosition()));
     }
 
@@ -241,11 +241,12 @@ public class PlotWorldListener {
 
         boolean spawnInanimate = player.hasPermission(Permissions.ACTION_SPAWN_INANIMATE);
         boolean spawnLiving = player.hasPermission(Permissions.ACTION_SPAWN_LIVING);
+        PlotMask mask = getMask(player);
         event.filterEntities(entity -> {
             if (entity instanceof Living && !(entity instanceof ArmorStand)) {
-                return spawnLiving && canEdit(player, entity.getLocation().getBlockPosition());
+                return spawnLiving && mask.contains(entity.getLocation().getBlockPosition());
             }
-            return spawnInanimate && canEdit(player, entity.getLocation().getBlockPosition());
+            return spawnInanimate && mask.contains(entity.getLocation().getBlockPosition());
         });
     }
 
