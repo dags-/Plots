@@ -30,7 +30,7 @@ dependencies {
     }
 
     shade 'org.mongodb:mongo-java-driver:3.7.0'
-    shade 'com.github.dags-:CommandBus:2.0.2'
+    shade 'com.github.dags-:CommandBus:2.0.3'
     shade 'com.github.dags-:NodeData:1.4.1-SNAPSHOT'
 }
 
