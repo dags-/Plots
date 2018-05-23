@@ -39,7 +39,6 @@ import org.spongepowered.api.text.chat.ChatTypes;
 import org.spongepowered.api.util.Tristate;
 import org.spongepowered.api.world.weather.Weathers;
 
-import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -95,25 +94,27 @@ public class PlotWorldListener {
         }
     }
 
-    @Listener(order = Order.PRE)
-    public void onBlockChange(ChangeBlockEvent event) {
-        Object root = event.getSource();
-        if (root instanceof Player) {
-            // handled elsewhere
+    @Listener(order = Order.AFTER_PRE)
+    public void onBlockPlace(ChangeBlockEvent.Place event) {
+        filter(event);
+    }
+
+    @Listener(order = Order.AFTER_PRE)
+    public void onBlockBreak(ChangeBlockEvent.Break event) {
+        filter(event);
+
+    }
+
+    @Listener(order = Order.AFTER_PRE)
+    public void onBlockModify(ChangeBlockEvent.Modify event) {
+        filter(event);
+    }
+
+    private void filter(ChangeBlockEvent event) {
+        if (event.getSource() instanceof Player) {
             return;
         }
-
-        // prevent blocks 'leaking' outside of a plot (trees growing, water flowing etc)
-        List<?> input = event.getTransactions();
-        List<?> result = event.filter(loc -> plotWorld.equalsWorld(loc.getExtent()) && plotWorld.plotSchema().containingPlot(loc.getBlockPosition()).present());
-
-        // remove block if it's outside of a plot to prevent repeat events
-        if (result.size() != input.size() && root instanceof BlockSnapshot) {
-            BlockSnapshot snapshot = (BlockSnapshot) root;
-            if (!plotWorld.plotSchema().containingPlot(snapshot.getPosition()).present()) {
-                snapshot.getLocation().ifPresent(location -> location.setBlockType(BlockTypes.AIR));
-            }
-        }
+        event.filter(l -> !plotWorld.equalsWorld(l.getExtent()) || !plotWorld.plotSchema().containingPlot(l.getBiomePosition()).present());
     }
 
     @Listener(order = Order.PRE)
